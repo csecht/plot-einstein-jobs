@@ -1,0 +1,16 @@
+# Do not rename this file or move it from the plot-einstein-jobs folder.
+
+# PURPOSE of this file:
+# 1) If the job_log_einstein.phys.uwm.edu.txt file is no longer in its
+#    default install location, you can enter its new location here.
+# 2) If you want to plot an archived version of the job_log file, then
+#    enter that alternate file path here.
+
+# Example path formats (using the default paths) to use in the custom_path line:
+# Windows -  \Program Files\BOINC\boinccmd.exe
+# Linux - /var/lib/boinc/job_log_einstein.phys.uwm.edu.txt
+# Mac - /Library/Application Support/BOINC Data/job_log_einstein.phys.uwm.edu.txt
+
+# Remove the # before custom_path and replace the example with your desired path.
+
+#custom_path your/custom/path/goes/here
