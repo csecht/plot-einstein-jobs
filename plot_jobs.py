@@ -35,7 +35,7 @@ Developed in Python 3.8-3.9.
 
 URL: https://github.com/csecht/plot-einstein-jobs
 Development Status :: 1 - Alpha
-Version: 0.0.1
+Version: 0.0.2
 
 Copyright: (c) 2022 Craig S. Echt under GNU General Public License.
 
@@ -88,7 +88,7 @@ MRKR_SCALE = 1
 DCNT_SIZE = 2
 LIGHT_COLOR = '#cccccc'  # '#d9d9d9' X11 gray85; '#cccccc' X11 gray80
 DARK_BG = '#333333'  # X11 gray20
-PICK_RADIUS = 10
+PICK_RADIUS = 6
 
 #  Variables used in manage_plots().
 all_excluded = ('all', 'gw_series', 'gw_O3_freq', 'fgrpG1_freq')
@@ -417,7 +417,8 @@ def on_pick(event):
     return event
 
 
-# Need to have mpl_connect statement before any autoscale statements.
+# Need to have mpl_connect statement before any autoscale statements AND
+#  need to have ax.autoscale(True) set for picker radius to work.
 fig.canvas.mpl_connect('pick_event', on_pick)
 
 
@@ -598,10 +599,11 @@ def setup_count_axes():
     ax1.grid(True)
     ax2.grid(True)
 
-    # NOTE: autoscale methods have no effect when reset_plots() plots
-    #  the full range datetimes from a job lob.
-    # ax1.autoscale(True)
-    # ax2.autoscale(True)
+    # NOTE: autoscale methods have no visual effect when reset_plots() plots
+    #  the full range datetimes from a job lob, BUT enabling autoscale
+    #  does allow the picker radius to work properly.
+    ax1.autoscale(True)
+    ax2.autoscale(True)
 
 
 def setup_freq_axes(t_limits: tuple):
