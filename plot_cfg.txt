@@ -6,11 +6,11 @@
 # 2) If you want to plot an archived version of the job_log file, then
 #    enter that alternate file path here.
 
-# Example path formats (using the default paths) to use in the custom_path line:
-# Windows -  \Program Files\BOINC\boinccmd.exe
+# Example path formats (using the default paths) to use as the custom_path:
+# Windows -  /ProgramData/BOINC/job_log_einstein.phys.uwm.edu.txt
 # Linux - /var/lib/boinc/job_log_einstein.phys.uwm.edu.txt
 # Mac - /Library/Application Support/BOINC Data/job_log_einstein.phys.uwm.edu.txt
 
-# Remove the # before custom_path and replace the example with your desired path.
+# Remove the # before custom_path and replace the stub with your desired path.
 
 #custom_path your/custom/path/goes/here

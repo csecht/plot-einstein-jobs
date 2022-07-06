@@ -6,10 +6,10 @@ TESTFILE = Path('plot_utils/testdata.txt').resolve()
 MY_OS = sys.platform[:3]
 
 
-def set_datapath(do_test=False) -> str:
+def set_datapath(do_test=False) -> Path:
     if do_test:
         if Path.is_file(TESTFILE):
-            return str(TESTFILE)
+            return TESTFILE
 
     if Path.is_file(CFGFILE):
         cfg_text = Path(CFGFILE).read_text()
@@ -19,7 +19,7 @@ def set_datapath(do_test=False) -> str:
                 del parts[0]
                 custom_path = " ".join(parts)
 
-                return custom_path
+                return Path(custom_path)
 
     default_logpath = {
         'win': Path('/ProgramData/BOINC/job_log_einstein.phys.uwm.edu.txt'),
