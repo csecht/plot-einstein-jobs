@@ -23,7 +23,7 @@ Using the navigation bar, plots can be zoomed-in, panned, restored to
 previous views, and copied to PNG files.
 When no navigation bar buttons are active, clicking on a cluster or
 single data point shows task names near the click coordinates.
-The "Log counts" button shows summary counts of all tasks, by Project.
+The "Job lob counts" button shows summary counts of all tasks, by Project.
 
 The default configuration reads the job_log_einstein.phys.uwm.edu.txt
 file in its default BOINC location. If you have changed the default
@@ -476,7 +476,7 @@ def joblog_counts(event):
     _results = tuple(zip(proj2report, proj_totals, proj_daily_means, proj_days))
     num_days = len(pd.to_datetime(all_tasks.time_stamp).dt.date.unique())
 
-    _report = (f'Task metrics for the past {num_days} days:\n\n'
+    _report = (f'Task counts for the past {num_days} days:\n\n'
                f'{"Project".ljust(6)} {"Total".rjust(10)}'
                f' {"per Day".rjust(9)} {"Days".rjust(8)}\n'
                )
@@ -524,7 +524,7 @@ def setup_buttons():
 
     #  Relative coordinates in Figure, as 4-tuple, are (LEFT, BOTTOM, WIDTH, HEIGHT)
     ax_statsbtn = plt.axes((0.885, 0.02, 0.09, 0.08))  # Position: bottom right corner.
-    sbtn = Button(ax_statsbtn, 'Log\ncounts', color=LIGHT_COLOR, hovercolor='orange')
+    sbtn = Button(ax_statsbtn, 'Job log\ncounts', color=LIGHT_COLOR, hovercolor='orange')
     sbtn.on_clicked(joblog_counts)
     ax_statsbtn._button = sbtn
 
