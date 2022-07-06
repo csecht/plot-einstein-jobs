@@ -79,6 +79,7 @@ except (ImportError, ModuleNotFoundError) as err:
           'Alternative command formats (system dependent):\n'
           'python -m pip install -r requirements.txt\n'
           'python3 -m pip install -r requirements.txt\n'
+          'py -m pip install -r requirements.txt\n'
           f'Error msg: {err}')
     sys.exit(1)
 
@@ -594,24 +595,13 @@ def setup_count_axes():
     ax2.xaxis.label.set_color(LIGHT_COLOR)
     ax2.tick_params(colors=LIGHT_COLOR, which='both')
 
-    ax1.autoscale(True)
     ax1.grid(True)
-    ax2.autoscale(True)
     ax2.grid(True)
 
-    # #  Relative coordinates in Figure, as 4-tuple, are (LEFT, BOTTOM, WIDTH, HEIGHT)
-    # ax_legendbtn = plt.axes((0.89, 0.5, 0.09, 0.06))  # Position: just below plot checkboxes.
-    # lbtn = Button(ax_legendbtn, 'Legends', color=LIGHT_COLOR, hovercolor='orange')
-    # lbtn.on_clicked(toggle_legends)
-    # # Dummy reference, per documentation: "For the buttons to remain responsive
-    # #   you must keep a reference to this object."
-    # ax_legendbtn._button = lbtn
-    #
-    # #  Relative coordinates in Figure, as 4-tuple, are (LEFT, BOTTOM, WIDTH, HEIGHT)
-    # ax_statsbtn = plt.axes((0.89, 0.02, 0.09, 0.06))  # Position: bottom right corner.
-    # sbtn = Button(ax_statsbtn, 'Counts', color=LIGHT_COLOR, hovercolor='orange')
-    # sbtn.on_clicked(counts)
-    # ax_statsbtn._button = sbtn
+    # NOTE: autoscale methods have no effect when reset_plots() plots
+    #  the full range datetimes from a job lob.
+    # ax1.autoscale(True)
+    # ax2.autoscale(True)
 
 
 def setup_freq_axes(t_limits: tuple):
@@ -681,7 +671,10 @@ def reset_plots():
     Clear plots. axis labels, ticks, formats, legends, etc.
     Clears plotted data by setting all data values to zero.
     Useful to avoid stacking plots, which messes up on_pick() display of
-    nearby task info.
+    nearby task info. Note that with this the full x-axis datetime range
+    in job lob is always plotted; therefore, the methods ax.relim()
+    ax.autoscale_view() and ax.autoscale() have no effect on individual
+    data plots.
     Called from manage_plots().
     """
     global all_tasks
