@@ -1,13 +1,12 @@
 from pathlib import Path
 import sys
 
-CFGFILE = Path('plot_cfg.txt') #.resolve()
+CFGFILE = Path('plot_cfg.txt')  # .resolve()
 TESTFILE = Path('plot_utils/testdata.txt').resolve()
 MY_OS = sys.platform[:3]
 
 
 def set_datapath(do_test=False) -> str:
-
     if do_test:
         if Path.is_file(TESTFILE):
             return str(TESTFILE)
@@ -23,7 +22,7 @@ def set_datapath(do_test=False) -> str:
                 return custom_path
 
     default_logpath = {
-        # 'win': Path('/Program Files/BOINC/boinccmd.exe'),
+        'win': Path('/ProgramData/BOINC/job_log_einstein.phys.uwm.edu.txt'),
         'lin': Path('/var/lib/boinc/job_log_einstein.phys.uwm.edu.txt'),
         'dar': Path('/Library/Application Support/BOINC Data/job_log_einstein.phys.uwm.edu.txt')
     }
