@@ -90,7 +90,11 @@ LIGHT_COLOR = '#cccccc'  # '#d9d9d9' X11 gray85; '#cccccc' X11 gray80
 DARK_BG = '#333333'  # X11 gray20
 PICK_RADIUS = 6
 
-#  Variables used in manage_plots().
+chkbox_labels = ('all', 'fgrpG1', 'fgrp5', 'gw_O3', 'gw_O2', 'gw_series',
+                 'brp4', 'gw_O3_freq', 'fgrpG1_freq')
+
+# Variables used in manage_plots().
+# Need Project names to match across variables and with checkbox labels.
 all_excluded = ('all', 'gw_series', 'gw_O3_freq', 'fgrpG1_freq')
 gw_series_excluded = ('all', 'gw_O2', 'gw_O3', 'gw_O3_freq', 'fgrpG1_freq')
 freq_excluded = ('all', 'fgrpG1', 'fgrp5', 'gw_O3', 'gw_O2', 'gw_series', 'brp4')
@@ -101,13 +105,6 @@ freq_inclusive = ('gw_O3_freq', 'fgrpG1_freq')
 # Variables used as globals.
 do_replot = False
 legend_btn_on = True
-
-
-# For clarity, Project names in chkbox_labels are also used in:
-#   projects (tuple), proj2report (tuple), chkbox_labelid (dict),
-#   plot_proj (dict), ischecked (dict), & isplotted (dict).
-chkbox_labels = ('all', 'fgrpG1', 'fgrp5', 'gw_O3', 'gw_O2', 'gw_series',
-                 'brp4', 'gw_O3_freq', 'fgrpG1_freq')
 
 """
 USE THIS to extract subprojects:
@@ -142,7 +139,7 @@ Subprojects:  [
 'LATeah4001L00', 'LATeah4011L00', 'LATeah4011L01', 'LATeah4011L02', 'LATeah4011L03', 'LATeah4011L04', 'LATeah4012L00', 'LATeah4012L01', 'LATeah4012L02', 'LATeah4012L03', 'LATeah4012L04', 'LATeah4013L00', 'LATeah4013L01', 'LATeah4013L02', 'LATeah4013L03', 'LATeah4013L04'
 ]
 """
-# Num of unique GW sub-projects:  23
+# Num of known GW sub-projects:  23
 # contains() grabs first matches: O2MD1G = O2MD1Gn, O3AS1 = O3AS1a,
 #  so add back the Underscore at end of original sub-proj to make the match unique.
 gw_series = ('O2AS20-500', 'O2MD1C1', 'O2MD1C2', 'O2MD1G2', 'O2MD1G_',
@@ -302,9 +299,8 @@ def setup_df(do_test=False):
         # print(all_tasks.size)
 
 
-# Need to work up metrics here so there is less delay when "Log counts" button is used.
-# Need Project names here to be same as those used in:
-#   projects (tuple), isplotted (dict), and chkbox_labels (tuple).
+# Need to work up metrics here so there is less delay when "Job log counts"
+#  button is used.
 def log_proj_counts():
     for p in proj2report:
         is_p = f'is_{p}'
@@ -346,6 +342,9 @@ print(plt.style.available)
 mplstyle.use(('seaborn-colorblind', 'fast'))
 ax1.margins(0.02, 0.02)
 ax2.margins(0.02, 0.02)
+bbox_window = dict(facecolor='orange',
+                   alpha=0.4,
+                   boxstyle='round')
 
 
 def setup_title(do_test=False):
@@ -409,9 +408,7 @@ def on_pick(event):
     textax.text(-0.12, 0.0,
                 '\n\n'.join(map(str, task_info_list)),
                 fontsize=8,
-                bbox=dict(facecolor='orange',
-                          alpha=0.4,
-                          boxstyle='round'),
+                bbox=bbox_window,
                 transform=textax.transAxes,
                 )
 
@@ -467,7 +464,7 @@ def toggle_legends(event):
 
 def joblog_counts(event):
     """
-    Post statistical metrics of data in the job_log.
+    Post statistical metrics job_log data.
     Called from "Job log counts" button in Figure.
 
     :param event: Implicit mouse click event.
@@ -504,8 +501,7 @@ def joblog_counts(event):
     statax.text(0.0, 0.0,
                 _report,
                 fontproperties=_font,
-                bbox=dict(facecolor='orange', alpha=0.4,
-                          boxstyle='round'),
+                bbox=bbox_window,
                 transform=statax.transAxes,
                 )
 
@@ -601,7 +597,7 @@ def setup_count_axes():
 
     # NOTE: autoscale methods have no visual effect when reset_plots() plots
     #  the full range datetimes from a job lob, BUT enabling autoscale
-    #  does allow the picker radius to work properly.
+    #  allows the picker radius to work properly.
     ax1.autoscale(True)
     ax2.autoscale(True)
 
@@ -671,7 +667,9 @@ isplotted = {
 ax_chkbox = plt.axes((0.86, 0.6, 0.13, 0.3), facecolor=LIGHT_COLOR, )
 # checkbox is used in manage_plots() and in if __name__ == "__main__".
 checkbox = CheckButtons(ax_chkbox, chkbox_labels)
-
+bbox_freq = dict(facecolor='white',
+                 edgecolor='grey',
+                 boxstyle='round',)
 
 def reset_plots():
     """
@@ -874,9 +872,7 @@ def plot_fgrpG1_txf():
              fontsize=6,
              verticalalignment='top',
              transform=ax1.transAxes,
-             bbox=dict(facecolor='white',
-                       edgecolor='grey',
-                       boxstyle='round',),
+             bbox=bbox_freq,
              )
 
     ax1.plot(all_tasks.task_sec.where(all_tasks.is_fgrpG1),
@@ -916,9 +912,7 @@ def plot_gw_O3_txf():
              fontsize=6,
              verticalalignment='top',
              transform=ax1.transAxes,
-             bbox=dict(facecolor='white',
-                       edgecolor='grey',
-                       boxstyle='round',),
+             bbox=bbox_freq,
              )
 
     # NOTE that there is not a separate df column for O3 freq.
