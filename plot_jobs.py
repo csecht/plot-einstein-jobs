@@ -35,7 +35,7 @@ Developed in Python 3.8-3.9.
 
 URL: https://github.com/csecht/plot-einstein-jobs
 Development Status :: 1 - Alpha
-Version: 0.0.2
+Version: 0.0.3
 
 Copyright: (c) 2022 Craig S. Echt under GNU General Public License.
 
@@ -329,11 +329,6 @@ def log_proj_counts():
 # #############################################################################
 # Dataframe is made, now SET UP PLOTS. ########################################
 
-"""To list all available styles, use:
-print(plt.style.available)
-"""
-mplstyle.use(('seaborn-colorblind', 'fast'))
-
 fig, (ax1, ax2) = plt.subplots(2, figsize=(9.5, 5),
                                sharex='all',
                                gridspec_kw={'height_ratios': [3, 1],
@@ -344,6 +339,13 @@ fig, (ax1, ax2) = plt.subplots(2, figsize=(9.5, 5),
                                             'hspace': 0.15
                                             },
                                )
+
+"""To list all available styles, use:
+print(plt.style.available)
+"""
+mplstyle.use(('seaborn-colorblind', 'fast'))
+ax1.margins(0.02, 0.02)
+ax2.margins(0.02, 0.02)
 
 
 def setup_title(do_test=False):
@@ -361,8 +363,9 @@ def setup_title(do_test=False):
         title = 'E@H job_log data'
 
     fig.suptitle(title,
-                 fontsize=14, fontweight='bold',
-                 color=LIGHT_COLOR)
+                 fontsize=14,
+                 fontweight='bold',
+                 )
 
 
 def on_pick(event):
@@ -402,7 +405,6 @@ def on_pick(event):
     textax = textfig.add_subplot()
     textfig.suptitle('Tasks near clicked area, up to 6:')
     textax.axis('off')
-    # textax.set_transform(textax.transAxes)
 
     textax.text(-0.12, 0.0,
                 '\n\n'.join(map(str, task_info_list)),
@@ -418,19 +420,19 @@ def on_pick(event):
 
 
 # Need to have mpl_connect statement before any autoscale statements AND
-#  need to have ax.autoscale(True) set for picker radius to work.
+#  need to have ax.autoscale() set for picker radius to work.
 fig.canvas.mpl_connect('pick_event', on_pick)
 
 
 def format_legends():
     ax1.legend(fontsize='x-small', ncol=2,
-               loc='upper right',  # loc='best' takes time
+               loc='upper right',
                markerscale=MRKR_SCALE,
                edgecolor='black',
                framealpha=0.4,
                )
     ax2.legend(fontsize='x-small', ncol=2,
-               loc='upper right',  # loc='best' takes time
+               loc='upper right',
                markerscale=MRKR_SCALE,
                edgecolor='black',
                framealpha=0.4,
@@ -466,7 +468,7 @@ def toggle_legends(event):
 def joblog_counts(event):
     """
     Post statistical metrics of data in the job_log.
-    Called from "Counts" button in Figure.
+    Called from "Job log counts" button in Figure.
 
     :param event: Implicit mouse click event.
     :return:  None
@@ -498,8 +500,6 @@ def joblog_counts(event):
 
     _font = FontProperties()
     _font.set_family('monospace')
-    # font.set_name('Times New Roman')
-    # font.set_style('italic')
 
     statax.text(0.0, 0.0,
                 _report,
@@ -579,22 +579,22 @@ def setup_count_axes():
     ax1.yaxis.set_major_locator(ticker.AutoLocator())
     ax1.yaxis.set_minor_locator(ticker.AutoMinorLocator())
 
-    # ax2.yaxis.get_major_locator().set_params(integer=True)
     ax2.yaxis.set_major_locator(ticker.AutoLocator())
     ax2.yaxis.set_minor_locator(ticker.AutoMinorLocator())
 
-    fig.set_facecolor(DARK_BG)
-
-    ax1.set_facecolor(LIGHT_COLOR)
-    ax1.yaxis.label.set_color(LIGHT_COLOR)
-    ax1.xaxis.label.set_color(LIGHT_COLOR)
-
-    ax1.tick_params(colors=LIGHT_COLOR, which='both')
-
-    ax2.set_facecolor(LIGHT_COLOR)
-    ax2.yaxis.label.set_color(LIGHT_COLOR)
-    ax2.xaxis.label.set_color(LIGHT_COLOR)
-    ax2.tick_params(colors=LIGHT_COLOR, which='both')
+    # Dark color option:
+    # fig.set_facecolor(DARK_BG)
+    #
+    # ax1.set_facecolor(LIGHT_COLOR)
+    # ax1.yaxis.label.set_color(LIGHT_COLOR)
+    # ax1.xaxis.label.set_color(LIGHT_COLOR)
+    #
+    # ax1.tick_params(colors=LIGHT_COLOR, which='both')
+    #
+    # ax2.set_facecolor(LIGHT_COLOR)
+    # ax2.yaxis.label.set_color(LIGHT_COLOR)
+    # ax2.xaxis.label.set_color(LIGHT_COLOR)
+    # ax2.tick_params(colors=LIGHT_COLOR, which='both')
 
     ax1.grid(True)
     ax2.grid(True)
@@ -667,6 +667,11 @@ isplotted = {
     'fgrpG1_freq': False,
 }"""
 
+#  Relative coordinates in Figure, in 4-tuple: (LEFT, BOTTOM, WIDTH, HEIGHT)
+ax_chkbox = plt.axes((0.86, 0.6, 0.13, 0.3), facecolor=LIGHT_COLOR, )
+# checkbox is used in manage_plots() and in if __name__ == "__main__".
+checkbox = CheckButtons(ax_chkbox, chkbox_labels)
+
 
 def reset_plots():
     """
@@ -707,6 +712,7 @@ def plot_all():
              markersize=MARKER_SIZE,
              label='all',
              color=mmark.CBLIND_COLOR['blue'],
+             alpha=0.4,
              picker=PICK_RADIUS,
              )
     ax2.plot(all_tasks.time_stamp,
@@ -727,7 +733,7 @@ def plot_gw_O2():
              markersize=MARKER_SIZE,
              label='gw_O2MD1',
              color=mmark.CBLIND_COLOR['orange'],
-             alpha=0.5,
+             alpha=0.4,
              picker=PICK_RADIUS,
              )
     ax2.plot(all_tasks.time_stamp,
@@ -748,7 +754,7 @@ def plot_gw_O3():
              markersize=MARKER_SIZE,
              label='gw_O3AS',
              color=mmark.CBLIND_COLOR['sky blue'],
-             alpha=0.5,
+             alpha=0.4,
              picker=PICK_RADIUS,
              )
     ax2.plot(all_tasks.time_stamp,
@@ -769,7 +775,7 @@ def plot_fgrp5():
              markersize=MARKER_SIZE,
              label='fgrp5',
              color=mmark.CBLIND_COLOR['bluish green'],
-             alpha=0.5,
+             alpha=0.4,
              picker=PICK_RADIUS,
              )
     ax2.plot(all_tasks.time_stamp,
@@ -778,7 +784,7 @@ def plot_fgrp5():
              markersize=DCNT_SIZE,
              label='fgrp5',
              color=mmark.CBLIND_COLOR['bluish green'],
-             alpha=0.5,
+             alpha=0.4,
              picker=PICK_RADIUS,
              )
     format_legends()
@@ -792,7 +798,7 @@ def plot_fgrpG1():
              markersize=MARKER_SIZE,
              label='FGRBPG1',
              color=mmark.CBLIND_COLOR['vermilion'],
-             alpha=0.5,
+             alpha=0.4,
              picker=PICK_RADIUS,
              )
     ax2.plot(all_tasks.time_stamp,
@@ -813,7 +819,7 @@ def plot_brp4():
              markersize=MARKER_SIZE,
              label='BRP4 & BRP4G',
              color=mmark.CBLIND_COLOR['reddish purple'],
-             alpha=0.5,
+             alpha=0.4,
              picker=PICK_RADIUS,
              )
     ax2.plot(all_tasks.time_stamp,
@@ -869,8 +875,8 @@ def plot_fgrpG1_txf():
              verticalalignment='top',
              transform=ax1.transAxes,
              bbox=dict(facecolor='white',
-                       alpha=0.6,
-                       boxstyle='round'),
+                       edgecolor='grey',
+                       boxstyle='round',),
              )
 
     ax1.plot(all_tasks.task_sec.where(all_tasks.is_fgrpG1),
@@ -879,7 +885,7 @@ def plot_fgrpG1_txf():
              markersize=MARKER_SIZE,
              label='FGRPG1 f vs. task t',
              color=mmark.CBLIND_COLOR['orange'],
-             alpha=0.3,  # Higher alpha for zoom-in, lower for zoom-out.
+             alpha=0.4,
              picker=PICK_RADIUS,
              )
 
@@ -889,6 +895,7 @@ def plot_fgrpG1_txf():
                edgecolor='black',
                framealpha=0.4,
                )
+
     isplotted['fgrpG1_freq'] = True
 
 
@@ -910,8 +917,8 @@ def plot_gw_O3_txf():
              verticalalignment='top',
              transform=ax1.transAxes,
              bbox=dict(facecolor='white',
-                       alpha=0.6,
-                       boxstyle='round'),
+                       edgecolor='grey',
+                       boxstyle='round',),
              )
 
     # NOTE that there is not a separate df column for O3 freq.
@@ -921,7 +928,7 @@ def plot_gw_O3_txf():
              markersize=MARKER_SIZE,
              label='GW O3 f vs. task t',
              color=mmark.CBLIND_COLOR['blue'],
-             alpha=0.3,  # Better to increase alpha for zoom-in, lower for zoom-out.
+             alpha=0.4,
              picker=PICK_RADIUS,
              )
 
@@ -934,10 +941,6 @@ def plot_gw_O3_txf():
 
     isplotted['gw_O3_freq'] = True
 
-
-#  Relative coordinates in Figure, in 4-tuple: (LEFT, BOTTOM, WIDTH, HEIGHT)
-ax_chkbox = plt.axes((0.86, 0.6, 0.13, 0.3), facecolor=LIGHT_COLOR, )
-checkbox = CheckButtons(ax_chkbox, chkbox_labels)
 
 # These keys need to match the chkbox_labels:
 # ('all', 'fgrpG1', 'fgrp5', 'gw_O3', 'gw_O2', 'gw_series',
