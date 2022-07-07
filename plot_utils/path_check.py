@@ -2,7 +2,7 @@ from pathlib import Path
 import sys
 
 CFGFILE = Path('plot_cfg.txt').resolve()
-TESTFILE = Path('plot_utils/testdata.txt').resolve()
+TESTFILE = Path('plot_utils/testdata.txt')
 MY_OS = sys.platform[:3]
 
 

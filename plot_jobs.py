@@ -302,11 +302,11 @@ def setup_df(do_test=False):
 # Need to work up metrics here so there is less delay when "Job log counts"
 #  button is used.
 def log_proj_counts():
-    for p in proj2report:
-        is_p = f'is_{p}'
+    for _p in proj2report:
+        is_p = f'is_{_p}'
         proj_totals.append(all_tasks[is_p].sum())
 
-        p_dcnt = f'{p}_Dcnt'
+        p_dcnt = f'{_p}_Dcnt'
 
         proj_days.append(len((all_tasks[p_dcnt]
                               .groupby(all_tasks.time_stamp.dt.date
@@ -318,7 +318,7 @@ def log_proj_counts():
         #                             .count().mean())))
         if proj_totals[-1] != 0:
             proj_daily_means.append(round((proj_totals[-1] / proj_days[-1]), 1))
-        else:  # There is no Project p in the job log.
+        else:  # There is no Project _p in the job log.
             proj_daily_means.append(0)
 
 
@@ -471,7 +471,8 @@ def joblog_counts(event):
     :return:  None
     """
 
-    stats_title = 'Report for all tasks in E@H job log'
+    stats_title = (f'Report for all tasks in\n'
+                   f'{path_check.set_datapath(args.test)}')
 
     _results = tuple(zip(proj2report, proj_totals, proj_daily_means, proj_days))
     num_days = len(pd.to_datetime(all_tasks.time_stamp).dt.date.unique())
@@ -489,7 +490,7 @@ def joblog_counts(event):
     print(stats_title)
     print(_report)
 
-    statfig = plt.figure(figsize=(4.5, 2.5))
+    statfig = plt.figure(figsize=(5, 2.5))
     statax = statfig.add_subplot()
     statfig.suptitle(stats_title)
     statax.axis('off')
