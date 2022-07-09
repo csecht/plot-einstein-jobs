@@ -23,7 +23,7 @@ Using the navigation bar, plots can be zoomed-in, panned, restored to
 previous views, and copied to PNG files.
 When no navigation bar buttons are active, clicking on a cluster or
 single data point shows task cfg near the click coordinates.
-The "Job lob counts" button shows summary counts of all tasks, by Project.
+The "Job log counts" button shows summary counts of all tasks, by Project.
 
 The default configuration reads the job_log_einstein.phys.uwm.edu.txt
 file in its default BOINC location. If you have changed the default
@@ -91,6 +91,8 @@ class TaskDataFrame:
     def __init__(self, do_test):
         self.do_test = do_test
         self.tasks_df = pd.DataFrame()
+
+        # The do_test parameter is set as a cmd line argument.
 
         # Variables used for reporting in joblog_counts() and
         #   count_log_projects().
