@@ -116,13 +116,12 @@ class TaskDataFrame:
         :return: None
         """
 
-        # Can check for NaN values with:
+        # Developer note: Can check for presence NaN values with:
         # print('Any null values?', self.tasks_df.isnull().values.any())  # -> True
         # print("Sum of null timestamps:", self.tasks_df['time_stamp'].isnull().sum())
         # print("Sum of ALL nulls:", self.tasks_df.isnull().sum()).sum())
 
-
-        # For all numerical data in job_log, use this:
+        # To include all numerical data in job_log, use this:
         # joblog_col_idx = 0, 2, 4, 6, 8, 10  # All reported data
         # headers = ('time_stamp', 'est_sec', 'cpu_sec', 'est_flops', 'task_name', 'task_t')
         # time_col = ('time_stamp', 'est_sec', 'cpu_sec', 'task_t')
@@ -179,7 +178,7 @@ class TaskDataFrame:
 
         # Add columns of search frequencies, parsed from the task cfg,
         """
-        Expected task cfg to match the regex for base frequency:
+        Regex for base frequency will match these task name structures:
         FGRP task: 'LATeah4013L03_988.0_0_0.0_9010205_1'
         GW task: 'h1_0681.20_O3aC01Cl1In0__O3AS1a_681.50Hz_19188_1'
         """
@@ -193,9 +192,10 @@ class TaskDataFrame:
                                         .str.extract(pattern_fgrpg1_freq).astype(float)
                                         .where(self.tasks_df.is_fgrpG1))
 
-        """Idea to tally using groupby and transform from:
-           https://stackoverflow.com/questions/17709270/
-           create-column-of-value-counts-in-pandas-dataframe
+        """
+        Idea to tally using groupby and transform from:
+        https://stackoverflow.com/questions/17709270/
+        create-column-of-value-counts-in-pandas-dataframe
         """
         # Make dict of daily task counts (Dcnt) for each Project and sub-Project.
         # NOTE: gw times are not plotted (use O2 + O3), but gw_Dcnt is used in
@@ -237,6 +237,7 @@ class TaskDataFrame:
                                   .groupby(self.tasks_df.time_stamp.dt.date
                                            .where(self.tasks_df[p_dcnt].notnull()))
                                   .unique())))
+
             if self.proj_totals[-1] != 0:
                 self.proj_daily_means.append(
                     round((self.proj_totals[-1] / self.proj_days[-1]), 1))
@@ -245,6 +246,10 @@ class TaskDataFrame:
 
 
 class PlotTasks(TaskDataFrame):
+    """
+    Set up and display Matplotlib Figure and pyplot Plots. Axes data are
+    inherited as a Pandas dataframe.
+    """
 
     MARKER_SIZE = 4
     MARKER_SCALE = 1
@@ -276,6 +281,8 @@ class PlotTasks(TaskDataFrame):
         )
 
         mplstyle.use(('seaborn-colorblind', 'fast'))
+
+        # Default axis margins are 0.05 (5%) of data values.
         self.ax1.margins(0.02, 0.02)
         self.ax2.margins(0.02, 0.02)
 
@@ -283,7 +290,7 @@ class PlotTasks(TaskDataFrame):
         #  need to have ax.autoscale() set for picker radius to work.
         self.fig.canvas.mpl_connect('pick_event', self.on_pick)
 
-        # These keys need to match cfg.CHKBOX_LABELS (in names_config.py).
+        # These keys must match cfg.CHKBOX_LABELS in names_config.py.
         self.plot_proj = {
             'all': self.plot_all,
             'fgrpG1': self.plot_fgrpG1,
@@ -379,11 +386,11 @@ class PlotTasks(TaskDataFrame):
                     f'{self.tasks_df.loc[dataidx].task_t.time()}')
             limit -= 1
 
-        # Need to print results to Terminal to provide a cut-and-paste
-        #   record of picks.
+        # Need to print results to Terminal to provide user with the
+        #   option to cut-and-paste selected task info.
         print('\n'.join(map(str, task_info_list)))
 
-        # Make new window with text box, one window for each click.
+        # Make new window with text box; one window made for each click.
         textfig = plt.figure(figsize=(6, 2))
         textax = textfig.add_subplot()
 
@@ -451,7 +458,7 @@ class PlotTasks(TaskDataFrame):
         :return:  None
         """
 
-        stats_title = (f'Report for all tasks in\n'
+        stats_title = (f'Summary of all tasks in\n'
                        f'{path_check.set_datapath(args.test)}')
 
         _results = tuple(zip(
@@ -479,13 +486,10 @@ class PlotTasks(TaskDataFrame):
         statfig.suptitle(stats_title, color=self.LIGHT_COLOR)
         statax.axis('off')
 
-        _font = FontProperties()
-        _font.set_family('monospace')
-
         statax.text(0.0, 0.0,
                     _report,
                     color=self.LIGHT_COLOR,
-                    fontproperties=_font,
+                    fontproperties=FontProperties(family='monospace'),
                     transform=statax.transAxes,
                     )
 
@@ -506,8 +510,9 @@ class PlotTasks(TaskDataFrame):
         #   you must keep a reference to this object."
         ax_legendbtn._button = lbtn
 
-        #  Relative coordinates in Figure, as 4-tuple, are (LEFT, BOTTOM, WIDTH, HEIGHT)
-        ax_statsbtn = plt.axes((0.885, 0.02, 0.09, 0.08))  # Position: bottom right corner.
+        # Relative coordinates in Figure, as 4-tuple, are (LEFT, BOTTOM, WIDTH, HEIGHT)
+        # Position to bottom right corner of Figure window.
+        ax_statsbtn = plt.axes((0.885, 0.02, 0.09, 0.08))
         sbtn = Button(ax_statsbtn,
                       'Job log\ncounts',
                       color=self.LIGHT_COLOR,
@@ -516,9 +521,9 @@ class PlotTasks(TaskDataFrame):
         sbtn.on_clicked(self.joblog_counts)
         ax_statsbtn._button = sbtn
 
-        # These are in alignment with the plot selector checkbox, ax_chkbox:
+        # Buttons are in alignment with the plot selector checkbox, ax_chkbox:
         #  ax_chkbox = plt.axes((0.885, 0.6, 0.111, 0.3), facecolor=self.LIGHT_COLOR, )
-        # and fitted to the figsize(9, 5) and subplot axes, self.ax1 & self.ax2, gridspec_kw:
+        # and fitted for figsize(9, 5) and subplot axes, self.ax1 & self.ax2, gridspec_kw:
         #                                                   'left': 0.11,
         #                                                   'right': 0.855,
         #                                                   'bottom': 0.16,
