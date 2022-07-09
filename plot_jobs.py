@@ -299,8 +299,8 @@ class PlotTasks(TaskDataFrame):
             'gw_O2': self.plot_gw_O2,
             'gw_series': self.plot_gw_series,
             'brp4': self.plot_brp4,
-            'gw_O3_freq': self.plot_gw_O3_txf,
-            'fgrpG1_freq': self.plot_fgrpG1_txf,
+            'gw_O3_freq': self.plot_gw_O3_freq,
+            'fgrpG1_freq': self.plot_fgrpG1_freq,
         }
 
         self.chkbox_labelid = {}
@@ -310,9 +310,9 @@ class PlotTasks(TaskDataFrame):
                               edgecolor='grey',
                               boxstyle='round', )
 
+        self.setup_title()
         self.setup_buttons()
         self.setup_count_axes()
-        self.setup_title()
 
     def setup_title(self):
         """
@@ -333,6 +333,39 @@ class PlotTasks(TaskDataFrame):
                           fontsize=14,
                           fontweight='bold',
                           )
+
+    def setup_buttons(self):
+        # Relative coordinates in Figure are (LEFT, BOTTOM, WIDTH, HEIGHT).
+        # Position button just below plot checkboxes.
+        ax_legendbtn = plt.axes((0.885, 0.5, 0.09, 0.06))
+        lbtn = Button(ax_legendbtn,
+                      'Legends',
+                      color=self.LIGHT_COLOR,
+                      hovercolor='orange',
+                      )
+        lbtn.on_clicked(self.toggle_legends)
+        # Dummy reference, per documentation: "For the buttons to remain responsive
+        #   you must keep a reference to this object."
+        ax_legendbtn._button = lbtn
+
+        # Relative coordinates in Figure, as 4-tuple, are (LEFT, BOTTOM, WIDTH, HEIGHT)
+        # Position to bottom right corner of Figure window.
+        ax_statsbtn = plt.axes((0.885, 0.02, 0.09, 0.08))
+        sbtn = Button(ax_statsbtn,
+                      'Job log\ncounts',
+                      color=self.LIGHT_COLOR,
+                      hovercolor='orange',
+                      )
+        sbtn.on_clicked(self.joblog_counts)
+        ax_statsbtn._button = sbtn
+
+        # Buttons are in alignment with the plot selector checkbox, ax_chkbox:
+        #  ax_chkbox = plt.axes((0.885, 0.6, 0.111, 0.3), facecolor=self.LIGHT_COLOR, )
+        # and fitted for figsize(9, 5) and subplot axes, self.ax1 & self.ax2, gridspec_kw:
+        #                                                   'left': 0.11,
+        #                                                   'right': 0.855,
+        #                                                   'bottom': 0.16,
+        #                                                   'top': 0.92,
 
     def setup_plot_mgr(self):
         """
@@ -496,39 +529,6 @@ class PlotTasks(TaskDataFrame):
         plt.show()
         return event
 
-    def setup_buttons(self):
-        # Relative coordinates in Figure are (LEFT, BOTTOM, WIDTH, HEIGHT).
-        # Position button just below plot checkboxes.
-        ax_legendbtn = plt.axes((0.885, 0.5, 0.09, 0.06))
-        lbtn = Button(ax_legendbtn,
-                      'Legends',
-                      color=self.LIGHT_COLOR,
-                      hovercolor='orange',
-                      )
-        lbtn.on_clicked(self.toggle_legends)
-        # Dummy reference, per documentation: "For the buttons to remain responsive
-        #   you must keep a reference to this object."
-        ax_legendbtn._button = lbtn
-
-        # Relative coordinates in Figure, as 4-tuple, are (LEFT, BOTTOM, WIDTH, HEIGHT)
-        # Position to bottom right corner of Figure window.
-        ax_statsbtn = plt.axes((0.885, 0.02, 0.09, 0.08))
-        sbtn = Button(ax_statsbtn,
-                      'Job log\ncounts',
-                      color=self.LIGHT_COLOR,
-                      hovercolor='orange',
-                      )
-        sbtn.on_clicked(self.joblog_counts)
-        ax_statsbtn._button = sbtn
-
-        # Buttons are in alignment with the plot selector checkbox, ax_chkbox:
-        #  ax_chkbox = plt.axes((0.885, 0.6, 0.111, 0.3), facecolor=self.LIGHT_COLOR, )
-        # and fitted for figsize(9, 5) and subplot axes, self.ax1 & self.ax2, gridspec_kw:
-        #                                                   'left': 0.11,
-        #                                                   'right': 0.855,
-        #                                                   'bottom': 0.16,
-        #                                                   'top': 0.92,
-
     def setup_count_axes(self):
         """
         Used to rebuild axes components when plots and axes are cleared by
@@ -597,8 +597,16 @@ class PlotTasks(TaskDataFrame):
         self.ax2.autoscale()
 
     def setup_freq_axes(self, t_limits: tuple):
-        # Need to remove bottom axis and show tick lables (b/c when sharex=True,
-        #   tick labels only show on bottom (self.ax2) plot).
+        """
+        Remove bottom axis and show tick labels (b/c when sharex=True,
+        tick labels only show on bottom (self.ax2) plot).
+        Called from plot_fgrpG1_freq() and plot_gw_O3_freq().
+
+        :param t_limits: Constrain x-axis of task times to from
+            zero to max value plus a small buffer.
+        :return: None
+        """
+        #
         self.ax2.set_visible(False)
         self.ax1.tick_params('x', labelbottom=True)
 
@@ -795,14 +803,14 @@ class PlotTasks(TaskDataFrame):
         self.format_legends()
         self.isplotted['gw_series'] = True
 
-    def plot_fgrpG1_txf(self):
+    def plot_fgrpG1_freq(self):
         num_freq = self.tasks_df.fgrpG1_freq.nunique()
         min_f = self.tasks_df.fgrpG1_freq.min()
         max_f = self.tasks_df.fgrpG1_freq.max()
         min_t = self.tasks_df.task_sec.where(self.tasks_df.is_fgrpG1).min()
         max_t = self.tasks_df.task_sec.where(self.tasks_df.is_fgrpG1).max()
 
-        self.setup_freq_axes((0, max_t + 20))
+        self.setup_freq_axes((0, max_t + (max_t * 0.02)))
 
         self.ax1.text(0.0, -0.15,  # Below lower left corner of axes.
                       f'# frequencies: {num_freq}\n'
@@ -834,14 +842,14 @@ class PlotTasks(TaskDataFrame):
 
         self.isplotted['fgrpG1_freq'] = True
 
-    def plot_gw_O3_txf(self):
+    def plot_gw_O3_freq(self):
         num_freq = self.tasks_df.gw_freq.where(self.tasks_df.is_gw_O3).nunique()
         min_f = self.tasks_df.gw_freq.where(self.tasks_df.is_gw_O3).min()
         max_f = self.tasks_df.gw_freq.where(self.tasks_df.is_gw_O3).max()
         min_t = self.tasks_df.task_sec.where(self.tasks_df.is_gw_O3).min()
         max_t = self.tasks_df.task_sec.where(self.tasks_df.is_gw_O3).max()
 
-        self.setup_freq_axes((0, max_t + 20))
+        self.setup_freq_axes((0, max_t + (max_t * 0.02)))
 
         self.ax1.text(0.0, -0.15,  # Below lower left corner of axes.
                       f'# frequencies: {num_freq}\n'
