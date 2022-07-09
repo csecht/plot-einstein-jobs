@@ -6,7 +6,16 @@ TESTFILE = Path('plot_utils/testdata.txt')
 MY_OS = sys.platform[:3]
 
 
-def set_datapath(do_test=False) -> Path:
+def set_datapath(do_test=None) -> Path:
+    """
+    Set the Path() for a data text file to be read into a DataFrame.
+
+    :param do_test: Any value, but expecting descriptive 'do test' to
+        indicate that the non-default path should be set to read the
+        sample data file provided with the distribution. The default
+        path is the BOINC E@H job_log file.
+    :return: pathlib Path object.
+    """
     if do_test:
         if Path.is_file(TESTFILE):
             return TESTFILE

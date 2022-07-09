@@ -15,9 +15,9 @@ Basic help: python plot_jobs.py --help
 Information: python plot_jobs.py --about
 Plot sample data: python plot_jobs.py --test
 NOTE: Depending on your system, there may be a slight lag when switching
-      between plots, so be patient and avoid the urge to start clicking
-      around to speed things up. For the typical job log, hundreds of
-      thousands to millions of data points can be plotted.
+      between plots. Be patient and avoid the urge to clicking on things
+      to speed things up. For the typical job log, hundreds of
+      thousands to millions of data points will be plotted.
 
 Using the navigation bar, plots can be zoomed-in, panned, restored to
 previous views, and copied to PNG files.
@@ -107,23 +107,20 @@ class TaskDataFrame:
         """
         Set up the Pandas DataFrame of task data read from a text file.
         Called from if __name__ == "__main__".
-        self.do_test is from TaskDataFrame(args.test) call in
-         if __name__ == "__main__":
+        self.do_test is boolean parameter from TaskDataFrame(args.test)
+        call in if __name__ == "__main__".
+
+        job_log_einstein.phys.uwm.edu.txt structure of records:
+        1654865994 ue 916.720025 ct 340.770200 fe 144000000000000 nm h1_0681.20_O3aC01Cl1In0__O3AS1a_681.50Hz_19188_1 et 1283.553196 es 0
 
         :return: None
         """
 
-        """
-        job_log_einstein.phys.uwm.edu.txt structure of records:
-        1654865994 ue 916.720025 ct 340.770200 fe 144000000000000 nm h1_0681.20_O3aC01Cl1In0__O3AS1a_681.50Hz_19188_1 et 1283.553196 es 0
-        """
+        # Can check for NaN values with:
+        # print('Any null values?', self.tasks_df.isnull().values.any())  # -> True
+        # print("Sum of null timestamps:", self.tasks_df['time_stamp'].isnull().sum())
+        # print("Sum of ALL nulls:", self.tasks_df.isnull().sum()).sum())
 
-        """
-        Can check for NaN values with:
-        print('Any null values?', self.tasks_df.isnull().values.any())  # -> True
-        print("Sum of null timestamps:", self.tasks_df['time_stamp'].isnull().sum())
-        print("Sum of ALL nulls:", self.tasks_df.isnull().sum()).sum())
-        """
 
         # For all numerical data in job_log, use this:
         # joblog_col_idx = 0, 2, 4, 6, 8, 10  # All reported data
@@ -136,7 +133,7 @@ class TaskDataFrame:
         if not self.do_test:
             plotdata = path_check.set_datapath()
         else:
-            plotdata = path_check.set_datapath(True)
+            plotdata = path_check.set_datapath('do test')
 
         print(f'Data from {plotdata} are loading. This may take a few seconds...')
 
