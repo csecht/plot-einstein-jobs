@@ -22,7 +22,7 @@ NOTE: Depending on your system, there may be a slight lag when switching
 Using the navigation bar, plots can be zoomed-in, panned, restored to
 previous views, and copied to PNG files.
 When no navigation bar buttons are active, clicking on a cluster or
-single data point shows task cfg near the click coordinates.
+single data point shows task grp near the click coordinates.
 The "Job log counts" button shows summary counts of all tasks, by Project.
 
 The default configuration reads the job_log_einstein.phys.uwm.edu.txt
@@ -59,7 +59,7 @@ import argparse
 import sys
 
 from plot_utils import (path_check, vcheck, platform_check, mpl_markers,
-                        names_config as cfg)
+                        project_groups as grp)
 
 mmark = mpl_markers
 
@@ -176,7 +176,7 @@ class TaskDataFrame:
             False)
         self.tasks_df['is_brp4'] = where(self.tasks_df.task_name.str.startswith('p'), True, False)
 
-        # Add columns of search frequencies, parsed from the task cfg,
+        # Add columns of search frequencies, parsed from the task name,
         """
         Regex for base frequency will match these task name structures:
         FGRP task: 'LATeah4013L03_988.0_0_0.0_9010205_1'
@@ -200,10 +200,10 @@ class TaskDataFrame:
         # Make dict of daily task counts (Dcnt) for each Project and sub-Project.
         # NOTE: gw times are not plotted (use O2 + O3), but gw_Dcnt is used in
         #   plot_gw_series().
-        # For clarity, Project cfg here are those used in:
+        # For clarity, Project names here are those used in:
         #   PROJ_TO_REPORT (tuple), isplotted (dict), and chkbox_labels (tuple).
         daily_counts = {}
-        for _proj in cfg.PROJECTS:
+        for _proj in grp.PROJECTS:
             is_name = f'is_{_proj}'
             daily_counts[f'{_proj}_Dcnt'] = (
                 self.tasks_df.time_stamp
@@ -217,7 +217,7 @@ class TaskDataFrame:
         for _proj, _ in daily_counts.items():
             self.tasks_df[_proj] = daily_counts[_proj]
 
-        for series in cfg.GW_SERIES:
+        for series in grp.GW_SERIES:
             is_ser = f'is_{series}'
             self.tasks_df[is_ser] = where(
                 self.tasks_df.task_name.str.contains(series), True, False)
@@ -227,7 +227,7 @@ class TaskDataFrame:
     def count_log_projects(self):
         """Tally task counts for individual Projects in job file."""
 
-        for _p in cfg.PROJ_TO_REPORT:
+        for _p in grp.PROJ_TO_REPORT:
             is_p = f'is_{_p}'
             self.proj_totals.append(self.tasks_df[is_p].sum())
 
@@ -290,7 +290,7 @@ class PlotTasks(TaskDataFrame):
         #  need to have ax.autoscale() set for picker radius to work.
         self.fig.canvas.mpl_connect('pick_event', self.on_pick)
 
-        # These keys must match cfg.CHKBOX_LABELS in names_config.py.
+        # These keys must match grp.CHKBOX_LABELS in project_groups.py.
         self.plot_proj = {
             'all': self.plot_all,
             'fgrpG1': self.plot_fgrpG1,
@@ -372,17 +372,17 @@ class PlotTasks(TaskDataFrame):
         Define plotting conditional variables.
         Plot 'all' at startup.
         """
-        for i, proj in enumerate(cfg.CHKBOX_LABELS):
+        for i, proj in enumerate(grp.CHKBOX_LABELS):
             self.chkbox_labelid[proj] = i
 
-        for proj in cfg.CHKBOX_LABELS:
+        for proj in grp.CHKBOX_LABELS:
             self.isplotted[proj] = False
 
         #  Relative coordinates in Figure, in 4-tuple: (LEFT, BOTTOM, WIDTH, HEIGHT)
         ax_chkbox = plt.axes((0.86, 0.6, 0.13, 0.3), facecolor=self.LIGHT_COLOR, )
 
         # checkbox is used in manage_plots() and in if __name__ == "__main__".
-        self.checkbox = CheckButtons(ax_chkbox, cfg.CHKBOX_LABELS)
+        self.checkbox = CheckButtons(ax_chkbox, grp.CHKBOX_LABELS)
 
         self.checkbox.on_clicked(self.manage_plots)
 
@@ -495,7 +495,7 @@ class PlotTasks(TaskDataFrame):
                        f'{path_check.set_datapath(args.test)}')
 
         _results = tuple(zip(
-            cfg.PROJ_TO_REPORT, self.proj_totals, self.proj_daily_means, self.proj_days))
+            grp.PROJ_TO_REPORT, self.proj_totals, self.proj_daily_means, self.proj_days))
         num_days = len(pd.to_datetime(self.tasks_df.time_stamp).dt.date.unique())
 
         _report = (f'Task counts for the past {num_days} days:\n\n'
@@ -781,7 +781,7 @@ class PlotTasks(TaskDataFrame):
         self.isplotted['brp4'] = True
 
     def plot_gw_series(self):
-        for subproj in cfg.GW_SERIES:
+        for subproj in grp.GW_SERIES:
             is_subproj = f'is_{subproj}'
 
             self.ax1.plot(self.tasks_df.time_stamp,
@@ -901,14 +901,14 @@ class PlotTasks(TaskDataFrame):
         #   (all conditions are evaluated with every click).
 
         # ischecked key is project label, value is True/False check status.
-        ischecked = dict(zip(cfg.CHKBOX_LABELS, self.checkbox.get_status()))
+        ischecked = dict(zip(grp.CHKBOX_LABELS, self.checkbox.get_status()))
 
         # Note: ischecked and self.isplotted dictionary values are boolean.
         if clicked_label == 'all' and ischecked[clicked_label]:
 
             # Was toggled on...
             # Need to uncheck all other checked project labels.
-            for _label in cfg.CHKBOX_LABELS:
+            for _label in grp.CHKBOX_LABELS:
                 if _label != clicked_label and (self.isplotted[_label] or ischecked[_label]):
                     ischecked[_label] = False
                     # Toggle off all excluded plots.
@@ -925,8 +925,8 @@ class PlotTasks(TaskDataFrame):
         elif not ischecked[clicked_label]:
             self.reset_plots()
 
-        if clicked_label in cfg.ALL_INCLUSIVE and ischecked[clicked_label]:
-            for _plot in cfg.ALL_EXCLUDED:
+        if clicked_label in grp.ALL_INCLUSIVE and ischecked[clicked_label]:
+            for _plot in grp.ALL_EXCLUDED:
                 if self.isplotted[_plot] or ischecked[_plot]:
                     self.isplotted[_plot] = False
                     self.checkbox.set_active(self.chkbox_labelid[_plot])
@@ -937,16 +937,16 @@ class PlotTasks(TaskDataFrame):
                 self.do_replot = False
 
             for _proj, status in ischecked.items():
-                if status and _proj in cfg.ALL_INCLUSIVE and not self.isplotted[_proj]:
+                if status and _proj in grp.ALL_INCLUSIVE and not self.isplotted[_proj]:
                     self.plot_proj[_proj]()
 
-        elif clicked_label in cfg.ALL_INCLUSIVE and not ischecked[clicked_label]:
+        elif clicked_label in grp.ALL_INCLUSIVE and not ischecked[clicked_label]:
 
             # Was toggled off, so remove all plots,
             #   then replot only inclusive checked ones.
             self.reset_plots()
             for _proj, status in ischecked.items():
-                if _proj in cfg.ALL_INCLUSIVE and status:
+                if _proj in grp.ALL_INCLUSIVE and status:
                     self.plot_proj[_proj]()
                 if _proj == 'gw_series' and status:
                     self.plot_gw_series()
@@ -954,12 +954,12 @@ class PlotTasks(TaskDataFrame):
         if clicked_label == 'gw_series' and ischecked[clicked_label]:
 
             # Uncheck excluded checkbox labels if plotted.
-            for excluded in cfg.GW_SERIES_EXCLUDED:
+            for excluded in grp.GW_SERIES_EXCLUDED:
                 if self.isplotted[excluded] or ischecked[excluded]:
                     self.checkbox.set_active(self.chkbox_labelid[excluded])
 
             for _proj, status in ischecked.items():
-                if status and _proj in cfg.GW_SERIES_INCLUSIVE and not self.isplotted[_proj]:
+                if status and _proj in grp.GW_SERIES_INCLUSIVE and not self.isplotted[_proj]:
                     self.plot_proj[_proj]()
 
         elif clicked_label == 'gw_series' and not ischecked[clicked_label]:
@@ -968,14 +968,14 @@ class PlotTasks(TaskDataFrame):
             # but not others. Reset all, then replot the others.
             self.reset_plots()
             for _proj, status in ischecked.items():
-                if status and _proj in cfg.GW_SERIES_INCLUSIVE:
+                if status and _proj in grp.GW_SERIES_INCLUSIVE:
                     self.plot_proj[_proj]()
 
         if clicked_label == 'fgrpG1_freq' and ischecked[clicked_label]:
 
             # Was toggled on...
             # Need to uncheck all other checked project labels.
-            for _label in cfg.CHKBOX_LABELS:
+            for _label in grp.CHKBOX_LABELS:
                 if _label != clicked_label and (self.isplotted[_label] or ischecked[_label]):
                     self.checkbox.set_active(self.chkbox_labelid[_label])
                     self.do_replot = True
@@ -987,7 +987,7 @@ class PlotTasks(TaskDataFrame):
             self.plot_proj[clicked_label]()
 
         if clicked_label == 'gw_O3_freq' and ischecked[clicked_label]:
-            for _label in cfg.CHKBOX_LABELS:
+            for _label in grp.CHKBOX_LABELS:
                 if _label != clicked_label and (self.isplotted[_label] or ischecked[_label]):
                     ischecked[_label] = False
                     self.checkbox.set_active(self.chkbox_labelid[_label])
