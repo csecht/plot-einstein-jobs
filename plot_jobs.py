@@ -262,34 +262,12 @@ class PlotTasks(TaskDataFrame):
     def __init__(self, do_test):
         super().__init__(do_test)
 
-        # The do_test parameter is set as a cmd line argument.
+        # The do_test parameter may be set as a cmd line argument.
+        self.do_test = do_test
 
         self.checkbox = None
-        self.do_test = do_test
         self.do_replot = False
         self.legend_btn_on = True
-
-        self.fig, (self.ax1, self.ax2) = plt.subplots(
-            2, figsize=(9.5, 5),
-            sharex='all',
-            gridspec_kw={'height_ratios': [3, 1],
-                         'left': 0.11,
-                         'right': 0.85,
-                         'bottom': 0.16,
-                         'top': 0.92,
-                         'hspace': 0.15
-                         },
-        )
-
-        mplstyle.use(('seaborn-colorblind', 'fast'))
-
-        # Default axis margins are 0.05 (5%) of data values.
-        self.ax1.margins(0.02, 0.02)
-        self.ax2.margins(0.02, 0.02)
-
-        # Need to have mpl_connect statement before any autoscale statements AND
-        #  need to have ax.autoscale() set for picker radius to work.
-        self.fig.canvas.mpl_connect('pick_event', self.on_pick)
 
         # These keys must match grp.CHKBOX_LABELS in project_groups.py.
         self.plot_proj = {
@@ -309,7 +287,31 @@ class PlotTasks(TaskDataFrame):
 
         self.bbox_freq = dict(facecolor='white',
                               edgecolor='grey',
-                              boxstyle='round', )
+                              boxstyle='round',
+                              )
+
+        self.fig, (self.ax1, self.ax2) = plt.subplots(
+            2,
+            figsize=(9.5, 5),
+            sharex='all',
+            gridspec_kw={'height_ratios': [3, 1],
+                         'left': 0.11,
+                         'right': 0.85,
+                         'bottom': 0.16,
+                         'top': 0.92,
+                         'hspace': 0.15
+                         },
+        )
+
+        mplstyle.use(('seaborn-colorblind', 'fast'))
+
+        # Need to have mpl_connect statement before any autoscale statements AND
+        #  need to have ax.autoscale() set for picker radius to work.
+        self.fig.canvas.mpl_connect('pick_event', self.on_pick)
+
+        # Default axis margin is 0.05 (5%) of data values.
+        self.ax1.margins(0.02, 0.02)
+        self.ax2.margins(0.02, 0.02)
 
         self.setup_title()
         self.setup_buttons()
@@ -380,7 +382,7 @@ class PlotTasks(TaskDataFrame):
             self.isplotted[proj] = False
 
         #  Relative coordinates in Figure, in 4-tuple: (LEFT, BOTTOM, WIDTH, HEIGHT)
-        ax_chkbox = plt.axes((0.86, 0.6, 0.13, 0.3), facecolor=self.LIGHT_COLOR, )
+        ax_chkbox = plt.axes((0.86, 0.6, 0.13, 0.3), facecolor=self.LIGHT_COLOR)
 
         # checkbox is used in manage_plots() and in if __name__ == "__main__".
         self.checkbox = CheckButtons(ax_chkbox, grp.CHKBOX_LABELS)
@@ -396,8 +398,8 @@ class PlotTasks(TaskDataFrame):
         """
         Click on plot area to show nearby task info in new figure and in
         Terminal or Command Line. Template source:
-         https://matplotlib.org/stable/users/explain/event_handling.html
-         Used in conjunction with mpl_connect().
+        https://matplotlib.org/stable/users/explain/event_handling.html
+        Used in conjunction with mpl_connect().
 
         :param event: Implicit mouse event, left or right button click, on
         area of plotted line markers. No event is triggered when a toolbar
