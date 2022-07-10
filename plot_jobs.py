@@ -35,7 +35,7 @@ Developed in Python 3.8-3.9.
 
 URL: https://github.com/csecht/plot-einstein-jobs
 Development Status :: 1 - Alpha
-Version: 0.0.5
+Version: 0.0.6
 
 Copyright: (c) 2022 Craig S. Echt under GNU General Public License.
 
@@ -102,6 +102,7 @@ class TaskDataFrame:
         self.proj_totals = []
         self.proj_daily_means = []
         self.proj_days = []
+        self.total_jobs = 0
 
         self.setup_df()
         self.count_log_projects()
@@ -230,15 +231,20 @@ class TaskDataFrame:
             p_dcnt = f'{_p}_Dcnt'
 
             self.proj_days.append(len((self.tasks_df[p_dcnt]
-                                  .groupby(self.tasks_df.time_stamp.dt.date
-                                           .where(self.tasks_df[p_dcnt].notnull()))
-                                  .unique())))
+                                       .groupby(self.tasks_df.time_stamp.dt.date
+                                                .where(self.tasks_df[p_dcnt].notnull()))
+                                       .unique())))
 
             if self.proj_totals[-1] != 0:
                 self.proj_daily_means.append(
                     round((self.proj_totals[-1] / self.proj_days[-1]), 1))
             else:  # There is no Project _p in the job log.
                 self.proj_daily_means.append(0)
+
+            # Need to count total tasks reported in case grp.PROJ_TO_REPORT
+            #  misses any Projects. Any difference with self.proj_totals
+            #  will be apparent in the job log count report (run from plot window).
+            self.total_jobs = len(self.tasks_df.index)
 
 
 class PlotTasks(TaskDataFrame):
@@ -501,7 +507,8 @@ class PlotTasks(TaskDataFrame):
             grp.PROJ_TO_REPORT, self.proj_totals, self.proj_daily_means, self.proj_days))
         num_days = len(pd.to_datetime(self.tasks_df.time_stamp).dt.date.unique())
 
-        _report = (f'Task counts for the past {num_days} days:\n\n'
+        _report = (f'Total tasks in file: {self.total_jobs}\n'
+                   f'Task counts for the past {num_days} days:\n\n'
                    f'{"Project".ljust(6)} {"Total".rjust(10)}'
                    f' {"per Day".rjust(9)} {"Days".rjust(8)}\n'
                    )
