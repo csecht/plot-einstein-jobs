@@ -35,7 +35,7 @@ Developed in Python 3.8-3.9.
 
 URL: https://github.com/csecht/plot-einstein-jobs
 Development Status :: 1 - Alpha
-Version: 0.0.4
+Version: 0.0.5
 
 Copyright: (c) 2022 Craig S. Echt under GNU General Public License.
 
@@ -128,13 +128,6 @@ class TaskDataFrame:
         # Only need job log data of interest to plot:
         joblog_col_idx = 0, 8, 10
         headers = ('time_stamp', 'task_name', 'task_t')
-
-        if not self.do_test:
-            plotdata = path_check.set_datapath()
-        else:
-            plotdata = path_check.set_datapath('do test')
-
-        print(f'Data from {plotdata} are loading. This may take a few seconds...')
 
         self.tasks_df = pd.read_table(plotdata,
                                       sep=' ',
@@ -1026,6 +1019,13 @@ if __name__ == "__main__":
     # Program will exit here if checks fail.
     platform_check.check_platform()
     vcheck.minversion('3.7')
+
+    if not args.test:
+        plotdata = path_check.set_datapath()
+    else:
+        plotdata = path_check.set_datapath('do test')
+
+    print(f'Data from {plotdata} are loading. This may take a few seconds...')
 
     # This call will set up the inherited pd dataframe in TaskDataFrame,
     #  then plot 'all' tasks as specified in setup_plot_mgr(). After that,
