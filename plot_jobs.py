@@ -86,7 +86,10 @@ except (ImportError, ModuleNotFoundError) as err:
 
 
 class TaskDataFrame:
-    """Set up the dataframe. Is called only as an inherited Class."""
+    """
+    Set up the dataframe. Is called only as an inherited Class.
+    Methods: setup_df, count_log_projects
+    """
 
     def __init__(self, do_test):
         self.do_test = do_test
@@ -240,8 +243,13 @@ class TaskDataFrame:
 
 class PlotTasks(TaskDataFrame):
     """
-    Set up and display Matplotlib Figure and pyplot Plots. Axes data are
-    inherited as a Pandas dataframe.
+    Set up and display Matplotlib Figure and pyplot Plots.
+    Pandas dataframe is inherited from TaskDataFrame.
+    Methods: setup_title, setup_buttons, setup_plot_mgr, on_pick,
+       format_legends, toggle_legends, joblog_counts, setup_count_axes,
+       setup_freq_axes, reset_plots, plot_all, plot_gw_O2, plot_gw_O3,
+       plot_fgrp5, plot_fgrpG1, plot_brp4, plot_gw_series,
+       plot_fgrpG1_freq, plot_gw_O3_freq, manage_plots
     """
 
     MARKER_SIZE = 4
