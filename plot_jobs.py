@@ -35,7 +35,7 @@ Developed in Python 3.8-3.9.
 
 URL: https://github.com/csecht/plot-einstein-jobs
 Development Status :: 1 - Alpha
-Version: 0.0.6
+Version: 0.0.7
 
 Copyright: (c) 2022 Craig S. Echt under GNU General Public License.
 
@@ -469,25 +469,26 @@ class PlotTasks(TaskDataFrame):
 
     def toggle_legends(self, event):
         """
-        Show/hide plot legends.
+        Show/hide plot legends. If plot has no legend, do nothing.
 
         :param event: Implicit mouse click event.
         :return:  None
         """
 
-        if self.legend_btn_on:
-            self.ax1.get_legend().set_visible(False)
-            # In case viewing frequency plots where self.ax2 is hidden:
-            if self.ax2.get_legend():
-                self.ax2.get_legend().set_visible(False)
-            self.legend_btn_on = False
-        else:
-            self.ax1.get_legend().set_visible(True)
-            if self.ax2.get_legend():
-                self.ax2.get_legend().set_visible(True)
-            self.legend_btn_on = True
+        if self.ax1.get_legend():
+            if self.legend_btn_on:
+                self.ax1.get_legend().set_visible(False)
+                # In case viewing frequency plots where self.ax2 is hidden:
+                if self.ax2.get_legend():
+                    self.ax2.get_legend().set_visible(False)
+                self.legend_btn_on = False
+            else:
+                self.ax1.get_legend().set_visible(True)
+                if self.ax2.get_legend():
+                    self.ax2.get_legend().set_visible(True)
+                self.legend_btn_on = True
 
-        self.fig.canvas.draw_idle()  # Speeds up response.
+            self.fig.canvas.draw_idle()  # Speeds up response.
 
         return event
 
@@ -843,13 +844,6 @@ class PlotTasks(TaskDataFrame):
                       picker=self.PICK_RADIUS,
                       )
 
-        self.ax1.legend(fontsize='x-small', ncol=2,
-                        loc='upper right',
-                        markerscale=self.MARKER_SCALE,
-                        edgecolor='black',
-                        framealpha=0.4,
-                        )
-
         self.isplotted['fgrpG1_freq'] = True
 
     def plot_gw_O3_freq(self):
@@ -882,13 +876,6 @@ class PlotTasks(TaskDataFrame):
                       alpha=0.4,
                       picker=self.PICK_RADIUS,
                       )
-
-        self.ax1.legend(fontsize='x-small', ncol=2,
-                        loc='upper right',
-                        markerscale=self.MARKER_SCALE,
-                        edgecolor='black',
-                        framealpha=0.4,
-                        )
 
         self.isplotted['gw_O3_freq'] = True
 
