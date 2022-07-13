@@ -182,7 +182,7 @@ class TaskDataFrame:
         # pattern_gw_freq = r'h1_[0]?(\d+\.\d+)_?'  # Ignore leading 0 in capture.
         # pattern_gw_freq = r'h1.*_(\d+\.\d{2})Hz_'  # Capture highest freq, not base freq.
         pattern_gw_freq = r'h1_(\d+\.\d+)_?'  # Capture the base/parent freq.
-        pattern_fgrpg1_freq = r'LATeah.*?_(\d+\.\d+)_?'
+        pattern_fgrpg1_freq = r'LATeah.*?_(\d+)'
         self.tasks_df['gw_freq'] = (self.tasks_df.task_name
                                     .str.extract(pattern_gw_freq).astype(float))
         self.tasks_df['fgrpG1_freq'] = (self.tasks_df.task_name
