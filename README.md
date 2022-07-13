@@ -1,4 +1,8 @@
 # Project: plot-einstein@home
+<div style="text-align: center;">
+
+![plotlogo](images/plot_eah_logo_blue.png)
+</div>
 
 ## plot_jobs.py
 
@@ -9,7 +13,7 @@ various E@H Projects recorded in a job log. A job log file can store
 records of reported tasks for up to about three years of full-time work.
 
 ### Usage:
-From within the program's folder, use one of these commands,
+From within the program's folder, use one of these Terminal or Command Prompt commands,
        depending on your system:
 
             python plot_jobs.py
@@ -29,14 +33,15 @@ NOTE: Depending on your system, there may be a slight lag when switching
 
 Using the navigation bar, plots can be zoomed-in, panned, restored to
 previous views, and copied to PNG files.
-When no navigation bar buttons are active, clicking on a cluster or
+When no navigation bar button is active, clicking on a cluster or
 single data point shows task names near the click coordinates.
+
 The "Log counts" button shows summary counts of all tasks, by Project.
 
 The default configuration reads the job_log_einstein.phys.uwm.edu.txt
-file in its default BOINC location. If you have changed the default
-location, or want to plot data from an archived job_logs, then
-enter a custom full file path in the provided plot_cfg.txt file.
+file in its standard BOINC location. If you have changed the default
+location, or want to plot data from an archived job_logs file, then
+enter a custom file path in the provided plot_cfg.txt file.
 
 ### Requirements:
 Python 3.7 or later, plus Matplotlib, Pandas, and Numpy.
