@@ -74,6 +74,10 @@ Plot of gravitational wave task frequencies vs. task times.
 
 Zoom-in on lowest frequency group of tasks, then click in bottom cluster to obtain details of tasks near those plot coordinates.
 
+![plot hz_range](images/gw_freq_slider.png)
+
+Use Hz range slider as an alternative way to zoom in on frequency ranges. The slider and Navigation bar tools don't always work well together, so generally use one or the other.
+
 ### Keyboard shortcuts for navigation bar buttons and actions
 
 | Action     | Key                      | Description                                                                |
