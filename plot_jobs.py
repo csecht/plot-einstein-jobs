@@ -350,10 +350,10 @@ class PlotTasks(TaskDataFrame):
                           )
 
     def setup_buttons(self):
-        """Buttons are in alignment with the plots checkbox, ax_chkbox:
-          ax_chkbox = plt.axes((0.885, 0.6, 0.111, 0.3))
-        and fitted for figsize(9, 5) and gridspec_kw: 'left': 0.15,
-          'right': 0.855, 'bottom': 0.16, 'top': 0.92"""
+        """
+        Setup buttons to toggle legends and to display log counts.
+        Buttons are aligned with the plots' checkbox, ax_chkbox.
+        """
 
         # Relative coordinates in Figure are (LEFT, BOTTOM, WIDTH, HEIGHT).
         # Position legend toggle button just below plot checkboxes.
@@ -443,8 +443,9 @@ class PlotTasks(TaskDataFrame):
 
     def setup_plot_mgr(self):
         """
-        Define plotting conditional variables.
-        Plot 'all' at startup.
+        Set up dictionaries to use as plotting conditional variables.
+        Set up the plot selection checkbox.
+        Plot 'all' as startup default.
         """
         for i, proj in enumerate(grp.CHKBOX_LABELS):
             self.chkbox_labelid[proj] = i
@@ -461,8 +462,8 @@ class PlotTasks(TaskDataFrame):
         self.checkbox.on_clicked(self.manage_plots)
 
         # At startup, activate checkbox label 'all' so that all tasks
-        #  are plotted by default (via manage_plots() which is run from
-        #  the on_clicked() statement).
+        #  are plotted by default (via manage_plots() called from the
+        #  on_clicked() statement).
         self.checkbox.set_active(self.chkbox_labelid['all'])
 
     def on_pick(self, event):
@@ -1090,7 +1091,7 @@ if __name__ == "__main__":
         print(__doc__)
         sys.exit(0)
 
-    # Program will exit here if checks fail.
+    # Program will exit if any check fails.
     platform_check.check_platform()
     vcheck.minversion('3.7')
 
@@ -1101,7 +1102,7 @@ if __name__ == "__main__":
 
     print(f'Data from {plotdata} are loading. This may take a few seconds...')
 
-    # This call will set up the inherited pd dataframe in TaskDataFrame,
+    # This call will set up an inherited pd dataframe in TaskDataFrame,
     #  then plot 'all' tasks as specified in setup_plot_mgr(). After that,
     #  plots are managed by checkbox label states via manage_plots().
     PlotTasks(args.test).setup_plot_mgr()
