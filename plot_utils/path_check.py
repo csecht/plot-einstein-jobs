@@ -16,9 +16,14 @@ def set_datapath(do_test=None) -> Path:
         path is the BOINC E@H job_log file.
     :return: pathlib Path object.
     """
-    if do_test:
-        if Path.is_file(TESTFILE):
-            return TESTFILE
+    if do_test and Path.is_file(TESTFILE):
+        return TESTFILE
+    elif not Path.is_file(TESTFILE):
+        notest = (f'The sample data file, {TESTFILE} was not found.'
+                  ' Was it moved or renamed?\n'
+                  'It can be downloaded from'
+                  ' https://github.com/csecht/plot-einstein-jobs')
+        sys.exit(notest)
 
     if Path.is_file(CFGFILE):
         cfg_text = Path(CFGFILE).read_text()
@@ -27,8 +32,11 @@ def set_datapath(do_test=None) -> Path:
                 parts = line.split()
                 del parts[0]
                 custom_path = " ".join(parts)
-
-                return Path(custom_path)
+                if Path.is_file(Path(custom_path)):
+                    return Path(custom_path)
+                else:
+                    errmsg = f"The custom path, {custom_path}, is not working.\n"
+                    sys.exit(errmsg)
 
     default_logpath = {
         'win': Path('/ProgramData/BOINC/job_log_einstein.phys.uwm.edu.txt'),
