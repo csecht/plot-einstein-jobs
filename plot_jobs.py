@@ -35,7 +35,7 @@ Developed in Python 3.8-3.9.
 
 URL: https://github.com/csecht/plot-einstein-jobs
 Development Status :: 1 - Alpha
-Version: 0.0.7
+Version: 0.0.8
 
 Copyright: (c) 2022 Craig S. Echt under GNU General Public License.
 
@@ -70,7 +70,7 @@ try:
     import pandas as pd
     from matplotlib import ticker
     from matplotlib.font_manager import FontProperties
-    from matplotlib.widgets import CheckButtons, Button
+    from matplotlib.widgets import CheckButtons, Button, RangeSlider
     from numpy import where
 except (ImportError, ModuleNotFoundError) as err:
     print('One or more of the required Python packages were not found:\n'
@@ -301,7 +301,8 @@ class PlotTasks(TaskDataFrame):
             figsize=(9.5, 5),
             sharex='all',
             gridspec_kw={'height_ratios': [3, 1],
-                         'left': 0.11,
+                         # 'left': 0.11,  # When use horiz Hz slider
+                         'left': 0.15,  # When use vertical Hz slider
                          'right': 0.85,
                          'bottom': 0.16,
                          'top': 0.92,
@@ -315,9 +316,14 @@ class PlotTasks(TaskDataFrame):
         #  need to have ax.autoscale() set for picker radius to work.
         self.fig.canvas.mpl_connect('pick_event', self.on_pick)
 
-        # Default axis margin is 0.05 (5%) of data values.
+        # Default axis margins are 0.05 (5%) of data values.
         self.ax1.margins(0.02, 0.02)
         self.ax2.margins(0.02, 0.02)
+
+        # Slider used in *_freq plots to set Hz ranges; initialize here
+        #  so that it can be removed/redrawn with each *_freq plot call
+        #  and hidden for all other plots.
+        self.ax_slider = plt.axes()
 
         self.setup_title()
         self.setup_buttons()
@@ -344,8 +350,13 @@ class PlotTasks(TaskDataFrame):
                           )
 
     def setup_buttons(self):
+        """Buttons are in alignment with the plots checkbox, ax_chkbox:
+          ax_chkbox = plt.axes((0.885, 0.6, 0.111, 0.3))
+        and fitted for figsize(9, 5) and gridspec_kw: 'left': 0.15,
+          'right': 0.855, 'bottom': 0.16, 'top': 0.92"""
+
         # Relative coordinates in Figure are (LEFT, BOTTOM, WIDTH, HEIGHT).
-        # Position button just below plot checkboxes.
+        # Position legend toggle button just below plot checkboxes.
         ax_legendbtn = plt.axes((0.885, 0.5, 0.09, 0.06))
         lbtn = Button(ax_legendbtn,
                       'Legends',
@@ -353,12 +364,12 @@ class PlotTasks(TaskDataFrame):
                       hovercolor='orange',
                       )
         lbtn.on_clicked(self.toggle_legends)
-        # Dummy reference, per documentation: "For the buttons to remain responsive
-        #   you must keep a reference to this object."
+
+        # Dummy reference, per documentation: "For the buttons to remain
+        #   responsive you must keep a reference to this object."
         ax_legendbtn._button = lbtn
 
-        # Relative coordinates in Figure, as 4-tuple, are (LEFT, BOTTOM, WIDTH, HEIGHT)
-        # Position to bottom right corner of Figure window.
+        # Position log tally display button to bottom right corner of window.
         ax_statsbtn = plt.axes((0.885, 0.02, 0.09, 0.08))
         sbtn = Button(ax_statsbtn,
                       'Job log\ncounts',
@@ -368,13 +379,67 @@ class PlotTasks(TaskDataFrame):
         sbtn.on_clicked(self.joblog_counts)
         ax_statsbtn._button = sbtn
 
-        # Buttons are in alignment with the plot selector checkbox, ax_chkbox:
-        #  ax_chkbox = plt.axes((0.885, 0.6, 0.111, 0.3), facecolor=self.LIGHT_COLOR, )
-        # and fitted for figsize(9, 5) and subplot axes, self.ax1 & self.ax2, gridspec_kw:
-        #                                                   'left': 0.11,
-        #                                                   'right': 0.855,
-        #                                                   'bottom': 0.16,
-        #                                                   'top': 0.92,
+    def setup_slider(self, max_f: float):
+        """
+        Create a RangeSlider for real-time y-axis Hz range adjustments
+        of *_freq plots.
+
+        :param max_f: The plotted Project's maximum frequency value.
+        """
+
+        # Need to replace any prior slider bar with a new one to prevent
+        #   stacking of bars.
+        self.ax_slider.remove()
+
+        # Add a 2% margin to the slider upper limit.
+        max_limit = max_f + max_f * 0.02
+
+        # RangeSlider Coord: (LEFT, BOTTOM, WIDTH, HEIGHT).
+        # self.ax_slider = plt.axes((0.11, 0.15, 0.60, 0.02)) # horiz
+        self.ax_slider = plt.axes((0.05, 0.38, 0.01, 0.52)) # vert
+
+        # Invert min/max values on vertical slider so max is on top.
+        plt.gca().invert_yaxis()
+
+        hz_slider = RangeSlider(self.ax_slider, "Hz range",
+                                0, max_limit,
+                                (0, max_limit),
+                                valstep=2,
+                                orientation='vertical',
+                                color=mmark.CBLIND_COLOR['yellow'],
+                                handle_style={'size': 8,
+                                              'facecolor': self.DARK_BG,
+                                              }
+                                )
+
+        # Position text box above Navigation tool bar.
+        self.ax1.text(-0.19, -0.6,
+                      ("Range slider and Navigation bar tools may conflict.\n"
+                       "If so, then toggle the plot's checkbox to reset."),
+                      style='italic',
+                      fontsize=8,
+                      verticalalignment='top',
+                      transform=self.ax1.transAxes,
+                      bbox=self.bbox_freq,
+                      )
+
+        # Dummy reference, per documentation: "For the slider to remain
+        #  responsive you must keep a reference to this object."
+        self.ax_slider._slider = hz_slider
+
+        def update(val):
+            """
+            Live update of the plot's y-axis frequency range.
+
+            :param val: Value implicitly passed to a callback by the
+             RangeSlider as a tuple, (min, max).
+            """
+
+            self.ax1.set_ylim(val)
+
+            self.fig.canvas.draw_idle()
+
+        hz_slider.on_changed(update)
 
     def setup_plot_mgr(self):
         """
@@ -458,7 +523,7 @@ class PlotTasks(TaskDataFrame):
                         loc='upper right',
                         markerscale=self.MARKER_SCALE,
                         edgecolor='black',
-                        framealpha=0.4,
+                        framealpha=0.5,
                         )
         self.ax2.legend(fontsize='x-small', ncol=2,
                         loc='upper right',
@@ -545,10 +610,9 @@ class PlotTasks(TaskDataFrame):
         Used to rebuild axes components when plots and axes are cleared by
         reset_plots().
         """
-        # self.ax1.xaxis.axis_date()
-        # self.ax1.yaxis.axis_date()
 
         # Need to reset plot axes in case setup_freq_axes() was called.
+        self.ax_slider.set_visible(False)
         self.ax2.set_visible(True)
         self.ax1.tick_params('x', labelbottom=False)
 
@@ -676,7 +740,7 @@ class PlotTasks(TaskDataFrame):
                       markersize=self.MARKER_SIZE,
                       label='all',
                       color=mmark.CBLIND_COLOR['blue'],
-                      alpha=0.4,
+                      alpha=0.3,
                       picker=self.PICK_RADIUS,
                       )
         self.ax2.plot(self.tasks_df.time_stamp,
@@ -716,7 +780,7 @@ class PlotTasks(TaskDataFrame):
                       markersize=self.MARKER_SIZE,
                       label='gw_O3AS',
                       color=mmark.CBLIND_COLOR['sky blue'],
-                      alpha=0.4,
+                      alpha=0.3,
                       picker=self.PICK_RADIUS,
                       )
         self.ax2.plot(self.tasks_df.time_stamp,
@@ -736,7 +800,7 @@ class PlotTasks(TaskDataFrame):
                       markersize=self.MARKER_SIZE,
                       label='fgrp5',
                       color=mmark.CBLIND_COLOR['bluish green'],
-                      alpha=0.4,
+                      alpha=0.3,
                       picker=self.PICK_RADIUS,
                       )
         self.ax2.plot(self.tasks_df.time_stamp,
@@ -758,7 +822,7 @@ class PlotTasks(TaskDataFrame):
                       markersize=self.MARKER_SIZE,
                       label='FGRBPG1',
                       color=mmark.CBLIND_COLOR['vermilion'],
-                      alpha=0.4,
+                      alpha=0.3,
                       picker=self.PICK_RADIUS,
                       )
         self.ax2.plot(self.tasks_df.time_stamp,
@@ -778,7 +842,7 @@ class PlotTasks(TaskDataFrame):
                       markersize=self.MARKER_SIZE,
                       label='BRP4 & BRP4G',
                       color=mmark.CBLIND_COLOR['reddish purple'],
-                      alpha=0.4,
+                      alpha=0.3,
                       picker=self.PICK_RADIUS,
                       )
         self.ax2.plot(self.tasks_df.time_stamp,
@@ -800,7 +864,7 @@ class PlotTasks(TaskDataFrame):
                           mmark.next_marker(),
                           label=subproj,
                           markersize=self.MARKER_SIZE,
-                          alpha=0.4,
+                          alpha=0.3,
                           picker=True,
                           pickradius=self.PICK_RADIUS,
                           )
@@ -821,12 +885,16 @@ class PlotTasks(TaskDataFrame):
         min_t = self.tasks_df.task_sec.where(self.tasks_df.is_fgrpG1).min()
         max_t = self.tasks_df.task_sec.where(self.tasks_df.is_fgrpG1).max()
 
+        # Add a 2% margin to time axis upper limit.
         self.setup_freq_axes((0, max_t + (max_t * 0.02)))
 
-        self.ax1.text(0.0, -0.15,  # Below lower left corner of axes.
-                      f'# frequencies: {num_freq}\n'
-                      f'Freq. min--max: {min_f}--{max_f}\n'
-                      f'T, min--max: {min_t}--{max_t}',
+        self.setup_slider(max_f)
+
+        # Position text below lower left corner of axes.
+        self.ax1.text(0.0, -0.15,
+                      f'Frequencies, N: {num_freq}\n'
+                      f'Hz, min--max: {min_f}--{max_f}\n'
+                      f'Time, min--max: {min_t}--{max_t}',
                       style='italic',
                       fontsize=6,
                       verticalalignment='top',
@@ -838,9 +906,8 @@ class PlotTasks(TaskDataFrame):
                       self.tasks_df.fgrpG1_freq,
                       mmark.MARKER_STYLE['point'],
                       markersize=self.MARKER_SIZE,
-                      label='FGRPG1 f vs. task t',
-                      color=mmark.CBLIND_COLOR['orange'],
-                      alpha=0.4,
+                      color=mmark.CBLIND_COLOR['blue'],
+                      alpha=0.3,
                       picker=self.PICK_RADIUS,
                       )
 
@@ -853,12 +920,16 @@ class PlotTasks(TaskDataFrame):
         min_t = self.tasks_df.task_sec.where(self.tasks_df.is_gw_O3).min()
         max_t = self.tasks_df.task_sec.where(self.tasks_df.is_gw_O3).max()
 
+        # Add a 2% margin to time axis upper limit.
         self.setup_freq_axes((0, max_t + (max_t * 0.02)))
 
-        self.ax1.text(0.0, -0.15,  # Below lower left corner of axes.
-                      f'# frequencies: {num_freq}\n'
-                      f'Freq. min--max: {min_f}--{max_f}\n'
-                      f'T, min--max: {min_t}--{max_t}',
+        self.setup_slider(max_f)
+
+        # Position text below lower left corner of axes.
+        self.ax1.text(0.0, -0.15,
+                      f'Frequencies, N: {num_freq}\n'
+                      f'Hz, min--max: {min_f}--{max_f}\n'
+                      f'Time, min--max: {min_t}--{max_t}',
                       style='italic',
                       fontsize=6,
                       verticalalignment='top',
@@ -871,9 +942,8 @@ class PlotTasks(TaskDataFrame):
                       self.tasks_df.gw_freq.where(self.tasks_df.is_gw_O3),
                       mmark.MARKER_STYLE['point'],
                       markersize=self.MARKER_SIZE,
-                      label='GW O3 f vs. task t',
                       color=mmark.CBLIND_COLOR['blue'],
-                      alpha=0.4,
+                      alpha=0.3,
                       picker=self.PICK_RADIUS,
                       )
 
