@@ -6,11 +6,13 @@
 
 ## plot_jobs.py
 
-The Python script, plot_jobs.py, uses Matplotlib to draw plots from data  in the Einstein@Home
-BOINC client job log file. Task times vs. datetime, task counts/day vs.
+The Python script, plot_jobs.py, draws plots from data in the Einstein@Home
+BOINC client job log file, job_log_einstein.phys.uwm.edu.txt, or similarly structured data files, such as archive log files. Task times vs. datetime, task counts/day vs.
 datetime, and task frequency (Hz) vs. task time (sec) can be plotted for
-various E@H Projects recorded in a job log. A job log file can store
+all E@H Projects recorded in a job log. A job log file can store
 records of reported tasks for up to about three years of full-time work.
+
+The program only reads files on a local host and does not connect to a user's E@H account.
 
 ### Usage:
 From within the program's folder, use one of these Terminal or Command Prompt commands,
