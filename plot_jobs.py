@@ -58,10 +58,9 @@ Copyright: (c) 2022 Craig S. Echt under GNU General Public License.
 import argparse
 import sys
 
-from plot_utils import (path_check, vcheck, platform_check, mpl_markers,
+from plot_utils import (path_check, vcheck, platform_check,
+                        markers as mark,
                         project_groups as grp)
-
-mmark = mpl_markers
 
 try:
     import matplotlib.dates as mdates
@@ -152,11 +151,11 @@ class TaskDataFrame:
         time_col = ('time_stamp', 'task_t')
         for col in time_col:
             self.tasks_df[col] = pd.to_datetime(self.tasks_df[col],
-                                                unit=mmark.MARKER_STYLE['square'],
+                                                unit='s',
                                                 infer_datetime_format=True)
 
         # Null column data used to visually reset_plots().
-        self.tasks_df['null_time'] = pd.to_datetime(0.0, unit=mmark.MARKER_STYLE['square'])
+        self.tasks_df['null_time'] = pd.to_datetime(0.0, unit='s')
         self.tasks_df['null_Dcnt'] = 0
 
         # Need columns that flag each task's Project and sub-Project.
@@ -406,7 +405,7 @@ class PlotTasks(TaskDataFrame):
                                 (0, max_limit),
                                 valstep=2,
                                 orientation='vertical',
-                                color=mmark.CBLIND_COLOR['yellow'],
+                                color=mark.CBLIND_COLOR['yellow'],
                                 handle_style={'size': 8,
                                               'facecolor': self.DARK_BG,
                                               }
@@ -737,19 +736,19 @@ class PlotTasks(TaskDataFrame):
     def plot_all(self):
         self.ax1.plot(self.tasks_df.time_stamp,
                       self.tasks_df.task_t,
-                      mmark.MARKER_STYLE['point'],
+                      mark.MARKER_STYLE['point'],
                       markersize=self.MARKER_SIZE,
                       label='all',
-                      color=mmark.CBLIND_COLOR['blue'],
+                      color=mark.CBLIND_COLOR['blue'],
                       alpha=0.3,
                       picker=self.PICK_RADIUS,
                       )
         self.ax2.plot(self.tasks_df.time_stamp,
                       self.tasks_df.all_Dcnt,
-                      mmark.MARKER_STYLE['square'],
+                      mark.MARKER_STYLE['square'],
                       markersize=self.DCNT_SIZE,
                       label='all',
-                      color=mmark.CBLIND_COLOR['blue'],
+                      color=mark.CBLIND_COLOR['blue'],
                       )
         self.format_legends()
         self.isplotted['all'] = True
@@ -757,19 +756,19 @@ class PlotTasks(TaskDataFrame):
     def plot_gw_O2(self):
         self.ax1.plot(self.tasks_df.time_stamp,
                       self.tasks_df.task_t.where(self.tasks_df.is_gw_O2),
-                      mmark.MARKER_STYLE['triangle_down'],
+                      mark.MARKER_STYLE['triangle_down'],
                       markersize=self.MARKER_SIZE,
                       label='gw_O2MD1',
-                      color=mmark.CBLIND_COLOR['orange'],
+                      color=mark.CBLIND_COLOR['orange'],
                       alpha=0.4,
                       picker=self.PICK_RADIUS,
                       )
         self.ax2.plot(self.tasks_df.time_stamp,
                       self.tasks_df.gw_O2_Dcnt,
-                      mmark.MARKER_STYLE['square'],
+                      mark.MARKER_STYLE['square'],
                       markersize=self.DCNT_SIZE,
                       label='gw_O2MD1',
-                      color=mmark.CBLIND_COLOR['orange'],
+                      color=mark.CBLIND_COLOR['orange'],
                       )
         self.format_legends()
         self.isplotted['gw_O2'] = True
@@ -777,19 +776,19 @@ class PlotTasks(TaskDataFrame):
     def plot_gw_O3(self):
         self.ax1.plot(self.tasks_df.time_stamp,
                       self.tasks_df.task_t.where(self.tasks_df.is_gw_O3),
-                      mmark.MARKER_STYLE['triangle_up'],
+                      mark.MARKER_STYLE['triangle_up'],
                       markersize=self.MARKER_SIZE,
                       label='gw_O3AS',
-                      color=mmark.CBLIND_COLOR['sky blue'],
+                      color=mark.CBLIND_COLOR['sky blue'],
                       alpha=0.3,
                       picker=self.PICK_RADIUS,
                       )
         self.ax2.plot(self.tasks_df.time_stamp,
                       self.tasks_df.gw_O3_Dcnt,
-                      mmark.MARKER_STYLE['square'],
+                      mark.MARKER_STYLE['square'],
                       markersize=self.DCNT_SIZE,
                       label='gw_O3AS',
-                      color=mmark.CBLIND_COLOR['sky blue'],
+                      color=mark.CBLIND_COLOR['sky blue'],
                       )
         self.format_legends()
         self.isplotted['gw_O3'] = True
@@ -797,19 +796,19 @@ class PlotTasks(TaskDataFrame):
     def plot_fgrp5(self):
         self.ax1.plot(self.tasks_df.time_stamp,
                       self.tasks_df.task_t.where(self.tasks_df.is_fgrp5),
-                      mmark.MARKER_STYLE['tri_left'],
+                      mark.MARKER_STYLE['tri_left'],
                       markersize=self.MARKER_SIZE,
                       label='fgrp5',
-                      color=mmark.CBLIND_COLOR['bluish green'],
+                      color=mark.CBLIND_COLOR['bluish green'],
                       alpha=0.3,
                       picker=self.PICK_RADIUS,
                       )
         self.ax2.plot(self.tasks_df.time_stamp,
                       self.tasks_df.fgrp5_Dcnt,
-                      mmark.MARKER_STYLE['square'],
+                      mark.MARKER_STYLE['square'],
                       markersize=self.DCNT_SIZE,
                       label='fgrp5',
-                      color=mmark.CBLIND_COLOR['bluish green'],
+                      color=mark.CBLIND_COLOR['bluish green'],
                       alpha=0.4,
                       picker=self.PICK_RADIUS,
                       )
@@ -819,19 +818,19 @@ class PlotTasks(TaskDataFrame):
     def plot_fgrpG1(self):
         self.ax1.plot(self.tasks_df.time_stamp,
                       self.tasks_df.task_t.where(self.tasks_df.is_fgrpG1),
-                      mmark.MARKER_STYLE['tri_right'],
+                      mark.MARKER_STYLE['tri_right'],
                       markersize=self.MARKER_SIZE,
                       label='FGRBPG1',
-                      color=mmark.CBLIND_COLOR['vermilion'],
+                      color=mark.CBLIND_COLOR['vermilion'],
                       alpha=0.3,
                       picker=self.PICK_RADIUS,
                       )
         self.ax2.plot(self.tasks_df.time_stamp,
                       self.tasks_df.fgrpG1_Dcnt,
-                      mmark.MARKER_STYLE['square'],
+                      mark.MARKER_STYLE['square'],
                       markersize=self.DCNT_SIZE,
                       label='FGRBPG1',
-                      color=mmark.CBLIND_COLOR['vermilion'],
+                      color=mark.CBLIND_COLOR['vermilion'],
                       )
         self.format_legends()
         self.isplotted['fgrpG1'] = True
@@ -839,19 +838,19 @@ class PlotTasks(TaskDataFrame):
     def plot_brp4(self):
         self.ax1.plot(self.tasks_df.time_stamp,
                       self.tasks_df.task_t.where(self.tasks_df.is_brp4),
-                      mmark.MARKER_STYLE['pentagon'],
+                      mark.MARKER_STYLE['pentagon'],
                       markersize=self.MARKER_SIZE,
                       label='BRP4 & BRP4G',
-                      color=mmark.CBLIND_COLOR['reddish purple'],
+                      color=mark.CBLIND_COLOR['reddish purple'],
                       alpha=0.3,
                       picker=self.PICK_RADIUS,
                       )
         self.ax2.plot(self.tasks_df.time_stamp,
                       self.tasks_df.brp4_Dcnt,
-                      mmark.MARKER_STYLE['square'],
+                      mark.MARKER_STYLE['square'],
                       markersize=self.DCNT_SIZE,
                       label='BRP4 & BRP4G',
-                      color=mmark.CBLIND_COLOR['reddish purple'],
+                      color=mark.CBLIND_COLOR['reddish purple'],
                       )
         self.format_legends()
         self.isplotted['brp4'] = True
@@ -862,7 +861,7 @@ class PlotTasks(TaskDataFrame):
 
             self.ax1.plot(self.tasks_df.time_stamp,
                           self.tasks_df.task_t.where(self.tasks_df[is_subproj]),
-                          mmark.next_marker(),
+                          mark.next_marker(),
                           label=subproj,
                           markersize=self.MARKER_SIZE,
                           alpha=0.3,
@@ -872,7 +871,7 @@ class PlotTasks(TaskDataFrame):
 
         self.ax2.plot(self.tasks_df.time_stamp,
                       self.tasks_df.gw_Dcnt,
-                      mmark.MARKER_STYLE['square'],
+                      mark.MARKER_STYLE['square'],
                       label='All GW',
                       markersize=self.DCNT_SIZE,
                       )
@@ -905,9 +904,9 @@ class PlotTasks(TaskDataFrame):
 
         self.ax1.plot(self.tasks_df.task_sec.where(self.tasks_df.is_fgrpG1),
                       self.tasks_df.fgrpG1_freq,
-                      mmark.MARKER_STYLE['point'],
+                      mark.MARKER_STYLE['point'],
                       markersize=self.MARKER_SIZE,
-                      color=mmark.CBLIND_COLOR['blue'],
+                      color=mark.CBLIND_COLOR['blue'],
                       alpha=0.3,
                       picker=self.PICK_RADIUS,
                       )
@@ -941,9 +940,9 @@ class PlotTasks(TaskDataFrame):
         # NOTE that there is not a separate df column for O3 freq.
         self.ax1.plot(self.tasks_df.task_sec.where(self.tasks_df.is_gw_O3),
                       self.tasks_df.gw_freq.where(self.tasks_df.is_gw_O3),
-                      mmark.MARKER_STYLE['point'],
+                      mark.MARKER_STYLE['point'],
                       markersize=self.MARKER_SIZE,
-                      color=mmark.CBLIND_COLOR['blue'],
+                      color=mark.CBLIND_COLOR['blue'],
                       alpha=0.3,
                       picker=self.PICK_RADIUS,
                       )
@@ -975,7 +974,7 @@ class PlotTasks(TaskDataFrame):
         if clicked_label == 'all' and ischecked[clicked_label]:
 
             # Was toggled on...
-            # Need to uncheck all other checked project labels.
+            # Need to uncheck all others project labels.
             for _label in grp.CHKBOX_LABELS:
                 if _label != clicked_label and (self.isplotted[_label] or ischecked[_label]):
                     ischecked[_label] = False
