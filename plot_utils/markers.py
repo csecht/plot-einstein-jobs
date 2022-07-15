@@ -69,7 +69,7 @@ MARKER_STYLE = {
 
 """
 Colorblind color pallet source:
-  Wong, B. Points o f view: Color blindness. Nat Methods 8, 441 (2011).
+  Wong, B. Points of view: Color blindness. Nat Methods 8, 441 (2011).
   https://doi.org/10.1038/nmeth.1618
 Hex values source: https://www.rgbtohex.net/
 See also: https://matplotlib.org/stable/tutorials/colors/colormaps.html
