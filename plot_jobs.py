@@ -96,7 +96,7 @@ class TaskDataFrame:
 
         # The do_test parameter is set as a cmd line argument.
 
-        # Variables used for reporting in joblog_counts() and
+        # Variables used for reporting in joblog_report() and
         #   count_log_projects().
         self.proj_totals = []
         self.proj_daily_means = []
@@ -221,7 +221,10 @@ class TaskDataFrame:
     # Need to work up metrics here so there is less delay when "Job log counts"
     #  button is used.
     def count_log_projects(self):
-        """Tally task counts for individual Projects in job file."""
+        """
+        Tally task counts for individual Projects in job file.
+        The appended lists are used for reporting in joblog_report().
+        """
 
         for _p in grp.PROJ_TO_REPORT:
             is_p = f'is_{_p}'
@@ -251,7 +254,7 @@ class PlotTasks(TaskDataFrame):
     Set up and display Matplotlib Figure and pyplot Plots.
     Pandas dataframe is inherited from TaskDataFrame.
     Methods: setup_title, setup_buttons, setup_plot_mgr, on_pick,
-       format_legends, toggle_legends, joblog_counts, setup_count_axes,
+       format_legends, toggle_legends, joblog_report, setup_count_axes,
        setup_freq_axes, reset_plots, plot_all, plot_gw_O2, plot_gw_O3,
        plot_fgrp5, plot_fgrpG1, plot_brp4, plot_gw_series,
        plot_fgrpG1_freq, plot_gw_O3_freq, manage_plots
@@ -375,7 +378,7 @@ class PlotTasks(TaskDataFrame):
                       color=self.LIGHT_COLOR,
                       hovercolor='orange',
                       )
-        sbtn.on_clicked(self.joblog_counts)
+        sbtn.on_clicked(self.joblog_report)
         ax_statsbtn._button = sbtn
 
     def setup_slider(self, max_f: float):
@@ -557,7 +560,7 @@ class PlotTasks(TaskDataFrame):
 
         return event
 
-    def joblog_counts(self, event):
+    def joblog_report(self, event):
         """
         Display and print statistical metrics job_log data.
         Called from "Job log counts" button in Figure.
