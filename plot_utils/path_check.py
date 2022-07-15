@@ -4,6 +4,7 @@ import sys
 CFGFILE = Path('plot_cfg.txt').resolve()
 TESTFILE = Path('plot_utils/testdata.txt')
 MY_OS = sys.platform[:3]
+URL = 'https://github.com/csecht/plot-einstein-jobs'
 
 
 def set_datapath(do_test=None) -> Path:
@@ -21,8 +22,7 @@ def set_datapath(do_test=None) -> Path:
     elif not Path.is_file(TESTFILE):
         notest = (f'The sample data file, {TESTFILE} was not found.'
                   ' Was it moved or renamed?\n'
-                  'It can be downloaded from'
-                  ' https://github.com/csecht/plot-einstein-jobs')
+                  f'It can be downloaded from {URL}')
         sys.exit(notest)
 
     if Path.is_file(CFGFILE):
