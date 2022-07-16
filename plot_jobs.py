@@ -108,12 +108,10 @@ class TaskDataFrame:
 
     def setup_df(self):
         """
-        Set up the Pandas DataFrame of task data read from a text file.
-        Called from if __name__ == "__main__".
-        self.do_test is boolean parameter from TaskDataFrame(args.test)
-        call in if __name__ == "__main__".
+        Set up the Pandas DataFrame of task data read from an E@H job_log
+        text file.
 
-        job_log_einstein.phys.uwm.edu.txt structure of records:
+        job_log_einstein.phys.uwm.edu.txt, structure of records:
         1654865994 ue 916.720025 ct 340.770200 fe 144000000000000 nm h1_0681.20_O3aC01Cl1In0__O3AS1a_681.50Hz_19188_1 et 1283.553196 es 0
 
         :return: None
