@@ -132,7 +132,8 @@ class TaskDataFrame:
         joblog_col_idx = 0, 8, 10
         headers = ('time_stamp', 'task_name', 'task_t')
 
-        self.tasks_df = pd.read_table(plotdata,
+        # The datapath path is defined in if __name__ == "__main__".
+        self.tasks_df = pd.read_table(datapath,
                                       sep=' ',
                                       header=None,
                                       usecols=joblog_col_idx,
@@ -148,8 +149,8 @@ class TaskDataFrame:
         self.tasks_df['task_sec'] = self.tasks_df.task_t.astype(int)
 
         #  Need to convert times to datetimes for efficient plotting.
-        time_col = ('time_stamp', 'task_t')
-        for col in time_col:
+        time_colmn = ('time_stamp', 'task_t')
+        for col in time_colmn:
             self.tasks_df[col] = pd.to_datetime(self.tasks_df[col],
                                                 unit='s',
                                                 infer_datetime_format=True)
@@ -159,20 +160,29 @@ class TaskDataFrame:
         self.tasks_df['null_Dcnt'] = 0
 
         # Need columns that flag each task's Project and sub-Project.
-        self.tasks_df['is_all'] = where(self.tasks_df.task_name, True, False)
-        self.tasks_df['is_gw'] = where(self.tasks_df.task_name.str.startswith('h1_'), True, False)
-        self.tasks_df['is_gw_O2'] = where(self.tasks_df.task_name.str.contains('_O2'), True, False)
-        self.tasks_df['is_gw_O3'] = where(self.tasks_df.task_name.str.contains('_O3'), True, False)
-        self.tasks_df['is_fgrp'] = where(self.tasks_df.task_name.str.startswith('LATeah'), True,
-                                         False)
-        self.tasks_df['is_fgrp5'] = where(self.tasks_df.task_name.str.contains(r'LATeah\d{4}F'),
-                                          True, False)
+        self.tasks_df['is_all'] = where(
+            self.tasks_df.task_name, True, False)
+        self.tasks_df['is_gw'] = where(
+            self.tasks_df.task_name.str.startswith('h1_'), True, False)
+        self.tasks_df['is_gw_O2'] = where(
+            self.tasks_df.task_name.str.contains('_O2'), True, False)
+        self.tasks_df['is_gw_O3'] = where(
+            self.tasks_df.task_name.str.contains('_O3'), True, False)
+        self.tasks_df['is_fgrp'] = where(
+            self.tasks_df.task_name.str.startswith('LATeah'), True,  False)
+        self.tasks_df['is_fgrp5'] = where(
+            self.tasks_df.task_name.str.contains(r'LATeah\d{4}F'), True, False)
         self.tasks_df['is_fgrpG1'] = where(
-            self.tasks_df.task_name.str.contains(r'LATeah\d{4}L|LATeah1049'), True,
-            False)
-        self.tasks_df['is_brp4'] = where(self.tasks_df.task_name.str.startswith('p'), True, False)
+            self.tasks_df.task_name.str.contains(r'LATeah\d{4}L|LATeah1049'), True, False)
+        self.tasks_df['is_brp4'] = where(
+            self.tasks_df.task_name.str.startswith('p'), True, False)
 
-        # Add columns of search frequencies, parsed from the task name,
+        for series in grp.GW_SERIES:
+            is_ser = f'is_{series}'
+            self.tasks_df[is_ser] = where(
+                self.tasks_df.task_name.str.contains(series), True, False)
+
+        # Add columns of search frequencies, parsed from the task name.
         """
         Regex for base frequency will match these task name structures:
         FGRP task: 'LATeah4013L03_988.0_0_0.0_9010205_1'
@@ -189,7 +199,7 @@ class TaskDataFrame:
                                         .where(self.tasks_df.is_fgrpG1))
 
         """
-        Idea to tally using groupby and transform from:
+        Idea to tally using groupby and transform, source:
         https://stackoverflow.com/questions/17709270/
         create-column-of-value-counts-in-pandas-dataframe
         """
@@ -200,23 +210,18 @@ class TaskDataFrame:
         #   PROJ_TO_REPORT (tuple), isplotted (dict), and chkbox_labels (tuple).
         daily_counts = {}
         for _proj in grp.PROJECTS:
-            is_name = f'is_{_proj}'
+            is_proj = f'is_{_proj}'
             daily_counts[f'{_proj}_Dcnt'] = (
                 self.tasks_df.time_stamp
                     .groupby(self.tasks_df.time_stamp.dt.floor('D')
-                             .where(self.tasks_df[is_name]))
+                             .where(self.tasks_df[is_proj]))
                     .transform('count')
             )
 
-        # Add columns to self.tasks_df df of daily counts for each Project and sub-Project.
+        # Add columns to tasks_df of daily counts for each Project and sub-Project.
         #  Note that _Dcnt column values are returned as floats (counts of Booleans), not integers.
         for _proj, _ in daily_counts.items():
             self.tasks_df[_proj] = daily_counts[_proj]
-
-        for series in grp.GW_SERIES:
-            is_ser = f'is_{series}'
-            self.tasks_df[is_ser] = where(
-                self.tasks_df.task_name.str.contains(series), True, False)
 
     # Need to work up metrics here so there is less delay when "Job log counts"
     #  button is used.
@@ -251,21 +256,22 @@ class TaskDataFrame:
 
 class PlotTasks(TaskDataFrame):
     """
-    Set up and display Matplotlib Figure and pyplot Plots.
-    Pandas dataframe is inherited from TaskDataFrame.
-    Methods: setup_title, setup_buttons, setup_plot_mgr, on_pick,
+    Set up and display Matplotlib Figure and pyplot Plots of task (job)
+    data from an E@H job log file.
+    The plotted Pandas dataframe is inherited from TaskDataFrame.
+    Methods: setup_title, setup_buttons, setup_plot_manager, on_pick,
        format_legends, toggle_legends, joblog_report, setup_count_axes,
        setup_freq_axes, reset_plots, plot_all, plot_gw_O2, plot_gw_O3,
        plot_fgrp5, plot_fgrpG1, plot_brp4, plot_gw_series,
-       plot_fgrpG1_freq, plot_gw_O3_freq, manage_plots
+       plot_fgrpG1_freq, plot_gw_O3_freq, manage_plots.
     """
 
     MARKER_SIZE = 4
     MARKER_SCALE = 1
     DCNT_SIZE = 2
     PICK_RADIUS = 6
-    LIGHT_COLOR = '#cccccc'  # '#d9d9d9' X11 gray85; '#cccccc' X11 gray80
-    DARK_BG = '#333333'  # X11 gray20
+    LIGHT_GRAY = '#cccccc'  # '#d9d9d9' X11 gray85; '#cccccc' X11 gray80
+    DARK_GRAY = '#333333'  # X11 gray20
 
     def __init__(self, do_test):
         super().__init__(do_test)
@@ -318,10 +324,6 @@ class PlotTasks(TaskDataFrame):
         #  need to have ax.autoscale() set for picker radius to work.
         self.fig.canvas.mpl_connect('pick_event', self.on_pick)
 
-        # Default axis margins are 0.05 (5%) of data values.
-        self.ax1.margins(0.02, 0.02)
-        self.ax2.margins(0.02, 0.02)
-
         # Slider used in *_freq plots to set Hz ranges; initialize here
         #  so that it can be removed/redrawn with each *_freq plot call
         #  and hidden for all other plots.
@@ -362,7 +364,7 @@ class PlotTasks(TaskDataFrame):
         ax_legendbtn = plt.axes((0.885, 0.5, 0.09, 0.06))
         lbtn = Button(ax_legendbtn,
                       'Legends',
-                      color=self.LIGHT_COLOR,
+                      color=self.LIGHT_GRAY,
                       hovercolor='orange',
                       )
         lbtn.on_clicked(self.toggle_legends)
@@ -375,7 +377,7 @@ class PlotTasks(TaskDataFrame):
         ax_statsbtn = plt.axes((0.885, 0.02, 0.09, 0.08))
         sbtn = Button(ax_statsbtn,
                       'Job log\ncounts',
-                      color=self.LIGHT_COLOR,
+                      color=self.LIGHT_GRAY,
                       hovercolor='orange',
                       )
         sbtn.on_clicked(self.joblog_report)
@@ -410,11 +412,11 @@ class PlotTasks(TaskDataFrame):
                                 orientation='vertical',
                                 color=mark.CBLIND_COLOR['yellow'],
                                 handle_style={'size': 8,
-                                              'facecolor': self.DARK_BG,
+                                              'facecolor': self.DARK_GRAY,
                                               }
                                 )
 
-        # Position text box above Navigation tool bar.
+        # Position text box above Navigation toolbar.
         self.ax1.text(-0.19, -0.6,
                       ("Range slider and Navigation bar tools may conflict.\n"
                        "If so, then toggle the plot's checkbox to reset."),
@@ -443,7 +445,7 @@ class PlotTasks(TaskDataFrame):
 
         hz_slider.on_changed(update)
 
-    def setup_plot_mgr(self):
+    def setup_plot_manager(self):
         """
         Set up dictionaries to use as plotting conditional variables.
         Set up the plot selection checkbox.
@@ -456,7 +458,7 @@ class PlotTasks(TaskDataFrame):
             self.isplotted[proj] = False
 
         #  Relative coordinates in Figure, in 4-tuple: (LEFT, BOTTOM, WIDTH, HEIGHT)
-        ax_chkbox = plt.axes((0.86, 0.6, 0.13, 0.3), facecolor=self.LIGHT_COLOR)
+        ax_chkbox = plt.axes((0.86, 0.6, 0.13, 0.3), facecolor=self.LIGHT_GRAY)
 
         # checkbox is used in manage_plots() and in if __name__ == "__main__".
         self.checkbox = CheckButtons(ax_chkbox, grp.CHKBOX_LABELS)
@@ -476,7 +478,7 @@ class PlotTasks(TaskDataFrame):
         Used in conjunction with mpl_connect().
 
         :param event: Implicit mouse event, left or right button click, on
-        area of plotted line markers. No event is triggered when a toolbar
+        area of plotted markers. No event is triggered when a toolbar
         a navigation tool (pan or zoom) is active.
         :return: None
         """
@@ -592,15 +594,15 @@ class PlotTasks(TaskDataFrame):
         print(_report)
 
         statfig = plt.figure(figsize=(5, 2.5),
-                             facecolor=self.DARK_BG,
+                             facecolor=self.DARK_GRAY,
                              )
         statax = statfig.add_subplot()
-        statfig.suptitle(stats_title, color=self.LIGHT_COLOR)
+        statfig.suptitle(stats_title, color=self.LIGHT_GRAY)
         statax.axis('off')
 
         statax.text(0.0, 0.0,
                     _report,
-                    color=self.LIGHT_COLOR,
+                    color=self.LIGHT_GRAY,
                     fontproperties=FontProperties(family='monospace'),
                     transform=statax.transAxes,
                     )
@@ -618,6 +620,10 @@ class PlotTasks(TaskDataFrame):
         self.ax_slider.set_visible(False)
         self.ax2.set_visible(True)
         self.ax1.tick_params('x', labelbottom=False)
+
+        # Default axis margins are 0.05 (5%) of data values.
+        self.ax1.margins(0.02, 0.02)
+        self.ax2.margins(0.02, 0.05)
 
         self.ax1.set_ylabel('Task completion time',
                             fontsize='medium', fontweight='bold')
@@ -650,20 +656,6 @@ class PlotTasks(TaskDataFrame):
 
         self.ax2.yaxis.set_major_locator(ticker.AutoLocator())
         self.ax2.yaxis.set_minor_locator(ticker.AutoMinorLocator())
-
-        # Dark color option:
-        # fig.set_facecolor(self.DARK_BG)
-        #
-        # self.ax1.set_facecolor(self.LIGHT_COLOR)
-        # self.ax1.yaxis.label.set_color(self.LIGHT_COLOR)
-        # self.ax1.xaxis.label.set_color(self.LIGHT_COLOR)
-        #
-        # self.ax1.tick_params(colors=self.LIGHT_COLOR, which='both')
-        #
-        # self.ax2.set_facecolor(self.LIGHT_COLOR)
-        # self.ax2.yaxis.label.set_color(self.LIGHT_COLOR)
-        # self.ax2.xaxis.label.set_color(self.LIGHT_COLOR)
-        # self.ax2.tick_params(colors=self.LIGHT_COLOR, which='both')
 
         self.ax1.grid(True)
         self.ax2.grid(True)
@@ -709,8 +701,8 @@ class PlotTasks(TaskDataFrame):
     def reset_plots(self):
         """
         Clear plots. axis labels, ticks, formats, legends, etc.
-        Clears plotted data by setting all data values to zero.
-        Useful to avoid stacking plots, which messes up on_pick() display of
+        Clears plotted data by setting all data values to zero and removing marks.
+        Use to avoid stacking of plots, which affects on_pick() display of
         nearby task info. Note that with this the full x-axis datetime range
         in job lob is always plotted; therefore, the methods ax.relim()
         ax.autoscale_view() and ax.autoscale() have no effect on individual
@@ -1098,16 +1090,16 @@ if __name__ == "__main__":
     vcheck.minversion('3.7')
 
     if not args.test:
-        plotdata = path_check.set_datapath()
+        datapath = path_check.set_datapath()
     else:
-        plotdata = path_check.set_datapath('do test')
+        datapath = path_check.set_datapath('do test')
 
-    print(f'Data from {plotdata} are loading. This may take a few seconds...')
+    print(f'Data from {datapath} are loading. This may take a few seconds...')
 
     # This call will set up an inherited pd dataframe in TaskDataFrame,
-    #  then plot 'all' tasks as specified in setup_plot_mgr(). After that,
+    #  then plot 'all' tasks as specified in setup_plot_manager(). After that,
     #  plots are managed by checkbox label states via manage_plots().
-    PlotTasks(args.test).setup_plot_mgr()
+    PlotTasks(args.test).setup_plot_manager()
 
     print('The plot window is ready.')
 
