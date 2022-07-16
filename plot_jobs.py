@@ -86,12 +86,12 @@ except (ImportError, ModuleNotFoundError) as err:
 
 class TaskDataFrame:
     """
-    Set up the dataframe. Is called only as an inherited Class.
+    Set up the DataFrame used for plotting.
+    Is called only as an inherited Class from PlotTasks.
     Methods: setup_df, count_log_projects
     """
 
-    def __init__(self, do_test):
-        self.do_test = do_test
+    def __init__(self):
         self.tasks_df = pd.DataFrame()
 
         # The do_test parameter is set as a cmd line argument.
@@ -274,7 +274,7 @@ class PlotTasks(TaskDataFrame):
     DARK_GRAY = '#333333'  # X11 gray20
 
     def __init__(self, do_test):
-        super().__init__(do_test)
+        super().__init__()
 
         # The do_test parameter may be set as a cmd line argument.
         self.do_test = do_test
