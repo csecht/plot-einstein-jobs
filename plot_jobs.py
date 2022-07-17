@@ -94,8 +94,6 @@ class TaskDataFrame:
     def __init__(self):
         self.tasks_df = pd.DataFrame()
 
-        # The do_test parameter is set as a cmd line argument.
-
         # Variables used for reporting in joblog_report() and
         #   count_log_projects().
         self.proj_totals = []
