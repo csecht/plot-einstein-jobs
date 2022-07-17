@@ -15,9 +15,9 @@ Basic help: python plot_jobs.py --help
 Information: python plot_jobs.py --about
 Plot sample data: python plot_jobs.py --test
 NOTE: Depending on your system, there may be a slight lag when switching
-      between plots. Be patient and avoid the urge to clicking on things
-      to speed things up. For the typical job log, hundreds of
-      thousands to millions of data points will be plotted.
+      between plots. Be patient and avoid the urge to click on things
+      to speed it up. For the typical job log, hundreds of thousands to
+      millions of data points can be plotted.
 
 Using the navigation bar, plots can be zoomed-in, panned, restored to
 previous views, and copied to PNG files.
@@ -27,8 +27,8 @@ The "Job log counts" button shows summary counts of all tasks, by Project.
 
 The default configuration reads the job_log_einstein.phys.uwm.edu.txt
 file in its default BOINC location. If you have changed the default
-location, or want to plot data from an archived job_logs, then
-enter a custom full file path in the provided plot_cfg.txt file.
+location, or want to plot data from an archived job_log, then enter a
+custom full file path in the provided plot_cfg.txt file.
 
 Requires tkinter (tk/tcl), Python3.7+, Matplotlib, Pandas, and Numpy.
 Developed in Python 3.8-3.9.
