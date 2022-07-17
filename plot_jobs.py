@@ -111,39 +111,38 @@ class TaskDataFrame:
         Set up the Pandas DataFrame of task data read from an E@H job_log
         text file.
 
-        job_log_einstein.phys.uwm.edu.txt, structure of records:
-        1654865994 ue 916.720025 ct 340.770200 fe 144000000000000 nm h1_0681.20_O3aC01Cl1In0__O3AS1a_681.50Hz_19188_1 et 1283.553196 es 0
-
         :return: None
         """
 
-        # Developer note: Can check for presence NaN values with:
-        # print('Any null values?', self.tasks_df.isnull().values.any())  # -> True
-        # print("Sum of null timestamps:", self.tasks_df['time_stamp'].isnull().sum())
-        # print("Sum of ALL nulls:", self.tasks_df.isnull().sum()).sum())
+        # job_log_einstein.phys.uwm.edu.txt, structure of records:
+        # 1654865994 ue 916.720025 ct 340.770200 fe 144000000000000 nm h1_0681.20_O3aC01Cl1In0__O3AS1a_681.50Hz_19188_1 et 1283.553196 es 0
 
-        # To include all numerical data in job_log, use this:
-        # joblog_col_idx = 0, 2, 4, 6, 8, 10  # All reported data
+        # To include all numerical data in space-delimited job_log, use this:
+        # joblog_col_index = 0, 2, 4, 6, 8, 10  # All reported data
         # headers = ('time_stamp', 'est_sec', 'cpu_sec', 'est_flops', 'task_name', 'task_t')
         # time_col = ('time_stamp', 'est_sec', 'cpu_sec', 'task_t')
-        # Only need job log data of interest to plot:
-        joblog_col_idx = 0, 8, 10
+        # Job log data of current interest:
+        joblog_col_index = 0, 8, 10
         headers = ('time_stamp', 'task_name', 'task_t')
 
         # The datapath path is defined in if __name__ == "__main__".
         self.tasks_df = pd.read_table(datapath,
                                       sep=' ',
                                       header=None,
-                                      usecols=joblog_col_idx,
+                                      usecols=joblog_col_index,
                                       names=headers,
                                       )
 
+        # Developer note: Can check for presence NaN values with:
+        # print('Any null values?', self.tasks_df.isnull().values.any())  # -> True
+        # print("Sum of null timestamps:", self.tasks_df['time_stamp'].isnull().sum())
+        # print("Sum of ALL nulls:", self.tasks_df.isnull().sum()).sum())
         # Need to replace NaN values with usable data.
         #   Assumes read_table of job_log file will produce NaN ONLY for timestamp.
         self.tasks_df.time_stamp.interpolate(inplace=True)
 
-        # Need to retain original elapsed time seconds values for correlations.
-        #   Not sure whether floats as sec.ns or integers are better:
+        # Need to retain original elapsed time as integer seconds for
+        #   plotting frequency data:
         self.tasks_df['task_sec'] = self.tasks_df.task_t.astype(int)
 
         #  Need to convert times to datetimes for efficient plotting.
@@ -153,7 +152,7 @@ class TaskDataFrame:
                                                 unit='s',
                                                 infer_datetime_format=True)
 
-        # Null column data used to visually reset_plots().
+        # Zero data columns are used to visually clear plots in reset_plots().
         self.tasks_df['null_time'] = pd.to_datetime(0.0, unit='s')
         self.tasks_df['null_Dcnt'] = 0
 
@@ -577,7 +576,7 @@ class PlotTasks(TaskDataFrame):
         num_days = len(pd.to_datetime(self.tasks_df.time_stamp).dt.date.unique())
 
         _report = (f'Total tasks in file: {self.total_jobs}\n'
-                   f'Task counts for the past {num_days} days:\n\n'
+                   f'Project task counts for the past {num_days} days:\n\n'
                    f'{"Project".ljust(6)} {"Total".rjust(10)}'
                    f' {"per Day".rjust(9)} {"Days".rjust(8)}\n'
                    )
@@ -733,7 +732,7 @@ class PlotTasks(TaskDataFrame):
                       markersize=self.MARKER_SIZE,
                       label='all',
                       color=mark.CBLIND_COLOR['blue'],
-                      alpha=0.3,
+                      alpha=0.2,
                       picker=self.PICK_RADIUS,
                       )
         self.ax2.plot(self.tasks_df.time_stamp,
