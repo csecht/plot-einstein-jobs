@@ -24,9 +24,7 @@ full file path in the provided plot_cfg.txt file.
 
 Requires Python3.7 or later, Matplotlib, Pandas, and Numpy.
 Developed in Python 3.8-3.9.
-
-URL: https://github.com/csecht/plot-einstein-jobs
-Development Status :: 1 - Alpha"""
+"""
 # Copyright (C) 2022 C.S. Echt, under GNU General Public License
 
 # Standard library imports
@@ -1085,8 +1083,10 @@ def manage_args() -> bool:
 
     if args.about:
         print(__doc__)
-        print('Version:', plot_utils.__version__)
         print('Author:', plot_utils.__author__)
+        print('Version:', plot_utils.__version__)
+        print('Status:', plot_utils.__dev_status__)
+        print('URL', plot_utils.URL)
         print(plot_utils.__copyright__)
         print(plot_utils.LICENSE)
         sys.exit(0)
