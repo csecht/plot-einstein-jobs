@@ -35,32 +35,14 @@ Developed in Python 3.8-3.9.
 
 URL: https://github.com/csecht/plot-einstein-jobs
 Development Status :: 1 - Alpha
-Version: 0.0.8
-
-Copyright: (c) 2022 Craig S. Echt under GNU General Public License.
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-    See the GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program. If not, see https://www.gnu.org/licenses/.
 """
 
-# Copyright (c) 2022 C.S. Echt, under GNU General Public License
 
 import argparse
 import sys
 
-from plot_utils import (path_check, vcheck, platform_check,
-                        markers as mark,
-                        project_groups as grp)
+import plot_utils
+from plot_utils import path_check, markers as mark, project_groups as grp
 
 try:
     import matplotlib.dates as mdates
@@ -270,11 +252,11 @@ class PlotTasks(TaskDataFrame):
     LIGHT_GRAY = '#cccccc'  # '#d9d9d9' X11 gray85; '#cccccc' X11 gray80
     DARK_GRAY = '#333333'  # X11 gray20
 
-    def __init__(self, do_test):
+    def __init__(self, test):
         super().__init__()
 
-        # The do_test parameter may be set as a cmd line argument.
-        self.do_test = do_test
+        # The test parameter is set from an invocation argument.
+        self.test = test
 
         self.checkbox = None
         self.do_replot = False
@@ -335,12 +317,12 @@ class PlotTasks(TaskDataFrame):
         Specify in the Figure title which data are plotted, those from the
         sample data file, plot_utils.testdata.txt, or the user's job log
         file. Called from if __name__ == "__main__".
-        self.do_test is inherited from TaskDataFrame(args.test)
-        via call in if __name__ == "__main__".
+        self.test is inherited from TaskDataFrame(do_test) as boolean
+        via call from if __name__ == "__main__".
 
         :return: None
         """
-        if self.do_test:
+        if self.test:
             title = 'Sample data'
         else:
             title = 'E@H job_log data'
@@ -569,7 +551,7 @@ class PlotTasks(TaskDataFrame):
         """
 
         stats_title = (f'Summary of all tasks in\n'
-                       f'{path_check.set_datapath(args.test)}')
+                       f'{path_check.set_datapath(do_test)}')
 
         _results = tuple(zip(
             grp.PROJ_TO_REPORT, self.proj_totals, self.proj_daily_means, self.proj_days))
@@ -1061,7 +1043,11 @@ class PlotTasks(TaskDataFrame):
         self.fig.canvas.draw_idle()
 
 
-if __name__ == "__main__":
+def manage_args() -> bool:
+    """Allow handling of command line arguments.
+
+    :return: True if --test argument used (default: False).
+    """
 
     parser = argparse.ArgumentParser()
     parser.add_argument('--about',
@@ -1073,20 +1059,29 @@ if __name__ == "__main__":
                         action='store_true',
                         default=False,
                         )
-    # parser.add_argument('--logpath',
-    #                     help='Enter path to alternate job_log file.',
-    #                     )
+
     args = parser.parse_args()
 
     if args.about:
         print(__doc__)
+        print('Version:', plot_utils.__version__)
+        print('Author:', plot_utils.__author__)
+        print(plot_utils.__copyright__)
+        print(plot_utils.LICENSE)
         sys.exit(0)
 
-    # Program will exit if any check fails.
-    platform_check.check_platform()
-    vcheck.minversion('3.7')
+    return args.test
 
-    if not args.test:
+
+if __name__ == "__main__":
+
+    """
+    System platform and version checks are run in plot_utils __init__.py
+    Program exits if checks fail.
+    """
+    do_test = manage_args()  # Function returns boolean.
+
+    if not do_test:
         datapath = path_check.set_datapath()
     else:
         datapath = path_check.set_datapath('do test')
@@ -1094,9 +1089,9 @@ if __name__ == "__main__":
     print(f'Data from {datapath} are loading. This may take a few seconds...')
 
     # This call will set up an inherited pd dataframe in TaskDataFrame,
-    #  then plot 'all' tasks as specified in setup_plot_manager(). After that,
-    #  plots are managed by checkbox label states via manage_plots().
-    PlotTasks(args.test).setup_plot_manager()
+    #  then plot 'all' tasks as specified in setup_plot_manager().
+    #  After that, plots are managed by checkbox states in manage_plots().
+    PlotTasks(do_test).setup_plot_manager()
 
     print('The plot window is ready.')
 
