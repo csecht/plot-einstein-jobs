@@ -6,7 +6,7 @@ Program will exit here if any check fails when called.
 """
 
 __author__ = 'Craig S. Echt'
-__version__ = '0.0.10'
+__version__: str = '0.0.11'
 __copyright__ = 'Copyright (C) 2022 C.S. Echt, under GNU General Public License'
 
 LICENSE = """
@@ -21,9 +21,8 @@ LICENSE = """
     See the GNU General Public License for more details.
 
     You should have received a copy of the GNU General Public License
-    along with this program. If not, see https://www.gnu.org/licenses/ 
-    or the LICENCE text file included with this distribution.
-"""
+    along with this program (the LICENCE.txt file). If not, see
+    https://www.gnu.org/licenses/."""
 
 platform_check.check_platform()
 vcheck.minversion('3.7')

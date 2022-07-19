@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
-"""
-plot_jobs.py uses Matplotlib to draw plots from data in Einstein@Home
+"""plot_jobs.py uses Matplotlib to draw plots from data in Einstein@Home
 BOINC client job log files. Task times vs datetime, task counts/day vs.
 datetime, and task frequency (Hz) vs. task time (sec) can be plotted for
 various E@H Projects recorded in a job log. A job log file can store
@@ -27,8 +26,7 @@ Requires Python3.7 or later, Matplotlib, Pandas, and Numpy.
 Developed in Python 3.8-3.9.
 
 URL: https://github.com/csecht/plot-einstein-jobs
-Development Status :: 1 - Alpha
-"""
+Development Status :: 1 - Alpha"""
 # Copyright (C) 2022 C.S. Echt, under GNU General Public License
 
 # Standard library imports
@@ -68,6 +66,10 @@ class TaskDataFrame:
     Is called only as an inherited Class from PlotTasks.
     Methods: setup_df, count_log_projects
     """
+
+    # https://stackoverflow.com/questions/472000/usage-of-slots
+    __slots__ = ('tasks_df', 'proj_totals', 'proj_daily_means',
+                 'proj_days', 'total_jobs')
 
     def __init__(self):
         self.tasks_df = pd.DataFrame()
@@ -245,6 +247,10 @@ class PlotTasks(TaskDataFrame):
     PICK_RADIUS = 6
     LIGHT_GRAY = '#cccccc'  # '#d9d9d9' X11 gray85; '#cccccc' X11 gray80
     DARK_GRAY = '#333333'  # X11 gray20
+
+    __slots__ = ('test', 'checkbox', 'do_replot', 'legend_btn_on',
+                 'plot_proj', 'chkbox_labelid', 'isplotted', 'bbox_freq',
+                 'fig', 'ax1', 'ax2', 'ax_slider')
 
     def __init__(self, test):
         super().__init__()
