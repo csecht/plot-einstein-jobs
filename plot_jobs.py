@@ -1000,7 +1000,7 @@ class PlotTasks(TaskDataFrame):
                 if status and _proj in grp.ALL_INCLUSIVE and not self.isplotted[_proj]:
                     self.plot_proj[_proj]()
 
-        elif clicked_label in grp.ALL_INCLUSIVE and not ischecked[clicked_label]:
+        elif not ischecked[clicked_label]:
 
             # Was toggled off, so remove all plots,
             #   then replot only inclusive checked ones.
@@ -1022,7 +1022,7 @@ class PlotTasks(TaskDataFrame):
                 if status and _proj in grp.GW_SERIES_INCLUSIVE and not self.isplotted[_proj]:
                     self.plot_proj[_proj]()
 
-        elif clicked_label == 'gw_series' and not ischecked[clicked_label]:
+        elif not ischecked[clicked_label]:
 
             # Was toggled off, so need to remove gw_series plot,
             # but not others. Reset all, then replot the others.

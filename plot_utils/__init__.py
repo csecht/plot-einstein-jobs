@@ -5,6 +5,9 @@ These constants are used with the --about command line argument or button.
 Program will exit here if any check fails when called.
 """
 
+platform_check.check_platform()
+vcheck.minversion('3.7')
+
 # Development status standards: https://pypi.org/classifiers/
 
 __author__ = 'Craig S. Echt'
@@ -28,6 +31,3 @@ LICENSE = """
     You should have received a copy of the GNU General Public License
     along with this program (the LICENCE.txt file). If not, see
     https://www.gnu.org/licenses/."""
-
-platform_check.check_platform()
-vcheck.minversion('3.7')
