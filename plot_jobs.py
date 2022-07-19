@@ -6,14 +6,6 @@ datetime, and task frequency (Hz) vs. task time (sec) can be plotted for
 various E@H Projects recorded in a job log. A job log file can store
 records of reported tasks for up to about three years of full-time work.
 
-USAGE: From within the program's folder, use one of these commands,
-       depending on your system:
-            python plot_jobs.py
-            ./plot_jobs.py
-            python3 plot_jobs.py
-Basic help: python plot_jobs.py --help
-Information: python plot_jobs.py --about
-Plot sample data: python plot_jobs.py --test
 NOTE: Depending on your system, there may be a slight lag when switching
       between plots. Be patient and avoid the urge to click on things
       to speed it up. For the typical job log, hundreds of thousands to
@@ -22,28 +14,32 @@ NOTE: Depending on your system, there may be a slight lag when switching
 Using the navigation bar, plots can be zoomed-in, panned, restored to
 previous views, and copied to PNG files.
 When no navigation bar buttons are active, clicking on a cluster or
-single data point shows task grp near the click coordinates.
+single data point shows details of tasks near the click coordinates.
+
 The "Job log counts" button shows summary counts of all tasks, by Project.
 
-The default configuration reads the job_log_einstein.phys.uwm.edu.txt
-file in its default BOINC location. If you have changed the default
-location, or want to plot data from an archived job_log, then enter a
-custom full file path in the provided plot_cfg.txt file.
+The job_log_einstein.phys.uwm.edu.txt file is normally read from its
+default BOINC location. If you have changed the default location, or
+want to plot data from an archived job_log file, then enter a custom
+full file path in the provided plot_cfg.txt file.
 
-Requires tkinter (tk/tcl), Python3.7+, Matplotlib, Pandas, and Numpy.
+Requires Python3.7 or later, Matplotlib, Pandas, and Numpy.
 Developed in Python 3.8-3.9.
 
 URL: https://github.com/csecht/plot-einstein-jobs
 Development Status :: 1 - Alpha
 """
+# Copyright (C) 2022 C.S. Echt, under GNU General Public License
 
-
+# Standard library imports
 import argparse
 import sys
 
+# Local application imports
 import plot_utils
 from plot_utils import path_check, markers as mark, project_groups as grp
 
+# Third party imports
 try:
     import matplotlib.dates as mdates
     import matplotlib.pyplot as plt
@@ -350,8 +346,8 @@ class PlotTasks(TaskDataFrame):
         #   responsive you must keep a reference to this object."
         ax_legendbtn._button = lbtn
 
-        # Position log tally display button to bottom right corner of window.
-        ax_statsbtn = plt.axes((0.885, 0.02, 0.09, 0.08))
+        # Position log tally button to bottom right.
+        ax_statsbtn = plt.axes((0.9, 0.09, 0.07, 0.08))
         sbtn = Button(ax_statsbtn,
                       'Job log\ncounts',
                       color=self.LIGHT_GRAY,
@@ -359,6 +355,27 @@ class PlotTasks(TaskDataFrame):
                       )
         sbtn.on_clicked(self.joblog_report)
         ax_statsbtn._button = sbtn
+
+        # Position About button to bottom right corner.
+        ax_aboutbtn = plt.axes((0.9, 0.01, 0.07, 0.06))
+        abtn = Button(ax_aboutbtn,
+                      'About',
+                      color='white',
+                      hovercolor=mark.CBLIND_COLOR['sky blue'],
+                      )
+
+        def about(event):
+            print('_____ ABOUT START _____')
+            print(__doc__)
+            print('Version:', plot_utils.__version__)
+            print('Author:', plot_utils.__author__)
+            print(plot_utils.__copyright__)
+            print(plot_utils.LICENSE)
+            print('_____ ABOUT END _____')
+            return event
+
+        abtn.on_clicked(about)
+        ax_aboutbtn._button = abtn
 
     def setup_slider(self, max_f: float):
         """

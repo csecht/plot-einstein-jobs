@@ -1,8 +1,13 @@
 from . import platform_check, vcheck
 
+"""
+These constants are used with the --about command line argument or button.
+Program will exit here if any check fails when called.
+"""
+
 __author__ = 'Craig S. Echt'
-__version__ = '0.0.9'
-__copyright__ = 'Copyright (c) 2022 C.S. Echt, under GNU General Public License'
+__version__ = '0.0.10'
+__copyright__ = 'Copyright (C) 2022 C.S. Echt, under GNU General Public License'
 
 LICENSE = """
     This program is free software: you can redistribute it and/or modify
@@ -16,11 +21,9 @@ LICENSE = """
     See the GNU General Public License for more details.
 
     You should have received a copy of the GNU General Public License
-    along with this program. If not, see https://www.gnu.org/licenses/.
+    along with this program. If not, see https://www.gnu.org/licenses/ 
+    or the LICENCE text file included with this distribution.
 """
 
-# Program will exit if any check fails.
 platform_check.check_platform()
 vcheck.minversion('3.7')
-
-
