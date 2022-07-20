@@ -605,7 +605,7 @@ class PlotTasks(TaskDataFrame):
                     transform=statax.transAxes,
                     )
 
-        plt.show()
+        statfig.show()
         return event
 
     def setup_count_axes(self):
