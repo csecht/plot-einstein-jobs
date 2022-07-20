@@ -66,6 +66,7 @@ class TaskDataFrame:
     """
 
     # https://stackoverflow.com/questions/472000/usage-of-slots
+    # https://towardsdatascience.com/understand-slots-in-python-e3081ef5196d
     __slots__ = ('tasks_df', 'proj_totals', 'proj_daily_means',
                  'proj_days', 'total_jobs')
 
@@ -518,7 +519,7 @@ class PlotTasks(TaskDataFrame):
                     transform=textax.transAxes,
                     )
 
-        plt.show()
+        textfig.show()
         return event
 
     def format_legends(self):
