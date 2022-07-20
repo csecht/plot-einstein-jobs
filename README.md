@@ -33,6 +33,8 @@ NOTE: Depending on your system, there may be a slight lag when switching
       around to speed things up. For the typical job log, hundreds of
       thousands to millions of data points can be plotted.
 
+TIP: When selecting a plot from the checkbox, moving the mouse after clicking may be needed for the new plot to show up.
+
 Using the navigation bar, plots can be zoomed-in, panned, restored to
 previous views, and copied to PNG files.
 When no navigation bar button is active, clicking on a cluster or
