@@ -1,3 +1,8 @@
 matplotlib
 pandas
 numpy
+
+# Version set as of July 2022:
+# matplotlib==3.5.2
+# pandas==1.4.3
+# numpy==1.23.1
