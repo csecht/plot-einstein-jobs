@@ -33,19 +33,20 @@ NOTE: Depending on your system, there may be a slight lag when switching
       around to speed things up. For the typical job log, hundreds of
       thousands to millions of data points can be plotted.
 
-TIP: When selecting a plot from the checkbox, moving the mouse after clicking may be needed for the new plot to show up.
+
+The default configuration reads the job_log_einstein.phys.uwm.edu.txt
+file in its standard BOINC location. If you have changed the default
+location, or want to plot data from an archived job_logs file, then
+enter a custom file path in the provided plot_cfg.txt file.
 
 Using the navigation bar, plots can be zoomed-in, panned, restored to
 previous views, and copied to PNG files.
 When no navigation bar button is active, clicking on a cluster or
 single data point shows task names near the click coordinates.
 
-The "Log counts" button shows summary counts of all tasks, by Project.
+The "Log counts" button shows, in a pop-up window and in the Terminal, summary counts of all tasks, by Project.
 
-The default configuration reads the job_log_einstein.phys.uwm.edu.txt
-file in its standard BOINC location. If you have changed the default
-location, or want to plot data from an archived job_logs file, then
-enter a custom file path in the provided plot_cfg.txt file.
+The "About" button prints to Terminal a description of the program, version number, repository URL, and copyright and license information.
 
 ### Requirements:
 Python 3.7 or later, plus Matplotlib, Pandas, and Numpy.
