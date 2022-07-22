@@ -62,6 +62,9 @@ Alternative commands (system dependent):
     python3 -m pip install -r requirements.txt
     py -m pip install -r requirements.txt
 
+### Known Issues:
+Navigation bar icons images are not showing up in MacOS. They are functional, but may have reduced responsiveness. 
+
 ### Screenshots:
 ![plot all sample data](images/test_start.png)
 
