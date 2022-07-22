@@ -35,27 +35,59 @@ import sys
 import plot_utils
 from plot_utils import path_check, markers as mark, project_groups as grp
 
-# Third party imports
+# Third party imports (tk may not be included with some Python installations).
 try:
+    import matplotlib.backends.backend_tkagg as backend
     import matplotlib.dates as mdates
     import matplotlib.pyplot as plt
     import matplotlib.style as mplstyle
     import pandas as pd
+    import tkinter as tk
+
     from matplotlib import ticker
-    from matplotlib.font_manager import FontProperties
     from matplotlib.widgets import CheckButtons, Button, RangeSlider
     from numpy import where
-except (ImportError, ModuleNotFoundError) as err:
+except (ImportError, ModuleNotFoundError) as import_err:
     print('One or more of the required Python packages were not found:\n'
-          'Matplotlib, Pandas, Numpy.\n'
+          'Matplotlib, Numpy, Pandas, Pillow, tkinter.\n'
           'To install: from the current folder, run this command\n'
           'pip install -r requirements.txt\n'
           'Alternative command formats (system dependent):\n'
-          'python -m pip install -r requirements.txt\n'
-          'python3 -m pip install -r requirements.txt\n'
-          'py -m pip install -r requirements.txt\n'
-          f'Error msg: {err}')
+          '   python -m pip install -r requirements.txt\n'
+          '   python3 -m pip install -r requirements.txt\n'
+          '   py -m pip install -r requirements.txt\n'
+          'On Linux, if tkinter is the problem, then you may need:\n'
+          '   sudo apt-get install python3-tk\n'
+          '   See also: https://tkdocs.com/tutorial/install.html \n'
+          f'Error msg: {import_err}')
     sys.exit(1)
+
+
+def quit_gui(keybind=None) -> None:
+    """
+    Error-free and informative exit from the program.
+    Called from widget or keybindings.
+    Explicitly closes all Matplotlib objects and their parent tk window
+    when the user closes the plot window with the system's built-in
+    close window icon ("X") or key command. This is required to cleanly
+    exit and close the tk thread running Matplotlib.
+
+    :param keybind: Implicit event passed from bind().
+    """
+
+    print('\n*** User quit the program. ***\n')
+
+    # pylint: disable=broad-except
+    try:
+        plt.close('all')
+        canvas_window.update_idletasks()
+        canvas_window.after(200)
+        canvas_window.destroy()
+    except Exception as err:
+        print(f'An error occurred: {err}')
+        sys.exit('Program exit with unexpected condition.')
+
+    return keybind
 
 
 class TaskDataFrame:
@@ -143,7 +175,7 @@ class TaskDataFrame:
         self.tasks_df['is_gw_O3'] = where(
             self.tasks_df.task_name.str.contains('_O3'), True, False)
         self.tasks_df['is_fgrp'] = where(
-            self.tasks_df.task_name.str.startswith('LATeah'), True,  False)
+            self.tasks_df.task_name.str.startswith('LATeah'), True, False)
         self.tasks_df['is_fgrp5'] = where(
             self.tasks_df.task_name.str.contains(r'LATeah\d{4}F'), True, False)
         self.tasks_df['is_fgrpG1'] = where(
@@ -231,31 +263,44 @@ class TaskDataFrame:
 class PlotTasks(TaskDataFrame):
     """
     Set up and display Matplotlib Figure and pyplot Plots of task (job)
-    data from an E@H job log file.
+    data from the inherited DataFrame.
     The plotted Pandas dataframe is inherited from TaskDataFrame.
-    Methods: setup_title, setup_buttons, setup_plot_manager, on_pick,
-       format_legends, toggle_legends, joblog_report, setup_count_axes,
-       setup_freq_axes, reset_plots, plot_all, plot_gw_O2, plot_gw_O3,
-       plot_fgrp5, plot_fgrpG1, plot_brp4, plot_gw_series,
-       plot_fgrpG1_freq, plot_gw_O3_freq, manage_plots.
+    Methods: setup_window, setup_title, setup_buttons, setup_plot_manager,
+        on_pick, format_legends, toggle_legends, joblog_report,
+        setup_count_axes, setup_freq_axes, reset_plots, plot_all,
+        plot_gw_O2, plot_gw_O3, plot_fgrp5, plot_fgrpG1, plot_brp4
+        plot_gw_series, plot_fgrpG1_freq, plot_gw_O3_freq, manage_plots.
     """
 
-    MARKER_SIZE = 4
-    MARKER_SCALE = 1
-    DCNT_SIZE = 2
-    PICK_RADIUS = 6
-    LIGHT_GRAY = '#cccccc'  # '#d9d9d9' X11 gray85; '#cccccc' X11 gray80
-    DARK_GRAY = '#333333'  # X11 gray20
-
-    __slots__ = ('test', 'checkbox', 'do_replot', 'legend_btn_on',
-                 'plot_proj', 'chkbox_labelid', 'isplotted', 'bbox_freq',
-                 'fig', 'ax1', 'ax2', 'ax_slider')
+    # https://stackoverflow.com/questions/472000/usage-of-slots
+    # https://towardsdatascience.com/understand-slots-in-python-e3081ef5196d
+    __slots__ = ( # Module functions
+                 'import_err', 'quit_qui',
+                 # __main__ attributes
+                 'do_test', 'datapath', 'img', 'canvas_window',
+                 # Instance attributes
+                 'test',
+                 'marker_size', 'marker_scale', 'dcnt_size', 'pick_radius',
+                 'light_gray', 'dark_gray',
+                 'fig', 'ax1', 'ax2',
+                 'checkbox', 'do_replot', 'legend_btn_on', 'plot_proj',
+                 'chkbox_labelid', 'isplotted', 'freq_bbox', 'ax_slider',
+                 )
 
     def __init__(self, test):
         super().__init__()
 
         # The test parameter is set from an invocation argument.
         self.test = test
+
+        self.marker_size = 4
+        self.marker_scale = 1
+        self.dcnt_size = 2
+        self.pick_radius = 6
+
+        # Matplotlib does not recognize tkinter X11 color names.
+        self.light_gray = '#cccccc'  # '#d9d9d9' X11 gray85; '#cccccc' X11 gray80
+        self.dark_gray = '#404040'  # '#404040' X11 gray25, '#333333' X11 gray20, '#4d4d4d' X11 gray30
 
         self.checkbox = None
         self.do_replot = False
@@ -277,18 +322,16 @@ class PlotTasks(TaskDataFrame):
         self.chkbox_labelid = {}
         self.isplotted = {}
 
-        self.bbox_freq = dict(facecolor='white',
+        self.freq_bbox = dict(facecolor='white',
                               edgecolor='grey',
                               boxstyle='round',
                               )
 
         self.fig, (self.ax1, self.ax2) = plt.subplots(
             2,
-            figsize=(9.5, 5),
             sharex='all',
             gridspec_kw={'height_ratios': [3, 1],
-                         # 'left': 0.11,  # When use horiz Hz slider
-                         'left': 0.15,  # When use vertical Hz slider
+                         'left': 0.15,
                          'right': 0.85,
                          'bottom': 0.16,
                          'top': 0.92,
@@ -307,9 +350,42 @@ class PlotTasks(TaskDataFrame):
         #  and hidden for all other plots.
         self.ax_slider = plt.axes()
 
+        self.setup_window()
         self.setup_title()
         self.setup_buttons()
         self.setup_count_axes()
+
+    def setup_window(self):
+        """
+        A tkinter window for the figure canvas that makes the
+        CheckButton checkbox actions for plotting more responsive.
+        """
+        canvas_window.title('Plotting E@H tasks')
+        canvas_window.minsize(850, 550)
+        canvas_window.rowconfigure(0, weight=1)
+        canvas_window.columnconfigure(0, weight=1)
+        canvas_window.configure(bg='green')
+        canvas_window.protocol('WM_DELETE_WINDOW', quit_gui)
+
+        canvas_window.bind_all('<Escape>', quit_gui)
+        canvas_window.bind('<Control-q>', quit_gui)
+
+        canvas = backend.FigureCanvasTkAgg(self.fig, master=canvas_window)
+        canvas.draw()
+        canvas.get_tk_widget().pack(fill='both', expand=True)
+
+        toolbar = backend.NavigationToolbar2Tk(canvas, canvas_window)
+
+        # Need to remove the subplots navigation button.
+        # Source: https://stackoverflow.com/questions/59155873/
+        #   how-to-remove-toolbar-button-from-navigationtoolbar2tk-figurecanvastkagg
+        if sys.platform in 'linux, darwin':
+            toolbar.children['!button4'].pack_forget()
+        else:  # is Windows
+            toolbar.children['!button6'].pack_forget()
+
+        toolbar.update()
+        canvas.get_tk_widget().pack()
 
     def setup_title(self):
         """
@@ -342,8 +418,8 @@ class PlotTasks(TaskDataFrame):
         ax_legendbtn = plt.axes((0.885, 0.5, 0.09, 0.06))
         lbtn = Button(ax_legendbtn,
                       'Legends',
-                      color=self.LIGHT_GRAY,
-                      hovercolor='orange',
+                      color=self.light_gray,
+                      hovercolor=mark.CBLIND_COLOR['orange'],
                       )
         lbtn.on_clicked(self.toggle_legends)
 
@@ -355,8 +431,8 @@ class PlotTasks(TaskDataFrame):
         ax_statsbtn = plt.axes((0.9, 0.09, 0.07, 0.08))
         sbtn = Button(ax_statsbtn,
                       'Job log\ncounts',
-                      color=self.LIGHT_GRAY,
-                      hovercolor='orange',
+                      color=self.light_gray,
+                      hovercolor=mark.CBLIND_COLOR['orange'],
                       )
         sbtn.on_clicked(self.joblog_report)
         ax_statsbtn._button = sbtn
@@ -374,6 +450,7 @@ class PlotTasks(TaskDataFrame):
             print(__doc__)
             print('Version:', plot_utils.__version__)
             print('Author:', plot_utils.__author__)
+            print('URL:', plot_utils.URL)
             print(plot_utils.__copyright__)
             print(plot_utils.LICENSE)
             print('_____ ABOUT END _____')
@@ -399,7 +476,7 @@ class PlotTasks(TaskDataFrame):
 
         # RangeSlider Coord: (LEFT, BOTTOM, WIDTH, HEIGHT).
         # self.ax_slider = plt.axes((0.11, 0.15, 0.60, 0.02)) # horiz
-        self.ax_slider = plt.axes((0.05, 0.38, 0.01, 0.52)) # vert
+        self.ax_slider = plt.axes((0.05, 0.38, 0.01, 0.52))  # vert
 
         # Invert min/max values on vertical slider so max is on top.
         plt.gca().invert_yaxis()
@@ -411,7 +488,7 @@ class PlotTasks(TaskDataFrame):
                                 orientation='vertical',
                                 color=mark.CBLIND_COLOR['yellow'],
                                 handle_style={'size': 8,
-                                              'facecolor': self.DARK_GRAY,
+                                              'facecolor': self.dark_gray,
                                               }
                                 )
 
@@ -423,7 +500,7 @@ class PlotTasks(TaskDataFrame):
                       fontsize=8,
                       verticalalignment='top',
                       transform=self.ax1.transAxes,
-                      bbox=self.bbox_freq,
+                      bbox=self.freq_bbox,
                       )
 
         # Dummy reference, per documentation: "For the slider to remain
@@ -457,16 +534,26 @@ class PlotTasks(TaskDataFrame):
             self.isplotted[proj] = False
 
         #  Relative coordinates in Figure, in 4-tuple: (LEFT, BOTTOM, WIDTH, HEIGHT)
-        ax_chkbox = plt.axes((0.86, 0.6, 0.13, 0.3), facecolor=self.LIGHT_GRAY)
+        ax_chkbox = plt.axes((0.86, 0.6, 0.13, 0.3), facecolor=self.dark_gray)
+        ax_chkbox.set_xlabel('Plots', fontsize='medium', fontweight='bold')
+        ax_chkbox.xaxis.set_label_position('top')
 
-        # checkbox is used in manage_plots() and in if __name__ == "__main__".
+        # Need check boxes to control which data to plot.
+        # At startup, activate checkbox label 'all' so that all tasks
+        #  are plotted by default via manage_plots().
         self.checkbox = CheckButtons(ax_chkbox, grp.CHKBOX_LABELS)
+        for label in self.checkbox.labels:
+            label.set_color('white')
+            label.set_size(8)
+        for _r in self.checkbox.rectangles:
+            _r.set_width(0.08)
+            _r.set_edgecolor(self.light_gray)
+        for line in self.checkbox.lines:
+            for artist in line:
+                artist.set_linewidth(4)
+                artist.set_color('yellow')
 
         self.checkbox.on_clicked(self.manage_plots)
-
-        # At startup, activate checkbox label 'all' so that all tasks
-        #  are plotted by default (via manage_plots() called from the
-        #  on_clicked() statement).
         self.checkbox.set_active(self.chkbox_labelid['all'])
 
     def on_pick(self, event):
@@ -482,13 +569,17 @@ class PlotTasks(TaskDataFrame):
         :return: None
         """
 
+        report_title = ('Tasks near selected point, up to 6:\n'
+                        '      Date | name | completion time')
+
         _n = len(event.ind)  # VertexSelector(line), in lines.py
         if not _n:
             print('event.ind is undefined')
             return event
 
-        limit = 6  # Limit tasks from total in self.PICK_RADIUS.,
-        task_info_list = ["Date | name | completion time"]
+        limit = 6  # Limit tasks, from total in self.pick_radius
+
+        task_info_list = [report_title]
         for dataidx in event.ind:
             if limit > 0:
                 task_info_list.append(
@@ -497,41 +588,43 @@ class PlotTasks(TaskDataFrame):
                     f'{self.tasks_df.loc[dataidx].task_t.time()}')
             limit -= 1
 
-        # Need to print results to Terminal to provide user with the
-        #   option to cut-and-paste selected task info.
+        _report = '\n\n'.join(map(str, task_info_list))
+
+        # Display task info in Terminal and pop-up window.
         print('\n'.join(map(str, task_info_list)))
 
         # Make new window with text box; one window made for each click.
-        textfig = plt.figure(figsize=(6, 2))
-        textax = textfig.add_subplot()
+        taskwin = tk.Toplevel()
+        taskwin.title('Task info')
+        taskwin.minsize(600, 300)
+        # taskwin.attributes('-topmost', True)
 
-        textfig.suptitle('Tasks near clicked area, up to 6:')
+        max_line = len(max(_report.splitlines(), key=len))
+        num_lines = _report.count('\n')
 
-        textax.axis('off')
+        tasktxt = tk.Text(taskwin, font='TkFixedFont',
+                          width=max_line, height=num_lines,
+                          bg=self.dark_gray, fg='white',
+                          relief='groove', bd=4,
+                          padx=15, pady=10,
+                          )
+        tasktxt.insert(1.0, _report)
+        tasktxt.pack(fill=tk.BOTH, expand=True,
+                     padx=5, pady=5,
+                     )
 
-        textax.text(-0.12, 0.0,
-                    '\n\n'.join(map(str, task_info_list)),
-                    fontsize=8,
-                    bbox=dict(facecolor='orange',
-                              alpha=0.4,
-                              boxstyle='round',
-                              ),
-                    transform=textax.transAxes,
-                    )
-
-        textfig.show()
         return event
 
     def format_legends(self):
         self.ax1.legend(fontsize='x-small', ncol=2,
                         loc='upper right',
-                        markerscale=self.MARKER_SCALE,
+                        markerscale=self.marker_scale,
                         edgecolor='black',
                         framealpha=0.5,
                         )
         self.ax2.legend(fontsize='x-small', ncol=2,
                         loc='upper right',
-                        markerscale=self.MARKER_SCALE,
+                        markerscale=self.marker_scale,
                         edgecolor='black',
                         framealpha=0.4,
                         )
@@ -570,15 +663,17 @@ class PlotTasks(TaskDataFrame):
         :return:  None
         """
 
-        stats_title = (f'Summary of all tasks in\n'
-                       f'{path_check.set_datapath(do_test)}')
+        report_title = 'Summary of tasks counts in...'
+
+        data_file = path_check.set_datapath(do_test)
 
         _results = tuple(zip(
             grp.PROJ_TO_REPORT, self.proj_totals, self.proj_daily_means, self.proj_days))
         num_days = len(pd.to_datetime(self.tasks_df.time_stamp).dt.date.unique())
 
-        _report = (f'Total tasks in file: {self.total_jobs}\n'
-                   f'Project task counts for the past {num_days} days:\n\n'
+        _report = (f'{data_file}\n\n'
+                   f'Total tasks in file: {self.total_jobs}\n'
+                   f'Counts for the past {num_days} days:\n\n'
                    f'{"Project".ljust(6)} {"Total".rjust(10)}'
                    f' {"per Day".rjust(9)} {"Days".rjust(8)}\n'
                    )
@@ -589,31 +684,38 @@ class PlotTasks(TaskDataFrame):
                                  )
 
         # Print to terminal to give user the option to cut-and-paste.
-        print(stats_title)
-        print(_report)
+        print(report_title, _report)
 
-        statfig = plt.figure(figsize=(5, 2.5),
-                             facecolor=self.DARK_GRAY,
-                             )
-        statax = statfig.add_subplot()
-        statfig.suptitle(stats_title, color=self.LIGHT_GRAY)
-        statax.axis('off')
+        # Make new window with text box; one window made for each click.
+        statswin = tk.Toplevel()
+        statswin.title(report_title)
+        statswin.minsize(400, 220)
+        # statswin.attributes('-topmost', True)
 
-        statax.text(0.0, 0.0,
-                    _report,
-                    color=self.LIGHT_GRAY,
-                    fontproperties=FontProperties(family='monospace'),
-                    transform=statax.transAxes,
-                    )
+        max_line = len(max(_report.splitlines(), key=len))
+        num_lines = _report.count('\n')
 
-        statfig.show()
+        statstxt = tk.Text(statswin, font='TkFixedFont',
+                           width=max_line, height=num_lines,
+                           bg=self.dark_gray, fg='white',
+                           relief='groove', bd=4,
+                           padx=15, pady=10,
+                           )
+        statstxt.insert(1.0, _report)
+        statstxt.pack(fill=tk.BOTH, expand=True,
+                      padx=5, pady=5,
+                      )
+
         return event
 
     def setup_count_axes(self):
         """
-        Used to rebuild axes components when plots and axes are cleared by
-        reset_plots().
+        Used to set initial axes and rebuild axes components when plots
+        and axes are cleared by reset_plots().
         """
+
+        # self.ax1.xaxis.axis_date()  # No effect?
+        # self.ax1.yaxis.axis_date()
 
         # Need to reset plot axes in case setup_freq_axes() was called.
         self.ax_slider.set_visible(False)
@@ -731,16 +833,16 @@ class PlotTasks(TaskDataFrame):
         self.ax1.plot(self.tasks_df.time_stamp,
                       self.tasks_df.task_t,
                       mark.MARKER_STYLE['point'],
-                      markersize=self.MARKER_SIZE,
+                      markersize=self.marker_size,
                       label='all',
                       color=mark.CBLIND_COLOR['blue'],
                       alpha=0.2,
-                      picker=self.PICK_RADIUS,
+                      picker=self.pick_radius,
                       )
         self.ax2.plot(self.tasks_df.time_stamp,
                       self.tasks_df.all_Dcnt,
                       mark.MARKER_STYLE['square'],
-                      markersize=self.DCNT_SIZE,
+                      markersize=self.dcnt_size,
                       label='all',
                       color=mark.CBLIND_COLOR['blue'],
                       )
@@ -751,16 +853,16 @@ class PlotTasks(TaskDataFrame):
         self.ax1.plot(self.tasks_df.time_stamp,
                       self.tasks_df.task_t.where(self.tasks_df.is_gw_O2),
                       mark.MARKER_STYLE['triangle_down'],
-                      markersize=self.MARKER_SIZE,
+                      markersize=self.marker_size,
                       label='gw_O2MD1',
                       color=mark.CBLIND_COLOR['orange'],
                       alpha=0.4,
-                      picker=self.PICK_RADIUS,
+                      picker=self.pick_radius,
                       )
         self.ax2.plot(self.tasks_df.time_stamp,
                       self.tasks_df.gw_O2_Dcnt,
                       mark.MARKER_STYLE['square'],
-                      markersize=self.DCNT_SIZE,
+                      markersize=self.dcnt_size,
                       label='gw_O2MD1',
                       color=mark.CBLIND_COLOR['orange'],
                       )
@@ -771,16 +873,16 @@ class PlotTasks(TaskDataFrame):
         self.ax1.plot(self.tasks_df.time_stamp,
                       self.tasks_df.task_t.where(self.tasks_df.is_gw_O3),
                       mark.MARKER_STYLE['triangle_up'],
-                      markersize=self.MARKER_SIZE,
+                      markersize=self.marker_size,
                       label='gw_O3AS',
                       color=mark.CBLIND_COLOR['sky blue'],
                       alpha=0.3,
-                      picker=self.PICK_RADIUS,
+                      picker=self.pick_radius,
                       )
         self.ax2.plot(self.tasks_df.time_stamp,
                       self.tasks_df.gw_O3_Dcnt,
                       mark.MARKER_STYLE['square'],
-                      markersize=self.DCNT_SIZE,
+                      markersize=self.dcnt_size,
                       label='gw_O3AS',
                       color=mark.CBLIND_COLOR['sky blue'],
                       )
@@ -791,20 +893,20 @@ class PlotTasks(TaskDataFrame):
         self.ax1.plot(self.tasks_df.time_stamp,
                       self.tasks_df.task_t.where(self.tasks_df.is_fgrp5),
                       mark.MARKER_STYLE['tri_left'],
-                      markersize=self.MARKER_SIZE,
+                      markersize=self.marker_size,
                       label='fgrp5',
                       color=mark.CBLIND_COLOR['bluish green'],
                       alpha=0.3,
-                      picker=self.PICK_RADIUS,
+                      picker=self.pick_radius,
                       )
         self.ax2.plot(self.tasks_df.time_stamp,
                       self.tasks_df.fgrp5_Dcnt,
                       mark.MARKER_STYLE['square'],
-                      markersize=self.DCNT_SIZE,
+                      markersize=self.dcnt_size,
                       label='fgrp5',
                       color=mark.CBLIND_COLOR['bluish green'],
                       alpha=0.4,
-                      picker=self.PICK_RADIUS,
+                      picker=self.pick_radius,
                       )
         self.format_legends()
         self.isplotted['fgrp5'] = True
@@ -813,16 +915,16 @@ class PlotTasks(TaskDataFrame):
         self.ax1.plot(self.tasks_df.time_stamp,
                       self.tasks_df.task_t.where(self.tasks_df.is_fgrpG1),
                       mark.MARKER_STYLE['tri_right'],
-                      markersize=self.MARKER_SIZE,
+                      markersize=self.marker_size,
                       label='FGRBPG1',
                       color=mark.CBLIND_COLOR['vermilion'],
                       alpha=0.3,
-                      picker=self.PICK_RADIUS,
+                      picker=self.pick_radius,
                       )
         self.ax2.plot(self.tasks_df.time_stamp,
                       self.tasks_df.fgrpG1_Dcnt,
                       mark.MARKER_STYLE['square'],
-                      markersize=self.DCNT_SIZE,
+                      markersize=self.dcnt_size,
                       label='FGRBPG1',
                       color=mark.CBLIND_COLOR['vermilion'],
                       )
@@ -833,16 +935,16 @@ class PlotTasks(TaskDataFrame):
         self.ax1.plot(self.tasks_df.time_stamp,
                       self.tasks_df.task_t.where(self.tasks_df.is_brp4),
                       mark.MARKER_STYLE['pentagon'],
-                      markersize=self.MARKER_SIZE,
+                      markersize=self.marker_size,
                       label='BRP4 & BRP4G',
                       color=mark.CBLIND_COLOR['reddish purple'],
                       alpha=0.3,
-                      picker=self.PICK_RADIUS,
+                      picker=self.pick_radius,
                       )
         self.ax2.plot(self.tasks_df.time_stamp,
                       self.tasks_df.brp4_Dcnt,
                       mark.MARKER_STYLE['square'],
-                      markersize=self.DCNT_SIZE,
+                      markersize=self.dcnt_size,
                       label='BRP4 & BRP4G',
                       color=mark.CBLIND_COLOR['reddish purple'],
                       )
@@ -857,17 +959,17 @@ class PlotTasks(TaskDataFrame):
                           self.tasks_df.task_t.where(self.tasks_df[is_subproj]),
                           mark.next_marker(),
                           label=subproj,
-                          markersize=self.MARKER_SIZE,
+                          markersize=self.marker_size,
                           alpha=0.3,
                           picker=True,
-                          pickradius=self.PICK_RADIUS,
+                          pickradius=self.pick_radius,
                           )
 
         self.ax2.plot(self.tasks_df.time_stamp,
                       self.tasks_df.gw_Dcnt,
                       mark.MARKER_STYLE['square'],
                       label='All GW',
-                      markersize=self.DCNT_SIZE,
+                      markersize=self.dcnt_size,
                       )
         self.format_legends()
         self.isplotted['gw_series'] = True
@@ -893,16 +995,16 @@ class PlotTasks(TaskDataFrame):
                       fontsize=6,
                       verticalalignment='top',
                       transform=self.ax1.transAxes,
-                      bbox=self.bbox_freq,
+                      bbox=self.freq_bbox,
                       )
 
         self.ax1.plot(self.tasks_df.task_sec.where(self.tasks_df.is_fgrpG1),
                       self.tasks_df.fgrpG1_freq,
                       mark.MARKER_STYLE['point'],
-                      markersize=self.MARKER_SIZE,
+                      markersize=self.marker_size,
                       color=mark.CBLIND_COLOR['blue'],
                       alpha=0.3,
-                      picker=self.PICK_RADIUS,
+                      picker=self.pick_radius,
                       )
 
         self.isplotted['fgrpG1_freq'] = True
@@ -928,17 +1030,17 @@ class PlotTasks(TaskDataFrame):
                       fontsize=6,
                       verticalalignment='top',
                       transform=self.ax1.transAxes,
-                      bbox=self.bbox_freq,
+                      bbox=self.freq_bbox,
                       )
 
         # NOTE that there is not a separate df column for O3 freq.
         self.ax1.plot(self.tasks_df.task_sec.where(self.tasks_df.is_gw_O3),
                       self.tasks_df.gw_freq.where(self.tasks_df.is_gw_O3),
                       mark.MARKER_STYLE['point'],
-                      markersize=self.MARKER_SIZE,
+                      markersize=self.marker_size,
                       color=mark.CBLIND_COLOR['blue'],
                       alpha=0.3,
-                      picker=self.PICK_RADIUS,
+                      picker=self.pick_radius,
                       )
 
         self.isplotted['gw_O3_freq'] = True
@@ -1097,10 +1199,9 @@ def manage_args() -> bool:
 
 if __name__ == "__main__":
 
-    """
-    System platform and version checks are run in plot_utils __init__.py
-    Program exits if checks fail.
-    """
+    # System platform and version checks are run in plot_utils __init__.py
+    #   Program exits if checks fail.
+
     do_test = manage_args()  # Function returns boolean.
 
     if not do_test:
@@ -1110,15 +1211,26 @@ if __name__ == "__main__":
 
     print(f'Data from {datapath} are loading. This may take a few seconds...')
 
+    # Need to use a tkinter window for the plot canvas so that the
+    #   CheckButton actions for plot management are more responsive.
+    canvas_window = tk.Tk()
+
     # This call will set up an inherited pd dataframe in TaskDataFrame,
     #  then plot 'all' tasks as specified in setup_plot_manager().
-    #  After that, plots are managed by checkbox states in manage_plots().
+    #  After that, plots are managed by CheckButton states in manage_plots().
     PlotTasks(do_test).setup_plot_manager()
 
     print('The plot window is ready.')
 
+    # Need an image to replace blank tk desktop icon.
+    img = tk.PhotoImage(
+        file='images/desktop_icon.png')
+    canvas_window.iconphoto(True, img)
+
     try:
-        plt.show()
+        canvas_window.mainloop()
     except KeyboardInterrupt:
         print('\n*** User quit the program ***\n')
-        plt.close('all')
+    except Exception as unk:
+        print(f'An error occurred: {unk}')
+        sys.exit('Program exit with unexpected condition.')
