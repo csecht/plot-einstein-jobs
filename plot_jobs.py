@@ -63,6 +63,38 @@ except (ImportError, ModuleNotFoundError) as import_err:
     sys.exit(1)
 
 
+def manage_args() -> bool:
+    """Allow handling of command line arguments.
+
+    :return: True if --test argument used (default: False).
+    """
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--about',
+                        help='Provide description, version, GNU license',
+                        action='store_true',
+                        default=False)
+    parser.add_argument('--test',
+                        help='Plot test data instead of your job_log data.',
+                        action='store_true',
+                        default=False,
+                        )
+
+    args = parser.parse_args()
+
+    if args.about:
+        print(__doc__)
+        print('Author:', plot_utils.__author__)
+        print('Version:', plot_utils.__version__)
+        print('Status:', plot_utils.__dev_status__)
+        print('URL', plot_utils.URL)
+        print(plot_utils.__copyright__)
+        print(plot_utils.LICENSE)
+        sys.exit(0)
+
+    return args.test
+
+
 def quit_gui(keybind=None) -> None:
     """
     Error-free and informative exit from the program.
@@ -274,18 +306,18 @@ class PlotTasks(TaskDataFrame):
 
     # https://stackoverflow.com/questions/472000/usage-of-slots
     # https://towardsdatascience.com/understand-slots-in-python-e3081ef5196d
-    __slots__ = ( # Module functions
-                 'import_err', 'quit_qui',
-                 # __main__ attributes
-                 'do_test', 'datapath', 'img', 'canvas_window',
-                 # Instance attributes
-                 'test',
-                 'marker_size', 'marker_scale', 'dcnt_size', 'pick_radius',
-                 'light_gray', 'dark_gray',
-                 'fig', 'ax1', 'ax2',
-                 'checkbox', 'do_replot', 'legend_btn_on', 'plot_proj',
-                 'chkbox_labelid', 'isplotted', 'freq_bbox', 'ax_slider',
-                 )
+    __slots__ = (  # Module function attributes
+        'import_err', 'manage_args', 'quit_qui',
+        # __main__ attributes
+        'do_test', 'datapath', 'img', 'canvas_window',
+        # Instance attributes
+        'test',
+        'marker_size', 'marker_scale', 'dcnt_size', 'pick_radius',
+        'light_gray', 'dark_gray',
+        'fig', 'ax1', 'ax2',
+        'checkbox', 'do_replot', 'legend_btn_on', 'plot_proj',
+        'chkbox_labelid', 'isplotted', 'freq_bbox', 'ax_slider',
+    )
 
     def __init__(self, test):
         super().__init__()
@@ -471,8 +503,14 @@ class PlotTasks(TaskDataFrame):
         #   stacking of bars.
         self.ax_slider.remove()
 
-        # Add a 2% margin to the slider upper limit.
-        max_limit = max_f + max_f * 0.02
+        # Add a 2% margin to the slider upper limit when frequency data are available.
+        # When there are no plot data max_f will be NaA, so test if Nan to
+        #   avoid a ValueError for RangeSlider range when max_f is NaN.
+        # https://towardsdatascience.com/5-methods-to-check-for-nan-values-in-in-python-3f21ddd17eed
+        if max_f != max_f:
+            max_limit = 1
+        else:
+            max_limit = max_f + max_f * 0.02
 
         # RangeSlider Coord: (LEFT, BOTTOM, WIDTH, HEIGHT).
         # self.ax_slider = plt.axes((0.11, 0.15, 0.60, 0.02)) # horiz
@@ -781,7 +819,12 @@ class PlotTasks(TaskDataFrame):
         self.ax2.set_visible(False)
         self.ax1.tick_params('x', labelbottom=True)
 
-        self.ax1.set_xlim(t_limits)
+        # When data are not available for a plot, the t_limit tuple
+        #  will be (0, nan) and raise ValueError: Axis limits cannot be NaN or Inf
+        try:
+            self.ax1.set_xlim(t_limits)
+        except ValueError:
+            pass
 
         self.ax1.set_xlabel('Task completion time, sec',
                             fontsize='medium', fontweight='bold')
@@ -1163,38 +1206,6 @@ class PlotTasks(TaskDataFrame):
             self.plot_proj[clicked_label]()
 
         self.fig.canvas.draw_idle()
-
-
-def manage_args() -> bool:
-    """Allow handling of command line arguments.
-
-    :return: True if --test argument used (default: False).
-    """
-
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--about',
-                        help='Provide description, version, GNU license',
-                        action='store_true',
-                        default=False)
-    parser.add_argument('--test',
-                        help='Plot test data instead of your job_log data.',
-                        action='store_true',
-                        default=False,
-                        )
-
-    args = parser.parse_args()
-
-    if args.about:
-        print(__doc__)
-        print('Author:', plot_utils.__author__)
-        print('Version:', plot_utils.__version__)
-        print('Status:', plot_utils.__dev_status__)
-        print('URL', plot_utils.URL)
-        print(plot_utils.__copyright__)
-        print(plot_utils.LICENSE)
-        sys.exit(0)
-
-    return args.test
 
 
 if __name__ == "__main__":
