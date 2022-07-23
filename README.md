@@ -68,23 +68,27 @@ Navigation bar icons images are not showing up in MacOS. They are functional, bu
 ### Screenshots:
 ![plot all sample data](images/test_start.png)
 
-Opening window using the sample data option.
+Opening window using the sample data option, --test.
 
-![plot log GW data](images/gw_all.png)
+![plot GW series](images/gw_all.png)
 
-Plot of all gravitational wave tasks, by sub-series, over time.
+Example plot of all gravitational wave tasks, by sub-series, over time.
 
-![plot GW freq](images/gw_freq.png)
+![plot_fgrp_zoom](images/fgrpG1_zoom.png)
 
-Plot of gravitational wave task frequencies vs. task times.
+Zoom-in detail of FGRPG1 tasks time and counts.
 
-![plot zoom and pick](images/gwfreq+zoom+pick.png)
+![plot fgrp freq](images/fgrp_freq.png)
 
-Zoom-in on lowest frequency group of tasks, then click in bottom cluster to obtain details of tasks near those plot coordinates.
+FGRPG1 gamma-ray task frequencies vs. task times.
 
-![plot hz_range](images/gw_freq_slider.png)
+![plot hz_range](images/fgrp_freq_slider.png)
 
 Use Hz range slider as an alternative way to zoom in on frequency ranges. The slider and Navigation bar tools don't always work well together, so generally use one or the other.
+
+![popup-task-info](images/task_info.png)
+
+Pop-up window of task information for tasks nearest a clicked plot coordinate.
 
 ### Keyboard shortcuts for navigation bar buttons and actions
 
