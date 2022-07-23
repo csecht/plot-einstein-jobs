@@ -1,5 +1,6 @@
-from itertools import cycle
+"""Constants and functions for marker styles and colors."""
 
+from itertools import cycle
 
 """
 Line and marker styles:
@@ -86,12 +87,16 @@ CBLIND_COLOR = {
     'white': 'white',
 }
 
+# Need hexcodes b/c Matplotlib does not recognize tkinter X11 color names.
+LIGHT_GRAY = '#d9d9d9'  # '#d9d9d9' X11 gray85; '#cccccc' X11 gray80
+DARK_GRAY = '#404040'  # '#404040' X11 gray25, '#333333' X11 gray20, '#4d4d4d' X11 gray30
+
 # Source: https://medium.com/@masnun/infinitely-cycling-through-a-list-in-python-ef37e9df100
 markers = ['.', 'o', '*', '+', 'x', 'v', '^', '<', '>', '1', '2',
            '3', '4', '8', 's', 'p', 'P', 'h', 'H', 'X', 'D', 'd']
 markers_cycle = cycle(markers)
 
 
-def next_marker():
+def next_marker() -> iter:
 
     return next(markers_cycle)

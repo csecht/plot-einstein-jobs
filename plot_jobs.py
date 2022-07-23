@@ -43,7 +43,7 @@ from pathlib import Path
 
 # Local application imports
 import plot_utils
-from plot_utils import path_check, markers as mark, project_groups as grp
+from plot_utils import path_check, markers as mark, project_groups as grp, reports
 
 # Third party imports (tk may not be included with some Python installations).
 try:
@@ -57,7 +57,6 @@ try:
     from matplotlib import ticker
     from matplotlib.widgets import CheckButtons, Button, RangeSlider
     from numpy import where
-    from tkinter.scrolledtext import ScrolledText
 
 except (ImportError, ModuleNotFoundError) as import_err:
     print('One or more required Python packages were not found'
@@ -321,14 +320,21 @@ class PlotTasks(TaskDataFrame):
 
     # https://stackoverflow.com/questions/472000/usage-of-slots
     # https://towardsdatascience.com/understand-slots-in-python-e3081ef5196d
-    __slots__ = (  # Module function attributes
+    __slots__ = (
+        # Function attributes
         'import_err', 'manage_args', 'quit_qui',
+        # plot_utils local module attributes
+        '__dev_status__', '__copyright__', 'URL', 'LICENSE',
+        'MARKER_STYLE', 'CBLIND_COLOR',  'DARK_GRAY', 'LIGHT_GRAY',
+        'markers', 'markers_cycle',
+        'MY_OS', 'CFGFILE', 'TESTFILE',
+        'PROJECTS', 'PROJ_TO_REPORT', 'ALL_EXCLUDED', 'GW_SERIES_EXCLUDED',
+        'ALL_INCLUSIVE', 'GW_SERIES_INCLUSIVE', 'CHKBOX_LABELS', 'GW_SERIES',
         # __main__ attributes
         'do_test', 'datapath', 'img', 'canvas_window',
         # Instance attributes
         '_test',
         'marker_size', 'marker_scale', 'dcnt_size', 'pick_radius',
-        'light_gray', 'dark_gray',
         'fig', 'ax1', 'ax2',
         'checkbox', 'do_replot', 'legend_btn_on', 'plot_proj',
         'chkbox_labelid', 'isplotted', 'freq_bbox', 'ax_slider',
@@ -344,10 +350,6 @@ class PlotTasks(TaskDataFrame):
         self.marker_scale = 1
         self.dcnt_size = 2
         self.pick_radius = 6
-
-        # Matplotlib does not recognize tkinter X11 color names.
-        self.light_gray = '#d9d9d9'  # '#d9d9d9' X11 gray85; '#cccccc' X11 gray80
-        self.dark_gray = '#404040'  # '#404040' X11 gray25, '#333333' X11 gray20, '#4d4d4d' X11 gray30
 
         self.checkbox = None
         self.do_replot = False
@@ -402,7 +404,7 @@ class PlotTasks(TaskDataFrame):
         self.setup_buttons()
         self.setup_count_axes()
 
-    def setup_window(self):
+    def setup_window(self) -> None:
         """
         A tkinter window for the figure canvas that makes the
         CheckButton checkbox actions for plotting more responsive.
@@ -435,7 +437,7 @@ class PlotTasks(TaskDataFrame):
 
         toolbar.update()
 
-    def setup_title(self):
+    def setup_title(self) -> None:
         """
         Specify in the Figure title which data are plotted, those from the
         sample data file, plot_utils.testdata.txt, or the user's job log
@@ -455,7 +457,7 @@ class PlotTasks(TaskDataFrame):
                           fontweight='bold',
                           )
 
-    def setup_buttons(self):
+    def setup_buttons(self) -> None:
         """
         Setup buttons to toggle legends and to display log counts.
         Buttons are aligned with the plot checkbox, ax_chkbox.
@@ -492,7 +494,7 @@ class PlotTasks(TaskDataFrame):
         abtn.on_clicked(self.about_report)
         ax_aboutbtn._button = abtn  # Prevent garbage collection.
 
-    def setup_slider(self, max_f: float):
+    def setup_slider(self, max_f: float) -> None:
         """
         Create a RangeSlider for real-time y-axis Hz range adjustments
         of *_freq plots.
@@ -527,7 +529,7 @@ class PlotTasks(TaskDataFrame):
                                 orientation='vertical',
                                 color=mark.CBLIND_COLOR['yellow'],
                                 handle_style={'size': 8,
-                                              # 'facecolor': self.dark_gray,
+                                              # 'facecolor': mark.DARK_GRAY,
                                               }
                                 )
 
@@ -557,7 +559,7 @@ class PlotTasks(TaskDataFrame):
 
         hz_slider.on_changed(_update)
 
-    def setup_plot_manager(self):
+    def setup_plot_manager(self) -> None:
         """
         Set up dictionaries to use as plotting conditional variables.
         Set up the plot selection checkbox.
@@ -570,7 +572,7 @@ class PlotTasks(TaskDataFrame):
             self.isplotted[proj] = False
 
         # Relative coordinates in Figure, 4-tuple (LEFT, BOTTOM, WIDTH, HEIGHT)
-        ax_chkbox = plt.axes((0.86, 0.6, 0.13, 0.3), facecolor=self.dark_gray)
+        ax_chkbox = plt.axes((0.86, 0.6, 0.13, 0.3), facecolor=mark.DARK_GRAY)
         ax_chkbox.set_xlabel('Plots', fontsize='medium', fontweight='bold')
         ax_chkbox.xaxis.set_label_position('top')
 
@@ -583,7 +585,7 @@ class PlotTasks(TaskDataFrame):
             label.set_size(8)
         for _r in self.checkbox.rectangles:
             _r.set_width(0.08)
-            _r.set_edgecolor(self.light_gray)
+            _r.set_edgecolor(mark.LIGHT_GRAY)
         for line in self.checkbox.lines:
             for artist in line:
                 artist.set_linewidth(4)
@@ -606,7 +608,7 @@ class PlotTasks(TaskDataFrame):
                         framealpha=0.4,
                         )
 
-    def toggle_legends(self, event):
+    def toggle_legends(self, event) -> None:
         """
         Show/hide plot legends. If plot has no legend, do nothing.
 
@@ -631,7 +633,7 @@ class PlotTasks(TaskDataFrame):
 
         return event
 
-    def on_pick_report(self, event):
+    def on_pick_report(self, event) -> None:
         """
         Click on plot area to show nearby task info in new figure and in
         Terminal or Command Line. Template source:
@@ -644,54 +646,35 @@ class PlotTasks(TaskDataFrame):
         :return: None
         """
 
-        report_title = ('Tasks near selected point, up to 6:\n'
-                        '      Date | name | completion time')
+        _header = ('Tasks nearest the selected point\n'
+                   '      Date | name | completion time')
 
         _n = len(event.ind)  # VertexSelector(line), in lines.py
         if not _n:
             print('event.ind is undefined')
             return event
 
-        limit = 6  # Limit tasks, from total in self.pick_radius
+        _limit = 6  # Limit tasks, from total in self.pick_radius
 
-        task_info_list = [report_title]
+        task_info_list = [_header]
         for dataidx in event.ind:
-            if limit > 0:
+            if _limit > 0:
                 task_info_list.append(
                     f'{self.tasks_df.loc[dataidx].time_stamp.date()} | '
                     f'{self.tasks_df.loc[dataidx].task_name} | '
                     f'{self.tasks_df.loc[dataidx].task_t.time()}')
-            limit -= 1
+            _limit -= 1
 
         _report = '\n\n'.join(map(str, task_info_list))
 
         # Display task info in Terminal and pop-up window.
         print('\n'.join(map(str, task_info_list)))
 
-        # Make new window with text box; one window made for each click.
-        taskwin = tk.Toplevel()
-        taskwin.title('Task info')
-        taskwin.minsize(600, 300)
-        # taskwin.attributes('-topmost', True)
-
-        max_line = len(max(_report.splitlines(), key=len))
-        num_lines = _report.count('\n')
-
-        tasktxt = tk.Text(taskwin, font='TkFixedFont',
-                          width=max_line, height=num_lines,
-                          bg=self.dark_gray, fg=self.light_gray,
-                          insertbackground=self.light_gray,
-                          relief='groove', bd=4,
-                          padx=15, pady=10,
-                          )
-        tasktxt.insert(tk.INSERT, _report)
-        tasktxt.pack(fill=tk.BOTH, expand=True,
-                     padx=5, pady=5,
-                     )
-
+        reports.view_report('Task details (max 6)',
+                            _report, (600, 300))
         return event
 
-    def joblog_report(self, event):
+    def joblog_report(self, event) -> None:
         """
         Display and print statistical metrics job_log data.
         Called from "Job log counts" button in Figure.
@@ -699,8 +682,6 @@ class PlotTasks(TaskDataFrame):
         :param event: Implicit mouse click event.
         :return:  None
         """
-
-        report_title = 'Summary of tasks counts in...'
 
         data_file = path_check.set_datapath(do_test)
 
@@ -720,31 +701,19 @@ class PlotTasks(TaskDataFrame):
                                  f' {str(p_dmean).rjust(9)} {str(p_days).rjust(8)}\n'
                                  )
 
-        # Make new window with text box; one window made for each click.
-        statswin = tk.Toplevel()
-        statswin.title(report_title)
-        statswin.minsize(400, 220)
-        # statswin.attributes('-topmost', True)
-
-        max_line = len(max(_report.splitlines(), key=len))
-        num_lines = _report.count('\n')
-
-        statstxt = tk.Text(statswin, font='TkFixedFont',
-                           width=max_line, height=num_lines,
-                           bg=self.dark_gray, fg=self.light_gray,
-                           insertbackground=self.light_gray,
-                           relief='groove', bd=4,
-                           padx=15, pady=10,
-                           )
-        statstxt.insert(tk.INSERT, _report)
-        statstxt.pack(fill=tk.BOTH, expand=True,
-                      padx=5, pady=5,
-                      )
-
+        reports.view_report('Summary of tasks counts in...',
+                            _report, (400, 260))
         return event
 
-    def about_report(self, event):
-        report_title = f'About {Path(__file__).name}'
+    @staticmethod
+    def about_report(event) -> None:
+        """
+        Display program and Project information.
+        Called from "About" button in Figure.
+
+        :param event: Implicit mouse click event.
+        :return: None
+        """
 
         _report = (f'{__doc__}\n'
                    f'{"Version:".ljust(9)} {plot_utils.__version__}\n'
@@ -754,25 +723,8 @@ class PlotTasks(TaskDataFrame):
                    f'{plot_utils.LICENSE}\n'
                    )
 
-        # Make new window with text box; one window made for each click.
-        aboutwin = tk.Toplevel()
-        aboutwin.title(report_title)
-        aboutwin.minsize(400, 220)
-
-        max_line = len(max(_report.splitlines(), key=len))
-
-        abouttxt = ScrolledText(aboutwin, font='TkFixedFont',
-                                width=max_line,
-                                bg=self.dark_gray, fg=self.light_gray,
-                                insertbackground=self.light_gray,
-                                relief='groove', bd=4,
-                                padx=15, pady=10,
-                                )
-        abouttxt.insert(tk.INSERT, _report)
-        abouttxt.pack(fill=tk.BOTH, expand=True,
-                      padx=5, pady=5,
-                      )
-
+        reports.view_report(f'About {Path(__file__).name}',
+                            _report, (400, 220), scroll=True)
         return event
 
     def setup_count_axes(self):
