@@ -66,7 +66,7 @@ except (ImportError, ModuleNotFoundError) as import_err:
 def manage_args() -> bool:
     """Allow handling of command line arguments.
 
-    :return: True if --test argument used (default: False).
+    :return: True if --_test argument used (default: False).
     """
 
     parser = argparse.ArgumentParser()
@@ -75,7 +75,7 @@ def manage_args() -> bool:
                         action='store_true',
                         default=False)
     parser.add_argument('--test',
-                        help='Plot test data instead of your job_log data.',
+                        help='Plot _test data instead of your job_log data.',
                         action='store_true',
                         default=False,
                         )
@@ -164,14 +164,14 @@ class TaskDataFrame:
         # time_col = ('time_stamp', 'est_sec', 'cpu_sec', 'task_t')
         # Job log data of current interest:
         joblog_col_index = 0, 8, 10
-        headers = ('time_stamp', 'task_name', 'task_t')
+        _headers = ('time_stamp', 'task_name', 'task_t')
 
         # The datapath path is defined in if __name__ == "__main__".
         self.tasks_df = pd.read_table(datapath,
                                       sep=' ',
                                       header=None,
                                       usecols=joblog_col_index,
-                                      names=headers,
+                                      names=_headers,
                                       )
 
         # Developer note: Can check for presence NaN values with:
@@ -311,7 +311,7 @@ class PlotTasks(TaskDataFrame):
         # __main__ attributes
         'do_test', 'datapath', 'img', 'canvas_window',
         # Instance attributes
-        'test',
+        '_test',
         'marker_size', 'marker_scale', 'dcnt_size', 'pick_radius',
         'light_gray', 'dark_gray',
         'fig', 'ax1', 'ax2',
@@ -319,11 +319,11 @@ class PlotTasks(TaskDataFrame):
         'chkbox_labelid', 'isplotted', 'freq_bbox', 'ax_slider',
     )
 
-    def __init__(self, test):
+    def __init__(self, _test):
         super().__init__()
 
-        # The test parameter is set from an invocation argument.
-        self.test = test
+        # The _test parameter is set from an invocation argument.
+        self._test = _test
 
         self.marker_size = 4
         self.marker_scale = 1
@@ -417,24 +417,23 @@ class PlotTasks(TaskDataFrame):
             toolbar.children['!button6'].pack_forget()
 
         toolbar.update()
-        canvas.get_tk_widget().pack()
 
     def setup_title(self):
         """
         Specify in the Figure title which data are plotted, those from the
         sample data file, plot_utils.testdata.txt, or the user's job log
         file. Called from if __name__ == "__main__".
-        self.test is inherited from TaskDataFrame(do_test) as boolean
+        self._test is inherited from TaskDataFrame(do_test) as boolean
         via call from if __name__ == "__main__".
 
         :return: None
         """
-        if self.test:
-            title = 'Sample data'
+        if self._test:
+            _title = 'Sample data'
         else:
-            title = 'E@H job_log data'
+            _title = 'E@H job_log data'
 
-        self.fig.suptitle(title,
+        self.fig.suptitle(_title,
                           fontsize=14,
                           fontweight='bold',
                           )
@@ -504,7 +503,7 @@ class PlotTasks(TaskDataFrame):
         self.ax_slider.remove()
 
         # Add a 2% margin to the slider upper limit when frequency data are available.
-        # When there are no plot data max_f will be NaA, so test if Nan to
+        # When there are no plot data max_f will be NaA, so _test if Nan to
         #   avoid a ValueError for RangeSlider range when max_f is NaN.
         # https://towardsdatascience.com/5-methods-to-check-for-nan-values-in-in-python-3f21ddd17eed
         if max_f != max_f:
@@ -517,7 +516,7 @@ class PlotTasks(TaskDataFrame):
         self.ax_slider = plt.axes((0.05, 0.38, 0.01, 0.52))  # vert
 
         # Invert min/max values on vertical slider so max is on top.
-        plt.gca().invert_yaxis()
+        self.ax1.invert_yaxis()
 
         hz_slider = RangeSlider(self.ax_slider, "Hz range",
                                 0, max_limit,
@@ -545,7 +544,7 @@ class PlotTasks(TaskDataFrame):
         #  responsive you must keep a reference to this object."
         self.ax_slider._slider = hz_slider
 
-        def update(val):
+        def _update(val):
             """
             Live update of the plot's y-axis frequency range.
 
@@ -557,7 +556,7 @@ class PlotTasks(TaskDataFrame):
 
             self.fig.canvas.draw_idle()
 
-        hz_slider.on_changed(update)
+        hz_slider.on_changed(_update)
 
     def setup_plot_manager(self):
         """
@@ -820,7 +819,8 @@ class PlotTasks(TaskDataFrame):
         self.ax1.tick_params('x', labelbottom=True)
 
         # When data are not available for a plot, the t_limit tuple
-        #  will be (0, nan) and raise ValueError: Axis limits cannot be NaN or Inf
+        #  will be (0, nan) and set_xlim() will raise
+        #    ValueError: Axis limits cannot be NaN or Inf
         try:
             self.ax1.set_xlim(t_limits)
         except ValueError:
@@ -1029,7 +1029,7 @@ class PlotTasks(TaskDataFrame):
 
         self.setup_slider(max_f)
 
-        # Position text below lower left corner of axes.
+        # Position text below lower left corner of plot area.
         self.ax1.text(0.0, -0.15,
                       f'Frequencies, N: {num_freq}\n'
                       f'Hz, min--max: {min_f}--{max_f}\n'
