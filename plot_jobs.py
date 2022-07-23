@@ -1,28 +1,37 @@
 #!/usr/bin/env python3
 """plot_jobs.py uses Matplotlib to draw plots from data in Einstein@Home
-BOINC client job log files. Task times vs datetime, task counts/day vs.
-datetime, and task frequency (Hz) vs. task time (sec) can be plotted for
-various E@H Projects recorded in a job log. A job log file can store
-records of reported tasks for up to about three years of full-time work.
+BOINC client job log files.
+
+Plot types are:
+    Task times vs reported datetime
+    Task counts/day vs. reported datetime
+    Task frequency (Hz) vs. task time (sec)
+Plots can be specified for various E@H Projects.
+A job log file can store records of reported tasks for up to about three
+years of full-time work. This can include hundreds of thousands to
+millions of tasks.
 
 NOTE: Depending on your system, there may be a slight lag when switching
       between plots. Be patient and avoid the urge to click on things
-      to speed it up. For the typical job log, hundreds of thousands to
-      millions of data points can be plotted.
+      to speed it up.
 
-Using the navigation bar, plots can be zoomed-in, panned, restored to
-previous views, and copied to PNG files.
-When no navigation bar buttons are active, clicking on a cluster or
-single data point shows details of tasks near the click coordinates.
+Using the navigation bar at the bottom of the plot window, plots can be
+zoomed-in, panned, restored to previous views, and copied to PNG files.
 
-The "Job log counts" button shows summary counts of all tasks, by Project.
+When no navigation bar buttons are selected, clicking on a cluster or
+single data point shows details of tasks nearest the click coordinates.
+
+The "Job log counts" button tallies counts of all tasks, by Project.
+The "About" button shows this plus version, author, Project URL,
+copyright, and license.
 
 The job_log_einstein.phys.uwm.edu.txt file is normally read from its
 default BOINC location. If you have changed the default location, or
 want to plot data from an archived job_log file, then enter a custom
 full file path in the provided plot_cfg.txt file.
 
-Requires Python3.7 or later, Matplotlib, Pandas, and Numpy.
+Requires Python3.7 or later (incl. tkinter (tk/tcl)) and the packages
+Matplotlib, Pandas, and Numpy.
 Developed in Python 3.8-3.9.
 """
 # Copyright (C) 2022 C.S. Echt, under GNU General Public License
@@ -30,6 +39,7 @@ Developed in Python 3.8-3.9.
 # Standard library imports
 import argparse
 import sys
+from pathlib import Path
 
 # Local application imports
 import plot_utils
@@ -47,6 +57,8 @@ try:
     from matplotlib import ticker
     from matplotlib.widgets import CheckButtons, Button, RangeSlider
     from numpy import where
+    from tkinter.scrolledtext import ScrolledText
+
 except (ImportError, ModuleNotFoundError) as import_err:
     print('One or more required Python packages were not found'
           ' or need an update:\n'
@@ -301,7 +313,7 @@ class PlotTasks(TaskDataFrame):
     data from the inherited DataFrame.
     The plotted Pandas dataframe is inherited from TaskDataFrame.
     Methods: setup_window, setup_title, setup_buttons, setup_plot_manager,
-        on_pick, format_legends, toggle_legends, joblog_report,
+        on_pick_report, format_legends, toggle_legends, joblog_report,
         setup_count_axes, setup_freq_axes, reset_plots, plot_all,
         plot_gw_O2, plot_gw_O3, plot_fgrp5, plot_fgrpG1, plot_brp4
         plot_gw_series, plot_fgrpG1_freq, plot_gw_O3_freq, manage_plots.
@@ -334,7 +346,7 @@ class PlotTasks(TaskDataFrame):
         self.pick_radius = 6
 
         # Matplotlib does not recognize tkinter X11 color names.
-        self.light_gray = '#cccccc'  # '#d9d9d9' X11 gray85; '#cccccc' X11 gray80
+        self.light_gray = '#d9d9d9'  # '#d9d9d9' X11 gray85; '#cccccc' X11 gray80
         self.dark_gray = '#404040'  # '#404040' X11 gray25, '#333333' X11 gray20, '#4d4d4d' X11 gray30
 
         self.checkbox = None
@@ -378,7 +390,7 @@ class PlotTasks(TaskDataFrame):
 
         # Need to have mpl_connect statement before any autoscale statements AND
         #  need to have ax.autoscale() set for picker radius to work.
-        self.fig.canvas.mpl_connect('pick_event', self.on_pick)
+        self.fig.canvas.mpl_connect('pick_event', self.on_pick_report)
 
         # Slider used in *_freq plots to set Hz ranges; initialize here
         #  so that it can be removed/redrawn with each *_freq plot call
@@ -446,54 +458,39 @@ class PlotTasks(TaskDataFrame):
     def setup_buttons(self):
         """
         Setup buttons to toggle legends and to display log counts.
-        Buttons are aligned with the plots' checkbox, ax_chkbox.
+        Buttons are aligned with the plot checkbox, ax_chkbox.
         """
 
         # Relative coordinates in Figure are (LEFT, BOTTOM, WIDTH, HEIGHT).
+        # Buttons need a dummy reference, per documentation: "For the
+        #   buttons to remain responsive you must keep a reference to this object."
+
         # Position legend toggle button just below plot checkboxes.
         ax_legendbtn = plt.axes((0.885, 0.5, 0.09, 0.06))
         lbtn = Button(ax_legendbtn,
                       'Legends',
-                      color=self.light_gray,
-                      hovercolor=mark.CBLIND_COLOR['orange'],
+                      hovercolor=mark.CBLIND_COLOR['sky blue'],
                       )
         lbtn.on_clicked(self.toggle_legends)
-
-        # Dummy reference, per documentation: "For the buttons to remain
-        #   responsive you must keep a reference to this object."
-        ax_legendbtn._button = lbtn
+        ax_legendbtn._button = lbtn  # Prevent garbage collection.
 
         # Position log tally button to bottom right.
         ax_statsbtn = plt.axes((0.9, 0.09, 0.07, 0.08))
         sbtn = Button(ax_statsbtn,
                       'Job log\ncounts',
-                      color=self.light_gray,
                       hovercolor=mark.CBLIND_COLOR['orange'],
                       )
         sbtn.on_clicked(self.joblog_report)
-        ax_statsbtn._button = sbtn
+        ax_statsbtn._button = sbtn  # Prevent garbage collection.
 
         # Position About button to bottom right corner.
         ax_aboutbtn = plt.axes((0.9, 0.01, 0.07, 0.06))
         abtn = Button(ax_aboutbtn,
                       'About',
-                      color='white',
-                      hovercolor=mark.CBLIND_COLOR['sky blue'],
+                      hovercolor=mark.CBLIND_COLOR['orange'],
                       )
-
-        def about(event):
-            print('_____ ABOUT START _____')
-            print(__doc__)
-            print('Version:', plot_utils.__version__)
-            print('Author:', plot_utils.__author__)
-            print('URL:', plot_utils.URL)
-            print(plot_utils.__copyright__)
-            print(plot_utils.LICENSE)
-            print('_____ ABOUT END _____')
-            return event
-
-        abtn.on_clicked(about)
-        ax_aboutbtn._button = abtn
+        abtn.on_clicked(self.about_report)
+        ax_aboutbtn._button = abtn  # Prevent garbage collection.
 
     def setup_slider(self, max_f: float):
         """
@@ -530,7 +527,7 @@ class PlotTasks(TaskDataFrame):
                                 orientation='vertical',
                                 color=mark.CBLIND_COLOR['yellow'],
                                 handle_style={'size': 8,
-                                              'facecolor': self.dark_gray,
+                                              # 'facecolor': self.dark_gray,
                                               }
                                 )
 
@@ -544,10 +541,7 @@ class PlotTasks(TaskDataFrame):
                       transform=self.ax1.transAxes,
                       bbox=self.freq_bbox,
                       )
-
-        # Dummy reference, per documentation: "For the slider to remain
-        #  responsive you must keep a reference to this object."
-        self.ax_slider._slider = hz_slider
+        self.ax_slider._slider = hz_slider # Prevent garbage collection.
 
         def _update(val):
             """
@@ -575,12 +569,12 @@ class PlotTasks(TaskDataFrame):
         for proj in grp.CHKBOX_LABELS:
             self.isplotted[proj] = False
 
-        #  Relative coordinates in Figure, in 4-tuple: (LEFT, BOTTOM, WIDTH, HEIGHT)
+        # Relative coordinates in Figure, 4-tuple (LEFT, BOTTOM, WIDTH, HEIGHT)
         ax_chkbox = plt.axes((0.86, 0.6, 0.13, 0.3), facecolor=self.dark_gray)
         ax_chkbox.set_xlabel('Plots', fontsize='medium', fontweight='bold')
         ax_chkbox.xaxis.set_label_position('top')
 
-        # Need check boxes to control which data to plot.
+        # Need check boxes to control which data series to plot.
         # At startup, activate checkbox label 'all' so that all tasks
         #  are plotted by default via manage_plots().
         self.checkbox = CheckButtons(ax_chkbox, grp.CHKBOX_LABELS)
@@ -598,7 +592,46 @@ class PlotTasks(TaskDataFrame):
         self.checkbox.on_clicked(self.manage_plots)
         self.checkbox.set_active(self.chkbox_labelid['all'])
 
-    def on_pick(self, event):
+    def format_legends(self):
+        self.ax1.legend(fontsize='x-small', ncol=2,
+                        loc='upper right',
+                        markerscale=self.marker_scale,
+                        edgecolor='black',
+                        framealpha=0.5,
+                        )
+        self.ax2.legend(fontsize='x-small', ncol=2,
+                        loc='upper right',
+                        markerscale=self.marker_scale,
+                        edgecolor='black',
+                        framealpha=0.4,
+                        )
+
+    def toggle_legends(self, event):
+        """
+        Show/hide plot legends. If plot has no legend, do nothing.
+
+        :param event: Implicit mouse click event.
+        :return:  None
+        """
+
+        if self.ax1.get_legend():
+            if self.legend_btn_on:
+                self.ax1.get_legend().set_visible(False)
+                # In case viewing frequency plots where self.ax2 is hidden:
+                if self.ax2.get_legend():
+                    self.ax2.get_legend().set_visible(False)
+                self.legend_btn_on = False
+            else:
+                self.ax1.get_legend().set_visible(True)
+                if self.ax2.get_legend():
+                    self.ax2.get_legend().set_visible(True)
+                self.legend_btn_on = True
+
+            self.fig.canvas.draw_idle()  # Speeds up response.
+
+        return event
+
+    def on_pick_report(self, event):
         """
         Click on plot area to show nearby task info in new figure and in
         Terminal or Command Line. Template source:
@@ -646,53 +679,15 @@ class PlotTasks(TaskDataFrame):
 
         tasktxt = tk.Text(taskwin, font='TkFixedFont',
                           width=max_line, height=num_lines,
-                          bg=self.dark_gray, fg='white',
+                          bg=self.dark_gray, fg=self.light_gray,
+                          insertbackground=self.light_gray,
                           relief='groove', bd=4,
                           padx=15, pady=10,
                           )
-        tasktxt.insert(1.0, _report)
+        tasktxt.insert(tk.INSERT, _report)
         tasktxt.pack(fill=tk.BOTH, expand=True,
                      padx=5, pady=5,
                      )
-
-        return event
-
-    def format_legends(self):
-        self.ax1.legend(fontsize='x-small', ncol=2,
-                        loc='upper right',
-                        markerscale=self.marker_scale,
-                        edgecolor='black',
-                        framealpha=0.5,
-                        )
-        self.ax2.legend(fontsize='x-small', ncol=2,
-                        loc='upper right',
-                        markerscale=self.marker_scale,
-                        edgecolor='black',
-                        framealpha=0.4,
-                        )
-
-    def toggle_legends(self, event):
-        """
-        Show/hide plot legends. If plot has no legend, do nothing.
-
-        :param event: Implicit mouse click event.
-        :return:  None
-        """
-
-        if self.ax1.get_legend():
-            if self.legend_btn_on:
-                self.ax1.get_legend().set_visible(False)
-                # In case viewing frequency plots where self.ax2 is hidden:
-                if self.ax2.get_legend():
-                    self.ax2.get_legend().set_visible(False)
-                self.legend_btn_on = False
-            else:
-                self.ax1.get_legend().set_visible(True)
-                if self.ax2.get_legend():
-                    self.ax2.get_legend().set_visible(True)
-                self.legend_btn_on = True
-
-            self.fig.canvas.draw_idle()  # Speeds up response.
 
         return event
 
@@ -725,9 +720,6 @@ class PlotTasks(TaskDataFrame):
                                  f' {str(p_dmean).rjust(9)} {str(p_days).rjust(8)}\n'
                                  )
 
-        # Print to terminal to give user the option to cut-and-paste.
-        print(report_title, _report)
-
         # Make new window with text box; one window made for each click.
         statswin = tk.Toplevel()
         statswin.title(report_title)
@@ -739,12 +731,45 @@ class PlotTasks(TaskDataFrame):
 
         statstxt = tk.Text(statswin, font='TkFixedFont',
                            width=max_line, height=num_lines,
-                           bg=self.dark_gray, fg='white',
+                           bg=self.dark_gray, fg=self.light_gray,
+                           insertbackground=self.light_gray,
                            relief='groove', bd=4,
                            padx=15, pady=10,
                            )
-        statstxt.insert(1.0, _report)
+        statstxt.insert(tk.INSERT, _report)
         statstxt.pack(fill=tk.BOTH, expand=True,
+                      padx=5, pady=5,
+                      )
+
+        return event
+
+    def about_report(self, event):
+        report_title = f'About {Path(__file__).name}'
+
+        _report = (f'{__doc__}\n'
+                   f'{"Version:".ljust(9)} {plot_utils.__version__}\n'
+                   f'{"Author:".ljust(9)} {plot_utils.__author__}\n'
+                   f'{"URL:".ljust(9)} {plot_utils.URL}\n'
+                   f'{plot_utils.__copyright__}\n'
+                   f'{plot_utils.LICENSE}\n'
+                   )
+
+        # Make new window with text box; one window made for each click.
+        aboutwin = tk.Toplevel()
+        aboutwin.title(report_title)
+        aboutwin.minsize(400, 220)
+
+        max_line = len(max(_report.splitlines(), key=len))
+
+        abouttxt = ScrolledText(aboutwin, font='TkFixedFont',
+                                width=max_line,
+                                bg=self.dark_gray, fg=self.light_gray,
+                                insertbackground=self.light_gray,
+                                relief='groove', bd=4,
+                                padx=15, pady=10,
+                                )
+        abouttxt.insert(tk.INSERT, _report)
+        abouttxt.pack(fill=tk.BOTH, expand=True,
                       padx=5, pady=5,
                       )
 
@@ -851,7 +876,7 @@ class PlotTasks(TaskDataFrame):
         """
         Clear plots. axis labels, ticks, formats, legends, etc.
         Clears plotted data by setting all data values to zero and removing marks.
-        Use to avoid stacking of plots, which affects on_pick() display of
+        Use to avoid stacking of plots, which affects on_pick_report() display of
         nearby task info. Note that with this the full x-axis datetime range
         in job lob is always plotted; therefore, the methods ax.relim()
         ax.autoscale_view() and ax.autoscale() have no effect on individual
@@ -1104,8 +1129,8 @@ class PlotTasks(TaskDataFrame):
         :return: None
         """
 
-        #  NOTE: CANNOT have same plot points overlaid. That creates multiple
-        #    on_pick() calls of windows for the same task info text.
+        #  NOTE: CANNOT have same plot points overlaid. That creates
+        #    multiple on_pick_report() calls for the same task info.
 
         # NOTE: with checkbox.eventson = True (default),
         #   all proj button clicks trigger this manage_plots() callback
