@@ -48,10 +48,13 @@ try:
     from matplotlib.widgets import CheckButtons, Button, RangeSlider
     from numpy import where
 except (ImportError, ModuleNotFoundError) as import_err:
-    print('One or more of the required Python packages were not found:\n'
-          'Matplotlib, Numpy, Pandas, Pillow, tkinter.\n'
-          'To install: from the current folder, run this command\n'
-          'pip install -r requirements.txt\n'
+    print('One or more required Python packages were not found'
+          ' or need an update:\n'
+          'Matplotlib, Numpy, Pandas, tkinter (tk/tcl).\n'
+          'To install: from the current folder, run this command:\n'
+          '   pip install -r requirements.txt\n'
+          'To update a package, example:'
+          '   pip install -U matplotlib'
           'Alternative command formats (system dependent):\n'
           '   python -m pip install -r requirements.txt\n'
           '   python3 -m pip install -r requirements.txt\n'
@@ -66,7 +69,7 @@ except (ImportError, ModuleNotFoundError) as import_err:
 def manage_args() -> bool:
     """Allow handling of command line arguments.
 
-    :return: True if --_test argument used (default: False).
+    :return: True if --test argument used (default: False).
     """
 
     parser = argparse.ArgumentParser()
@@ -404,9 +407,11 @@ class PlotTasks(TaskDataFrame):
 
         canvas = backend.FigureCanvasTkAgg(self.fig, master=canvas_window)
         canvas.draw()
-        canvas.get_tk_widget().pack(fill='both', expand=True)
+        canvas.get_tk_widget().pack(fill='both', expand=True,
+                                    ipady=10, ipadx=10)
 
         toolbar = backend.NavigationToolbar2Tk(canvas, canvas_window)
+        # NOTE: toolbar icon images do not render on macOS; reason unknown.
 
         # Need to remove the subplots navigation button.
         # Source: https://stackoverflow.com/questions/59155873/
@@ -516,7 +521,7 @@ class PlotTasks(TaskDataFrame):
         self.ax_slider = plt.axes((0.05, 0.38, 0.01, 0.52))  # vert
 
         # Invert min/max values on vertical slider so max is on top.
-        self.ax1.invert_yaxis()
+        plt.gca().invert_yaxis()
 
         hz_slider = RangeSlider(self.ax_slider, "Hz range",
                                 0, max_limit,
