@@ -417,6 +417,7 @@ class PlotTasks(TaskDataFrame):
         """
         canvas_window.title('Plotting E@H tasks')
         canvas_window.minsize(850, 550)
+
         # Allow full resizing of plot, but only horiz for toolbar.
         canvas_window.rowconfigure(0, weight=1)
         canvas_window.columnconfigure(0, weight=1)
@@ -548,9 +549,7 @@ class PlotTasks(TaskDataFrame):
                                 valstep=2,
                                 orientation='vertical',
                                 color=mark.CBLIND_COLOR['yellow'],
-                                handle_style={'size': 8,
-                                              # 'facecolor': mark.DARK_GRAY,
-                                              }
+                                handle_style={'size': 8, }
                                 )
 
         # Position text box above Navigation toolbar.
@@ -558,7 +557,7 @@ class PlotTasks(TaskDataFrame):
                       ("Range slider and Navigation bar tools may conflict.\n"
                        "If so, then toggle the plot's checkbox to reset."),
                       style='italic',
-                      fontsize='small',
+                      fontsize=6,
                       verticalalignment='top',
                       transform=self.ax1.transAxes,
                       bbox=self.freq_bbox,
@@ -593,7 +592,9 @@ class PlotTasks(TaskDataFrame):
 
         # Relative coordinates in Figure, 4-tuple (LEFT, BOTTOM, WIDTH, HEIGHT)
         ax_chkbox = plt.axes((0.86, 0.6, 0.13, 0.3), facecolor=mark.DARK_GRAY)
-        ax_chkbox.set_xlabel('Plots', fontsize='medium', fontweight='bold')
+        ax_chkbox.set_xlabel('Plots',
+                             fontsize='medium',
+                             fontweight='bold')
         ax_chkbox.xaxis.set_label_position('top')
 
         # Need check boxes to control which data series to plot.
@@ -615,13 +616,15 @@ class PlotTasks(TaskDataFrame):
         self.checkbox.set_active(self.chkbox_labelid['all'])
 
     def format_legends(self):
-        self.ax1.legend(fontsize='x-small', ncol=2,
+        self.ax1.legend(ncol=2,
+                        fontsize='x-small',
                         loc='upper right',
                         markerscale=self.marker_scale,
                         edgecolor='black',
                         framealpha=0.5,
                         )
-        self.ax2.legend(fontsize='x-small', ncol=2,
+        self.ax2.legend(ncol=2,
+                        fontsize='x-small',
                         loc='upper right',
                         markerscale=self.marker_scale,
                         edgecolor='black',
@@ -753,9 +756,6 @@ class PlotTasks(TaskDataFrame):
         and axes are cleared by reset_plots().
         """
 
-        # self.ax1.xaxis.axis_date()  # No effect?
-        # self.ax1.yaxis.axis_date()
-
         # Need to reset plot axes in case setup_freq_axes() was called.
         self.ax_slider.set_visible(False)
         self.ax2.set_visible(True)
@@ -766,18 +766,17 @@ class PlotTasks(TaskDataFrame):
         self.ax2.margins(0.02, 0.05)
 
         self.ax1.set_ylabel('Task completion time',
-                            fontsize='medium', fontweight='bold')
-
+                            fontsize='medium',
+                            fontweight='bold')
         self.ax2.set_xlabel('Task reporting datetime',
-                            # 'format: [y-m], [y-m-date], [m-date hr], [date h:sec]',
-                            fontsize='medium', fontweight='bold')
+                            fontsize='medium',
+                            fontweight='bold')
         self.ax2.set_ylabel('Tasks/day',
-                            fontsize='medium', fontweight='bold')
+                            fontsize='medium',
+                            fontweight='bold')
 
         # Need to set the Tasks/day axis label in a static position.
         self.ax2.yaxis.set_label_coords(-0.1, 0.55)
-
-        # self.ax1.set(xticklabels=['']) # hides labels, but only with sharex=False
 
         # Need to rotate and right-align the date labels to avoid crowding.
         for label in self.ax1.get_yticklabels(which='major'):
