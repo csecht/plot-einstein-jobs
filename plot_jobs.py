@@ -327,7 +327,7 @@ class PlotTasks(TaskDataFrame):
         'import_err', 'manage_args', 'quit_qui',
         # plot_utils local module attributes
         '__dev_status__', '__copyright__', 'URL', 'LICENSE',
-        'MARKER_STYLE', 'CBLIND_COLOR',  'DARK_GRAY', 'LIGHT_GRAY',
+        'MARKER_STYLE', 'CBLIND_COLOR', 'DARK_GRAY', 'LIGHT_GRAY',
         'markers', 'markers_cycle',
         'MY_OS', 'CFGFILE', 'TESTFILE',
         'PROJECTS', 'PROJ_TO_REPORT', 'ALL_EXCLUDED', 'GW_SERIES_EXCLUDED',
@@ -413,21 +413,18 @@ class PlotTasks(TaskDataFrame):
         """
         canvas_window.title('Plotting E@H tasks')
         canvas_window.minsize(850, 550)
+        # Allow full resizing of plot, but only horiz for toolbar.
         canvas_window.rowconfigure(0, weight=1)
         canvas_window.columnconfigure(0, weight=1)
-        canvas_window.configure(bg='green')
+        canvas_window.configure(bg=mark.CBLIND_COLOR['blue'])
         canvas_window.protocol('WM_DELETE_WINDOW', quit_gui)
 
         canvas_window.bind_all('<Escape>', quit_gui)
         canvas_window.bind('<Control-q>', quit_gui)
 
         canvas = backend.FigureCanvasTkAgg(self.fig, master=canvas_window)
-        canvas.draw()
-        canvas.get_tk_widget().pack(fill='both', expand=True,
-                                    ipady=10, ipadx=10)
 
         toolbar = backend.NavigationToolbar2Tk(canvas, canvas_window)
-        # NOTE: toolbar icon images do not render on macOS; reason unknown.
 
         # Need to remove the subplots navigation button.
         # Source: https://stackoverflow.com/questions/59155873/
@@ -437,7 +434,27 @@ class PlotTasks(TaskDataFrame):
         else:  # is Windows
             toolbar.children['!button6'].pack_forget()
 
-        toolbar.update()
+        # Now display all widgets.
+        # NOTE: toolbar must be gridded before canvas to prevent
+        #   FigureCanvasTkAgg from preempting window geometry with pack().
+        toolbar.grid(row=1, column=0,
+                     padx=5, pady=(0, 5),  # Put a border around toolbar.
+                     sticky=tk.NSEW,
+                     )
+        canvas.get_tk_widget().grid(row=0, column=0,
+                                    ipady=10, ipadx=10,
+                                    padx=5, pady=5,  # Put a border around plot.
+                                    sticky=tk.NSEW,
+                                    )
+        # Because macOS tool icon images won't render properly,
+        #   need to provide text description for tool functions.
+        if sys.platform == 'darwin':
+            tool_lbl = tk.Label(canvas_window,
+                                text='Home Fwd Back | Pan  Zoom | Save',
+                                font=('TkTooltipFont', 8))
+            tool_lbl.grid(row=2, column=0,
+                          padx=5, pady=(0, 5),
+                          sticky=tk.W)
 
     def setup_title(self) -> None:
         """
@@ -545,7 +562,7 @@ class PlotTasks(TaskDataFrame):
                       transform=self.ax1.transAxes,
                       bbox=self.freq_bbox,
                       )
-        self.ax_slider._slider = hz_slider # Prevent garbage collection.
+        self.ax_slider._slider = hz_slider  # Prevent garbage collection.
 
         def _update(val):
             """
