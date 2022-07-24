@@ -59,21 +59,22 @@ try:
     from numpy import where
 
 except (ImportError, ModuleNotFoundError) as import_err:
-    print('One or more required Python packages were not found'
+    print('*** One or more required Python packages were not found'
           ' or need an update:\n'
-          'Matplotlib, Numpy, Pandas, tkinter (tk/tcl).\n'
-          'To install: from the current folder, run this command:\n'
-          '   pip install -r requirements.txt\n'
-          'To update a package, example:'
-          '   pip install -U matplotlib'
-          'Alternative command formats (system dependent):\n'
+          'Matplotlib, Numpy, Pandas, Pillow, tkinter (tk/tcl).\n'
+          'To install: from the current folder, run this command'
+          ' for the Python package installer (PIP):\n'
           '   python -m pip install -r requirements.txt\n'
-          '   python3 -m pip install -r requirements.txt\n'
-          '   py -m pip install -r requirements.txt\n'
+          'A package may already be installed, but needs an update; example:\n'
+          '   python -m pip install -U matplotlib\n'
+          'Alternative command formats (system dependent):\n'
+          '   python3 -m pip install -r requirements.txt (MacOS)\n'
+          '   py -m pip install -r requirements.txt (Windows)\n'
+          '   pip install -r requirements.txt\n'
           'On Linux, if tkinter is the problem, then you may need:\n'
           '   sudo apt-get install python3-tk\n'
-          '   See also: https://tkdocs.com/tutorial/install.html \n'
-          f'Error msg: {import_err}')
+          '   See also: https://tkdocs.com/tutorial/install.html \n\n'
+          f'Error message:\n{import_err}')
     sys.exit(1)
 
 
@@ -311,11 +312,12 @@ class PlotTasks(TaskDataFrame):
     Set up and display Matplotlib Figure and pyplot Plots of task (job)
     data from the inherited DataFrame.
     The plotted Pandas dataframe is inherited from TaskDataFrame.
-    Methods: setup_window, setup_title, setup_buttons, setup_plot_manager,
-        on_pick_report, format_legends, toggle_legends, joblog_report,
-        setup_count_axes, setup_freq_axes, reset_plots, plot_all,
-        plot_gw_O2, plot_gw_O3, plot_fgrp5, plot_fgrpG1, plot_brp4
-        plot_gw_series, plot_fgrpG1_freq, plot_gw_O3_freq, manage_plots.
+    Methods: setup_window, setup_title, setup_buttons, setup_slider,
+        setup_plot_manager, format_legends, toggle_legends, on_pick_report,
+        joblog_report, about_report, setup_count_axes, setup_freq_axes,
+        reset_plots, plot_all, plot_gw_O2, plot_gw_O3, plot_fgrp5,
+        plot_fgrpG1, plot_brp4, plot_gw_series, plot_fgrpG1_freq,
+        plot_gw_O3_freq, manage_plots.
     """
 
     # https://stackoverflow.com/questions/472000/usage-of-slots
