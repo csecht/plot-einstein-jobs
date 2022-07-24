@@ -43,7 +43,9 @@ from pathlib import Path
 
 # Local application imports
 import plot_utils
-from plot_utils import path_check, markers as mark, project_groups as grp, reports
+from plot_utils import (path_check, platform_check as chk,
+                        markers as mark, project_groups as grp,
+                        reports)
 
 # Third party imports (tk may not be included with some Python installations).
 try:
@@ -61,16 +63,18 @@ try:
 except (ImportError, ModuleNotFoundError) as import_err:
     print('*** One or more required Python packages were not found'
           ' or need an update:\n'
-          'Matplotlib, Numpy, Pandas, Pillow, tkinter (tk/tcl).\n'
+          'Matplotlib, Numpy, Pandas, Pillow, tkinter (tk/tcl).\n\n'
           'To install: from the current folder, run this command'
           ' for the Python package installer (PIP):\n'
-          '   python3 -m pip install -r requirements.txt\n'
-          'A package may already be installed, but needs an update; example:\n'
-          '   python3 -m pip install -U matplotlib\n'
+          '   python3 -m pip install -r requirements.txt\n\n'
           'Alternative command formats (system dependent):\n'
           '   python3 -m pip install -r requirements.txt (MacOS)\n'
           '   py -m pip install -r requirements.txt (Windows)\n'
-          '   pip install -r requirements.txt\n'
+          '   pip install -r requirements.txt\n\n'
+          'A package may already be installed, but needs an update;\n'
+          '   this may be the case when the error message (below) is a bit cryptic\n'
+          '   Example update command:\n'
+          '   python3 -m pip install -U matplotlib\n\n'
           'On Linux, if tkinter is the problem, then you may need:\n'
           '   sudo apt-get install python3-tk\n'
           '   See also: https://tkdocs.com/tutorial/install.html \n\n'
@@ -429,10 +433,7 @@ class PlotTasks(TaskDataFrame):
         # Need to remove the subplots navigation button.
         # Source: https://stackoverflow.com/questions/59155873/
         #   how-to-remove-toolbar-button-from-navigationtoolbar2tk-figurecanvastkagg
-        if sys.platform in 'linux, darwin':
-            toolbar.children['!button4'].pack_forget()
-        else:  # is Windows
-            toolbar.children['!button6'].pack_forget()
+        toolbar.children['!button4'].pack_forget()
 
         # Now display all widgets.
         # NOTE: toolbar must be gridded before canvas to prevent
@@ -448,7 +449,7 @@ class PlotTasks(TaskDataFrame):
                                     )
         # Because macOS tool icon images won't render properly,
         #   need to provide text description for tool functions.
-        if sys.platform == 'darwin':
+        if chk.MY_OS == 'dar':
             tool_lbl = tk.Label(canvas_window,
                                 text='Home Fwd Back | Pan  Zoom | Save',
                                 font=('TkTooltipFont', 8))
@@ -472,7 +473,7 @@ class PlotTasks(TaskDataFrame):
             _title = 'E@H job_log data'
 
         self.fig.suptitle(_title,
-                          fontsize=14,
+                          fontsize='large',
                           fontweight='bold',
                           )
 
@@ -557,7 +558,7 @@ class PlotTasks(TaskDataFrame):
                       ("Range slider and Navigation bar tools may conflict.\n"
                        "If so, then toggle the plot's checkbox to reset."),
                       style='italic',
-                      fontsize=8,
+                      fontsize='small',
                       verticalalignment='top',
                       transform=self.ax1.transAxes,
                       bbox=self.freq_bbox,

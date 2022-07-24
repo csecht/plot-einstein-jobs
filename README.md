@@ -18,15 +18,17 @@ The program only reads files on a local host and does not connect to a user's E@
 From within the program's folder, use one of these Terminal or Command Prompt commands,
        depending on your system:
 
-            python plot_jobs.py
-            py plot_jobs.py
-            ./plot_jobs.py
-            python3 plot_jobs.py
-Basic help: `python plot_jobs.py --help`
+            python3 -m plot_jobs (recommended for all systems)
+            py plot_jobs.py (Windows)
+            python3 plot_jobs.py (Linux, Mac)
+            python3 plot_jobs.py (Linux, Mac)
+            ./plot_jobs.py (Linux, Mac)
 
-Information: `python plot_jobs.py --about`
+Basic help: `python3 -m plot_jobs --help`
 
-Plot sample data: `python plot_jobs.py --test`
+Information: `python3 -m plot_jobs --about`
+
+Plot sample data: `python3 -m plot_jobs --test`
 
 NOTE: Depending on your system, there may be a slight lag when switching
       between plots, so be patient and avoid the urge to start clicking
