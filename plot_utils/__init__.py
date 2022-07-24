@@ -11,7 +11,7 @@ vcheck.minversion('3.7')
 # Development status standards: https://pypi.org/classifiers/
 
 __author__ = 'Craig S. Echt'
-__version__: str = '0.1.6'
+__version__: str = '0.1.7'
 __dev_status__ = 'Development Status :: 4 - Beta'
 __copyright__ = 'Copyright (C) 2022 C.S. Echt, under GNU General Public License'
 
