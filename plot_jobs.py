@@ -103,10 +103,10 @@ def manage_args() -> bool:
 
     if args.about:
         print(__doc__)
-        print('Author:', plot_utils.__author__)
-        print('Version:', plot_utils.__version__)
-        print('Status:', plot_utils.__dev_status__)
-        print('URL', plot_utils.URL)
+        print(f'{"Author:".ljust(13)}', plot_utils.__author__)
+        print(f'{"Version:".ljust(13)}', plot_utils.__version__)
+        print(f'{"Status:".ljust(13)}', plot_utils.__dev_status__)
+        print(f'{"URL:".ljust(13)}', plot_utils.URL)
         print(plot_utils.__copyright__)
         print(plot_utils.LICENSE)
         sys.exit(0)
@@ -390,7 +390,7 @@ class PlotTasks(TaskDataFrame):
                          'right': 0.85,
                          'bottom': 0.16,
                          'top': 0.92,
-                         'hspace': 0.15
+                         'hspace': 0.15,
                          },
         )
 
