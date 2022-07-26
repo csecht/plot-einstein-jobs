@@ -1,6 +1,10 @@
-"""Matching Project and series names for checkbox labels, and dict keys,
-  used in various plot_jobs.py modules.
-Names used here must match keys in PlotTasks.plot_proj dictionary."""
+"""
+Matching Project and series names for checkbox labels, and dict keys,
+used in various plot_jobs.py modules.
+Names used here must match keys in PlotTasks.plot_proj dictionary.
+"""
+# Copyright (C) 2021 C. Echt under GNU General Public License'
+
 
 PROJECTS = ('all', 'gw', 'gw_O2', 'gw_O3', 'fgrp', 'fgrp5', 'fgrpG1', 'brp4')
 

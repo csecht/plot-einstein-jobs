@@ -1,4 +1,5 @@
 import sys
+# Copyright (C) 2021 C. Echt under GNU General Public License'
 
 MY_OS = sys.platform[:3]
 

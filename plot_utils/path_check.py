@@ -1,5 +1,6 @@
 from pathlib import Path
 import sys
+# Copyright (C) 2021 C. Echt under GNU General Public License'
 
 CFGFILE = Path('plot_cfg.txt').resolve()
 TESTFILE = Path('plot_utils/testdata.txt')

@@ -3,6 +3,8 @@ from tkinter.scrolledtext import ScrolledText
 
 from plot_utils import markers as mark
 
+# Copyright (C) 2021 C. Echt under GNU General Public License'
+
 
 def view_report(_title: str, _text: str, _minsize: tuple, scroll=False) -> None:
     """

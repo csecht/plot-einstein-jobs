@@ -1,15 +1,10 @@
-from . import platform_check, vcheck
-
 """
 These constants are used with the --about command line argument or button.
 Program will exit here if any check fails when called.
 """
-
-platform_check.check_platform()
-vcheck.minversion('3.7')
+from . import platform_check, vcheck
 
 # Development status standards: https://pypi.org/classifiers/
-
 __author__ = 'Craig S. Echt'
 __version__: str = '0.1.7'
 __dev_status__ = 'Development Status :: 4 - Beta'
@@ -31,3 +26,6 @@ LICENSE = """
     You should have received a copy of the GNU General Public License
     along with this program (the LICENCE.txt file). If not, see
     https://www.gnu.org/licenses/."""
+
+platform_check.check_platform()
+vcheck.minversion('3.7')

@@ -1,4 +1,5 @@
 import re
+# Copyright (C) 2021 C. Echt under GNU General Public License'
 
 
 def extract(dataframe):
