@@ -327,8 +327,6 @@ class PlotTasks(TaskDataFrame):
     # https://stackoverflow.com/questions/472000/usage-of-slots
     # https://towardsdatascience.com/understand-slots-in-python-e3081ef5196d
     __slots__ = (
-        # Function attributes
-        'import_err', 'manage_args', 'quit_qui',
         # plot_utils local module attributes
         '__dev_status__', '__copyright__', 'URL', 'LICENSE',
         'MARKER_STYLE', 'CBLIND_COLOR', 'DARK_GRAY', 'LIGHT_GRAY',
