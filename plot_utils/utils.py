@@ -27,7 +27,7 @@ def manage_args() -> bool:
     args = parser.parse_args()
 
     if args.about:
-        print(__doc__)
+        print(__main__.__doc__)
         print(f'{"Author:".ljust(13)}', plot_utils.__author__)
         print(f'{"Version:".ljust(13)}', plot_utils.__version__)
         print(f'{"Status:".ljust(13)}', plot_utils.__dev_status__)
