@@ -621,8 +621,8 @@ class PlotTasks(TaskDataFrame):
         # Display task info in Terminal and pop-up window.
         print('\n'.join(map(str, task_info_list)))
 
-        reports.view_report('Task details (max 6)',
-                            _report, (600, 300))
+        reports.view_report(title='Task details (max 6)',
+                            text=_report, minsize=(600, 300))
         return event
 
     def joblog_report(self, event) -> None:
@@ -652,8 +652,8 @@ class PlotTasks(TaskDataFrame):
                                  f' {str(p_dmean).rjust(9)} {str(p_days).rjust(8)}\n'
                                  )
 
-        reports.view_report('Summary of tasks counts in...',
-                            _report, (400, 260))
+        reports.view_report(title='Summary of tasks counts in...',
+                            text=_report, minsize=(400, 260))
         return event
 
     @staticmethod
@@ -674,8 +674,8 @@ class PlotTasks(TaskDataFrame):
                    f'{plot_utils.LICENSE}\n'
                    )
 
-        reports.view_report(f'About {Path(__file__).name}',
-                            _report, (400, 220), scroll=True)
+        reports.view_report(title=f'About {Path(__file__).name}',
+                            text=_report, minsize=(400, 220), scroll=True)
         return event
 
     def setup_count_axes(self):

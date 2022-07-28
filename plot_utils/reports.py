@@ -6,23 +6,23 @@ from plot_utils import markers as mark
 # Copyright (C) 2021 C. Echt under GNU General Public License'
 
 
-def view_report(_title: str, _text: str, _minsize: tuple, scroll=False) -> None:
+def view_report(title: str, text: str, minsize: tuple, scroll=False) -> None:
     """
     Create a TopLevel window for reports from Button callbacks.
 
-    :param _title: The window title string.
-    :param _text: The report text string.
-    :param _minsize: An integer tuple for window minsize (width, height).
+    :param title: The window title string.
+    :param text: The report text string.
+    :param minsize: An integer tuple for window minsize (width, height).
     :param scroll: True creates scrollable text (default: False)
     :return: None
     """
 
-    max_line = len(max(_text.splitlines(), key=len))
-    num_lines = _text.count('\n')
-    _w, _h = _minsize
+    max_line = len(max(text.splitlines(), key=len))
+    num_lines = text.count('\n')
+    _w, _h = minsize
 
     report_win = tk.Toplevel()
-    report_win.title(_title)
+    report_win.title(title)
     report_win.minsize(_w, _h)
     report_win.attributes('-topmost', True)
 
@@ -39,5 +39,5 @@ def view_report(_title: str, _text: str, _minsize: tuple, scroll=False) -> None:
                       relief='groove', bd=4,
                       padx=15, pady=10, )
 
-    report_txt.insert(tk.INSERT, _text)
+    report_txt.insert(tk.INSERT, text)
     report_txt.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)
