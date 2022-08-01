@@ -20,8 +20,8 @@ import pandas as pd
 
 # Local application imports
 import plot_utils
-from plot_utils import (markers as mark,
-                        path_check,
+from plot_utils import (path_check, utils,
+                        markers as mark,
                         project_groups as grp)
 
 
@@ -83,7 +83,8 @@ def joblog_report(dataframe: pd) -> None:
         #  will be apparent in the job log count report (run from plot window).
         total_jobs = len(dataframe.index)
 
-    data_file = path_check.set_datapath(use_test_file=__main__.test_arg)
+    # Note: utils.manage_args() returns the --test command line option as boolean.
+    data_file = path_check.set_datapath(use_test_file=utils.manage_args())
 
     _results = tuple(zip(
         grp.PROJ_TO_REPORT, proj_totals, proj_daily_means, proj_days))
