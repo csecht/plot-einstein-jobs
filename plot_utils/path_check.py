@@ -8,17 +8,16 @@ MY_OS = sys.platform[:3]
 URL = 'https://github.com/csecht/plot-einstein-jobs'
 
 
-def set_datapath(do_test=None) -> Path:
+def set_datapath(use_test_file=False) -> Path:
     """
     Set the Path() for a data text file to be read into a DataFrame.
 
-    :param do_test: Any value, but expecting descriptive 'do test' to
-        indicate that the non-default path should be set to read the
+    :param use_test_file: True sets the data file path to read the
         sample data file provided with the distribution. The default
-        path is the BOINC E@H job_log file.
+        False sets path to the BOINC E@H job_log file.
     :return: pathlib Path object.
     """
-    if do_test and Path.is_file(TESTFILE):
+    if use_test_file and Path.is_file(TESTFILE):
         return TESTFILE
     elif not Path.is_file(TESTFILE):
         notest = (f'The sample data file, {TESTFILE} was not found.'

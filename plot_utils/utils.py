@@ -19,7 +19,7 @@ def manage_args() -> bool:
                         action='store_true',
                         default=False)
     parser.add_argument('--test',
-                        help='Plot _test data instead of your job_log data.',
+                        help='Plot test_arg data instead of your job_log data.',
                         action='store_true',
                         default=False,
                         )

@@ -126,7 +126,7 @@ class TaskDataFrame:
         _headers = ('time_stamp', 'task_name', 'task_t')
 
         # The datapath path is defined in if __name__ == "__main__".
-        self.tasks_df = pd.read_table(datapath,
+        self.tasks_df = pd.read_table(data_path,
                                       sep=' ',
                                       header=None,
                                       usecols=joblog_col_index,
@@ -267,18 +267,18 @@ class PlotTasks(TaskDataFrame):
     # https://stackoverflow.com/questions/472000/usage-of-slots
     # https://towardsdatascience.com/understand-slots-in-python-e3081ef5196d
     __slots__ = (
-        '_test',
+        'test',
         'marker_size', 'marker_scale', 'dcnt_size', 'pick_radius',
         'fig', 'ax1', 'ax2',
         'checkbox', 'do_replot', 'legend_btn_on', 'plot_proj',
         'chkbox_labelid', 'isplotted', 'freq_bbox', 'ax_slider',
     )
 
-    def __init__(self, _test):
+    def __init__(self, use_test_file: bool):
         super().__init__()
 
-        # The _test parameter is set from an invocation argument.
-        self._test = _test
+        # The test_arg parameter is set from an invocation argument.
+        self.test = use_test_file
 
         self.marker_size = 4
         self.marker_scale = 1
@@ -391,12 +391,12 @@ class PlotTasks(TaskDataFrame):
         Specify in the Figure title which data are plotted, those from the
         sample data file, plot_utils.testdata.txt, or the user's job log
         file. Called from if __name__ == "__main__".
-        self._test is inherited from TaskDataFrame(do_test) as boolean
+        self.text is inherited from TaskDataFrame(use_test_file) as boolean
         via call from if __name__ == "__main__".
 
         :return: None
         """
-        if self._test:
+        if self.test:
             _title = 'Sample data'
         else:
             _title = 'E@H job_log data'
@@ -456,7 +456,7 @@ class PlotTasks(TaskDataFrame):
         self.ax_slider.remove()
 
         # Add a 2% margin to the slider upper limit when frequency data are available.
-        # When there are no plot data max_f will be NaA, so _test if Nan to
+        # When there are no plot data max_f will be NaA, so test_arg if Nan to
         #   avoid a ValueError for RangeSlider range when max_f is NaN.
         # https://towardsdatascience.com/5-methods-to-check-for-nan-values-in-in-python-3f21ddd17eed
         if max_f != max_f:
@@ -634,7 +634,7 @@ class PlotTasks(TaskDataFrame):
         :return:  None
         """
 
-        data_file = path_check.set_datapath(do_test)
+        data_file = path_check.set_datapath(use_test_file=test_arg)
 
         _results = tuple(zip(
             grp.PROJ_TO_REPORT, self.proj_totals, self.proj_daily_means, self.proj_days))
@@ -1142,14 +1142,14 @@ if __name__ == "__main__":
     # System platform and version checks are run in plot_utils __init__.py
     #   Program exits if checks fail.
 
-    do_test = utils.manage_args()  # Function returns boolean.
+    test_arg = utils.manage_args()  # Function returns boolean.
 
-    if not do_test:
-        datapath = path_check.set_datapath()
+    if not test_arg:
+        data_path = path_check.set_datapath(use_test_file=False)
     else:
-        datapath = path_check.set_datapath('do test')
+        data_path = path_check.set_datapath(use_test_file=True)
 
-    print(f'Data from {datapath} are loading. This may take a few seconds...')
+    print(f'Data from {data_path} are loading. This may take a few seconds...')
 
     # Need to use a tkinter window for the plot canvas so that the
     #   CheckButton actions for plot management are more responsive.
@@ -1158,7 +1158,7 @@ if __name__ == "__main__":
     # This call will set up an inherited pd dataframe in TaskDataFrame,
     #  then plot 'all' tasks as specified in setup_plot_manager().
     #  After that, plots are managed by CheckButton states in manage_plots().
-    PlotTasks(do_test).setup_plot_manager()
+    PlotTasks(use_test_file=test_arg).setup_plot_manager()
 
     print('The plot window is ready.')
 
