@@ -1,9 +1,21 @@
+"""
+General housekeeping utilities.
+Functions:
+manage_args - Command line argument handler.
+quit_gui -  Error-free and informative exit from the program.
+"""
+# Copyright (C) 2022 C.S. Echt under GNU General Public License'
+
 import __main__
+
+# Standard library imports
 import argparse
 import sys
 
+# Third party imports.
 import matplotlib.pyplot as plt
 
+# Local application imports
 import plot_utils
 
 
