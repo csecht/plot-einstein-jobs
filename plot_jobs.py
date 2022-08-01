@@ -1145,7 +1145,7 @@ if __name__ == "__main__":
     test_arg = utils.manage_args()  # Function returns boolean.
 
     if not test_arg:
-        data_path = path_check.set_datapath(use_test_file=False)
+        data_path = path_check.set_datapath()
     else:
         data_path = path_check.set_datapath(use_test_file=True)
 
