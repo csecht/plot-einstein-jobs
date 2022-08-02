@@ -307,10 +307,9 @@ class PlotTasks(TaskDataFrame):
         canvas_window.rowconfigure(0, weight=1)
         canvas_window.columnconfigure(0, weight=1)
         canvas_window.configure(bg=mark.CBLIND_COLOR['blue'])
-        canvas_window.protocol('WM_DELETE_WINDOW', utils.quit_gui)
-
-        canvas_window.bind_all('<Escape>', utils.quit_gui)
-        canvas_window.bind('<Control-q>', utils.quit_gui)
+        canvas_window.protocol('WM_DELETE_WINDOW', lambda: utils.quit_gui(canvas_window))
+        canvas_window.bind_all('<Escape>', lambda _: utils.quit_gui(canvas_window))
+        canvas_window.bind('<Control-q>', lambda _: utils.quit_gui(canvas_window))
 
         canvas = backend.FigureCanvasTkAgg(self.fig, master=canvas_window)
 

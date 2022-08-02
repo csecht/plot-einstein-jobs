@@ -6,8 +6,6 @@ quit_gui -  Error-free and informative exit from the program.
 """
 # Copyright (C) 2022 C.S. Echt under GNU General Public License'
 
-import __main__
-
 # Standard library imports
 import argparse
 import sys
@@ -16,6 +14,7 @@ import sys
 import matplotlib.pyplot as plt
 
 # Local application imports
+import __main__
 import plot_utils
 
 
@@ -51,7 +50,7 @@ def manage_args() -> bool:
     return args.test
 
 
-def quit_gui(keybind=None) -> None:
+def quit_gui(mainloop, keybind=None) -> None:
     """
     Error-free and informative exit from the program.
     Called from widget or keybindings.
@@ -60,7 +59,8 @@ def quit_gui(keybind=None) -> None:
     close window icon ("X") or key command. This is required to cleanly
     exit and close the tk thread running Matplotlib.
 
-    :param keybind: Implicit event passed from bind().
+    :param mainloop: The main tk.Tk() window running in the mainloop.
+    :param keybind: Implicit keyboard event passed from bind().
     """
 
     print('\n*** User quit the program. ***\n')
@@ -68,9 +68,9 @@ def quit_gui(keybind=None) -> None:
     # pylint: disable=broad-except
     try:
         plt.close('all')
-        __main__.canvas_window.update_idletasks()
-        __main__.canvas_window.after(200)
-        __main__.canvas_window.destroy()
+        mainloop.update_idletasks()
+        mainloop.after(200)
+        mainloop.destroy()
     except Exception as err:
         print(f'An error occurred: {err}')
         sys.exit('Program exit with unexpected condition.')
