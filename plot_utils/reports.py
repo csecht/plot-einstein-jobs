@@ -8,8 +8,6 @@ view_report - Create the toplevel window to display report text.
 """
 # Copyright (C) 2022 C.S. Echt under GNU General Public License'
 
-import __main__
-
 # Standard library imports
 import tkinter as tk
 from pathlib import Path
@@ -19,6 +17,7 @@ from tkinter.scrolledtext import ScrolledText
 import pandas as pd
 
 # Local application imports
+import __main__
 import plot_utils
 from plot_utils import (path_check, utils,
                         markers as mark,
@@ -59,7 +58,7 @@ def joblog_report(dataframe: pd) -> None:
     proj_totals = []
     proj_daily_means = []
     proj_days = []
-    total_jobs = 0
+    p_tally = []
 
     for _p in grp.PROJ_TO_REPORT:
         is_p = f'is_{_p}'
@@ -78,33 +77,46 @@ def joblog_report(dataframe: pd) -> None:
         else:  # There is no Project _p in the job log.
             proj_daily_means.append(0)
 
-        # Need to count total tasks reported in case grp.PROJ_TO_REPORT
-        #  misses any Projects. Any difference with proj_totals
-        #  will be apparent in the job log count report (run from plot window).
-        total_jobs = len(dataframe.index)
-
     # Note: utils.manage_args() returns the --test command line option as boolean.
     data_file = path_check.set_datapath(use_test_file=utils.manage_args())
 
     _results = tuple(zip(
         grp.PROJ_TO_REPORT, proj_totals, proj_daily_means, proj_days))
+
     num_days = len(pd.to_datetime(dataframe.time_stamp).dt.date.unique())
 
+    # Example report layout: note that 'all' and Projects total differ.
+    # /var/lib/boinc/job_log_einstein.phys.uwm.edu.txt
+    #
+    # Counts for the past 1194 days:
+    #
+    # Project      Total   per Day     Days
+    # all        366887     307.3     1194
+    # fgrpG1     152501     168.3      906
+    # fgrp5         131       7.7       17
+    # gw_O3      126263     350.7      360
+    # gw_O2       87989     197.7      445
+    # brp4            0         0        0
+    # Listed Projects total: 366884
     _report = (f'{data_file}\n\n'
-               f'Total tasks in file: {total_jobs}\n'
                f'Counts for the past {num_days} days:\n\n'
                f'{"Project".ljust(6)} {"Total".rjust(10)}'
                f' {"per Day".rjust(9)} {"Days".rjust(8)}\n'
                )
+
     for proj_tup in _results:
-        _proj, p_tot, p_dmean, p_days = proj_tup
-        _report = _report + (f'{_proj.ljust(6)} {str(p_tot).rjust(10)}'
+        _proj, p_total, p_dmean, p_days = proj_tup
+        _report = _report + (f'{_proj.ljust(6)} {str(p_total).rjust(10)}'
                              f' {str(p_dmean).rjust(9)} {str(p_days).rjust(8)}\n'
                              )
+        p_tally.append(p_total)
+
+    # Report sum of known Projects; comparison to 'all' total tasks will show
+    #   whether any Projects are missing from grp.PROJ_TO_REPORT.
+    _report = _report + f'Listed Projects total: {sum(p_tally) - p_tally[0]}\n'
 
     view_report(title='Summary of tasks counts in...',
                 text=_report, minsize=(400, 260))
-    # return event
 
 
 def on_pick_report(event, dataframe: pd) -> None:
@@ -147,7 +159,7 @@ def on_pick_report(event, dataframe: pd) -> None:
 
     view_report(title='Task details (max 6)',
                 text=_report, minsize=(600, 300))
-    # return event
+    return event
 
 
 def view_report(title: str, text: str, minsize: tuple, scroll=False) -> None:
