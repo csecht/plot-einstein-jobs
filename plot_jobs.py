@@ -159,6 +159,8 @@ class TaskDataFrame:
             self.tasks_df.task_name.str.contains(r'LATeah\d{4}L|LATeah1049'), True, False)
         self.tasks_df['is_brp4'] = where(
             self.tasks_df.task_name.str.startswith('p'), True, False)
+        self.tasks_df['is_brp7'] = where(
+            self.tasks_df.task_name.str.startswith('M22'), True, False)
 
         for series in grp.GW_SERIES:
             is_ser = f'is_{series}'
@@ -254,6 +256,7 @@ class PlotTasks(TaskDataFrame):
             'gw_O2': self.plot_gw_O2,
             'gw_series': self.plot_gw_series,
             'brp4': self.plot_brp4,
+            'brp7': self.plot_brp7,
             'gw_O3_freq': self.plot_gw_O3_freq,
             'fgrpG1_freq': self.plot_fgrpG1_freq,
         }
@@ -373,7 +376,7 @@ class PlotTasks(TaskDataFrame):
         #   buttons to remain responsive you must keep a reference to this object."
 
         # Position legend toggle button just below plot checkboxes.
-        ax_legendbtn = plt.axes((0.885, 0.5, 0.09, 0.06))
+        ax_legendbtn = plt.axes((0.885, 0.44, 0.09, 0.06))
         lbtn = Button(ax_legendbtn,
                       'Legends',
                       hovercolor=mark.CBLIND_COLOR['sky blue'],
@@ -475,7 +478,7 @@ class PlotTasks(TaskDataFrame):
             self.isplotted[proj] = False
 
         # Relative coordinates in Figure, 4-tuple (LEFT, BOTTOM, WIDTH, HEIGHT)
-        ax_chkbox = plt.axes((0.86, 0.6, 0.13, 0.3), facecolor=mark.DARK_GRAY)
+        ax_chkbox = plt.axes((0.86, 0.54, 0.13, 0.36), facecolor=mark.DARK_GRAY)
         ax_chkbox.set_xlabel('Plots',
                              fontsize='medium',
                              fontweight='bold')
@@ -784,6 +787,26 @@ class PlotTasks(TaskDataFrame):
                       )
         self.format_legends()
         self.isplotted['brp4'] = True
+
+    def plot_brp7(self):
+        self.ax1.plot(self.tasks_df.time_stamp,
+                      self.tasks_df.task_t.where(self.tasks_df.is_brp7),
+                      mark.MARKER_STYLE['diamond'],
+                      markersize=self.marker_size,
+                      label='BRP7',
+                      color=mark.CBLIND_COLOR['yellow'],
+                      alpha=0.5,
+                      picker=self.pick_radius,
+                      )
+        self.ax2.plot(self.tasks_df.time_stamp,
+                      self.tasks_df.brp7_Dcnt,
+                      mark.MARKER_STYLE['square'],
+                      markersize=self.dcnt_size,
+                      label='BRP7',
+                      color=mark.CBLIND_COLOR['yellow'],
+                      )
+        self.format_legends()
+        self.isplotted['brp7'] = True
 
     def plot_gw_series(self):
         for subproj in grp.GW_SERIES:

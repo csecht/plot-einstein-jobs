@@ -3,23 +3,21 @@ Matching Project and series names for checkbox labels, and dict keys,
 used in various plot_jobs.py modules.
 Names used here must match keys in PlotTasks.plot_proj dictionary.
 """
-# Copyright (C) 2021 C. Echt under GNU General Public License'
 
+PROJECTS = ('all', 'gw', 'gw_O2', 'gw_O3', 'fgrp', 'fgrp5', 'fgrpG1', 'brp4', 'brp7')
 
-PROJECTS = ('all', 'gw', 'gw_O2', 'gw_O3', 'fgrp', 'fgrp5', 'fgrpG1', 'brp4')
-
-PROJ_TO_REPORT = ('all', 'fgrpG1', 'fgrp5', 'gw_O3', 'gw_O2', 'brp4')
+PROJ_TO_REPORT = ('all', 'fgrpG1', 'fgrp5', 'gw_O3', 'gw_O2', 'brp4', 'brp7')
 
 ALL_EXCLUDED = ('all', 'gw_series', 'gw_O3_freq', 'fgrpG1_freq')
 
 GW_SERIES_EXCLUDED = ('all', 'gw_O2', 'gw_O3', 'gw_O3_freq', 'fgrpG1_freq')
 
-ALL_INCLUSIVE = ('fgrpG1', 'fgrp5', 'gw_O3', 'gw_O2', 'brp4')
+ALL_INCLUSIVE = ('fgrpG1', 'fgrp5', 'gw_O3', 'gw_O2', 'brp4', 'brp7')
 
 GW_SERIES_INCLUSIVE = ('fgrpG1', 'fgrp5', 'brp4', 'gw_series')
 
 CHKBOX_LABELS = ('all', 'fgrpG1', 'fgrp5', 'gw_O3', 'gw_O2', 'gw_series',
-                 'brp4', 'gw_O3_freq', 'fgrpG1_freq')
+                 'brp4', 'brp7', 'gw_O3_freq', 'fgrpG1_freq')
 
 GW_SERIES = ('O2AS20-500', 'O2MD1C1', 'O2MD1C2', 'O2MD1G2', 'O2MD1G_',
              'O2MD1Gn', 'O2MD1S3', 'O2MDFG2_', 'O2MDFG2e', 'O2MDFG2f',
