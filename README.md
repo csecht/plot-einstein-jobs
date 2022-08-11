@@ -21,7 +21,6 @@ From within the program's folder, use one of these Terminal or Command Prompt co
             python3 -m plot_jobs (recommended for all systems)
             py plot_jobs.py (Windows)
             python3 plot_jobs.py (Linux, Mac)
-            python3 plot_jobs.py (Linux, Mac)
             ./plot_jobs.py (Linux, Mac)
 
 Basic help: `python3 -m plot_jobs --help`
