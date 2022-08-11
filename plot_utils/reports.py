@@ -88,7 +88,7 @@ def joblog_report(dataframe: pd) -> None:
     # Example report layout: note that 'all' and Projects total differ.
     # /var/lib/boinc/job_log_einstein.phys.uwm.edu.txt
     #
-    # Counts for the past 1194 days:
+    # Counts for 1194 days:
     #
     # Project      Total   per Day     Days
     # all        366887     307.3     1194
@@ -99,7 +99,7 @@ def joblog_report(dataframe: pd) -> None:
     # brp4            0         0        0
     # Listed Projects total: 366884
     _report = (f'{data_file}\n\n'
-               f'Counts for the past {num_days} days:\n\n'
+               f'Counts for {num_days} days:\n\n'
                f'{"Project".ljust(6)} {"Total".rjust(10)}'
                f' {"per Day".rjust(9)} {"Days".rjust(8)}\n'
                )
