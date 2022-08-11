@@ -631,8 +631,9 @@ class PlotTasks(TaskDataFrame):
         except ValueError:
             pass
 
-        # TODO: FIX, the Home tool sets (remembers) axes limits of the
-        #  initially selected freq plot, fgrp or gwO3, instead of current plot.
+        # Neet to FIX, the Home tool sets (remembers) axes range of the
+        #  first selected freq plot, fgrp or gwO3, instead of current
+        #  freq plot, but only when the zoom tool is used.
         self.ax1.set_xlabel('Task completion time, sec',
                             fontsize='medium', fontweight='bold')
 
@@ -679,7 +680,7 @@ class PlotTasks(TaskDataFrame):
         for plot, _ in self.isplotted.items():
             self.isplotted[plot] = False
 
-    def is_data(self, clicked_label: str) -> None:
+    def is_project(self, clicked_label: str) -> None:
         """
         When there are no data to plot for a clicked plot label, post a
         message in the plot area. Called from manage_plots().
@@ -693,8 +694,8 @@ class PlotTasks(TaskDataFrame):
 
         # When a project series has no data, its is_<project> df column
         #  has no True values and therefore sums to zero (False).
-        #  The IS_DATA dict pairs grp.CHKBOX_LABELS to grp.PROJECTS strings.
-        if not sum(self.tasks_df[f'is_{grp.IS_DATA[clicked_label]}']):
+        #  The IS_PROJECT dict pairs grp.CHKBOX_LABELS to grp.PROJECTS strings.
+        if not sum(self.tasks_df[f'is_{grp.IS_PROJECT[clicked_label]}']):
             self.fig.text(0.5, 0.51,
                           f'There are no {clicked_label} data to plot.',
                           horizontalalignment='center',
@@ -961,7 +962,7 @@ class PlotTasks(TaskDataFrame):
         # Note: ischecked and self.isplotted dictionary values are boolean.
         if clicked_label == 'all' and ischecked[clicked_label]:
 
-            self.is_data(clicked_label)
+            self.is_project(clicked_label)
 
             # Was toggled on...
             # Need to uncheck all others project labels.
@@ -984,7 +985,7 @@ class PlotTasks(TaskDataFrame):
 
         if clicked_label in grp.ALL_INCLUSIVE and ischecked[clicked_label]:
 
-            self.is_data(clicked_label)
+            self.is_project(clicked_label)
 
             for _plot in grp.ALL_EXCLUDED:
                 if self.isplotted[_plot] or ischecked[_plot]:
@@ -1013,7 +1014,7 @@ class PlotTasks(TaskDataFrame):
 
         if clicked_label == 'gw_series' and ischecked[clicked_label]:
 
-            self.is_data(clicked_label)
+            self.is_project(clicked_label)
 
             # Uncheck excluded checkbox labels if plotted.
             for excluded in grp.GW_SERIES_EXCLUDED:
@@ -1035,34 +1036,24 @@ class PlotTasks(TaskDataFrame):
 
         if clicked_label == 'fgrpG1_freq' and ischecked[clicked_label]:
 
-            self.is_data(clicked_label)
+            self.is_project(clicked_label)
 
             # Was toggled on...
-            # Need to uncheck all other checked project labels.
+            # Need to uncheck other checked project labels.
             for _label in grp.CHKBOX_LABELS:
                 if _label != clicked_label and (self.isplotted[_label] or ischecked[_label]):
                     self.checkbox.set_active(self.chkbox_labelid[_label])
-                    self.do_replot = True
-
-            if self.do_replot:
-                self.reset_plots()
-                self.do_replot = False
 
             self.plot_proj[clicked_label]()
 
         if clicked_label == 'gw_O3_freq' and ischecked[clicked_label]:
 
-            self.is_data(clicked_label)
+            self.is_project(clicked_label)
 
             for _label in grp.CHKBOX_LABELS:
                 if _label != clicked_label and (self.isplotted[_label] or ischecked[_label]):
                     ischecked[_label] = False
                     self.checkbox.set_active(self.chkbox_labelid[_label])
-                    self.do_replot = True
-
-            if self.do_replot:
-                self.reset_plots()
-                self.do_replot = False
 
             self.plot_proj[clicked_label]()
 
