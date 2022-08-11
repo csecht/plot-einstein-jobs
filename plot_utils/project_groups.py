@@ -25,3 +25,16 @@ GW_SERIES = ('O2AS20-500', 'O2MD1C1', 'O2MD1C2', 'O2MD1G2', 'O2MD1G_',
              'O2MDFV2_', 'O2MDFV2e', 'O2MDFV2g', 'O2MDFV2h', 'O2MDFV2i',
              'O3AS1_', 'O3AS1a', 'O3ASE1',
              )
+
+IS_DATA = {
+          'all': 'all',
+          'fgrpG1': 'fgrpG1',
+          'fgrp5': 'fgrp5',
+          'gw_O3': 'gw_O3',
+          'gw_O2': 'gw_O2',
+          'gw_series': 'gw',
+          'brp4': 'brp4',
+          'brp7': 'brp7',
+          'gw_O3_freq': 'gw_O3',
+          'fgrpG1_freq': 'fgrpG1',
+}

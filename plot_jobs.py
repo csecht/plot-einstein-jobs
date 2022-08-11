@@ -127,6 +127,18 @@ class TaskDataFrame:
         #   Assumes read_table of job_log file will produce NaN ONLY for timestamp.
         self.tasks_df.time_stamp.interpolate(inplace=True)
 
+        # NOTE: If no timestamps are missing, then column is dtype numpy.int64,
+        #   but if any NaN present, then column is dtype numpy.float64,
+        #   so force all values to floats. This will allow proper evaluation of
+        #   an expected timestamp length of 12 (1234567890.0).
+        #   Exit if the first timestamp fails evaluation.
+        self.tasks_df['time_stamp'] = self.tasks_df.time_stamp.astype(float)
+        if len(self.tasks_df.loc[0, 'time_stamp'].astype(str)) != 12:
+            sys.exit(f'*** Sorry, but the job_log file {data_path}'
+                     ' does not contain usable data. ***\n'
+                     f'    The first line should start with a'
+                     '  timestamp of 10 digits (seconds).')
+
         # Need to retain original elapsed time as integer seconds for
         #   plotting frequency data:
         self.tasks_df['task_sec'] = self.tasks_df.task_t.astype(int)
@@ -142,9 +154,8 @@ class TaskDataFrame:
         self.tasks_df['null_time'] = pd.to_datetime(0.0, unit='s')
         self.tasks_df['null_Dcnt'] = 0
 
-        # Need columns that flag each task's Project and sub-Project.
-        self.tasks_df['is_all'] = where(
-            self.tasks_df.task_name, True, False)
+        # Need columns that boolean flag each task's Project and sub-Project.
+        self.tasks_df['is_all'] = True
         self.tasks_df['is_gw'] = where(
             self.tasks_df.task_name.str.startswith('h1_'), True, False)
         self.tasks_df['is_gw_O2'] = where(
@@ -163,8 +174,8 @@ class TaskDataFrame:
             self.tasks_df.task_name.str.startswith('M22'), True, False)
 
         for series in grp.GW_SERIES:
-            is_ser = f'is_{series}'
-            self.tasks_df[is_ser] = where(
+            is_series = f'is_{series}'
+            self.tasks_df[is_series] = where(
                 self.tasks_df.task_name.str.contains(series), True, False)
 
         # Add columns of search frequencies, parsed from the task name.
@@ -186,7 +197,7 @@ class TaskDataFrame:
         """
         Idea to tally using groupby and transform, source:
         https://stackoverflow.com/questions/17709270/
-        create-column-of-value-counts-in-pandas-dataframe
+          create-column-of-value-counts-in-pandas-dataframe
         """
         # Make dict of daily task counts (Dcnt) for each Project and sub-Project.
         # NOTE: gw times are not plotted (use O2 + O3), but gw_Dcnt is used in
@@ -373,7 +384,8 @@ class PlotTasks(TaskDataFrame):
 
         # Relative coordinates in Figure are (LEFT, BOTTOM, WIDTH, HEIGHT).
         # Buttons need a dummy reference, per documentation: "For the
-        #   buttons to remain responsive you must keep a reference to this object."
+        #   buttons to remain responsive you must keep a reference to
+        #   this object." This prevents garbage collection.
 
         # Position legend toggle button just below plot checkboxes.
         ax_legendbtn = plt.axes((0.885, 0.44, 0.09, 0.06))
@@ -415,8 +427,8 @@ class PlotTasks(TaskDataFrame):
         self.ax_slider.remove()
 
         # Add a 2% margin to the slider upper limit when frequency data are available.
-        # When there are no plot data max_f will be NaA, so test_arg if Nan to
-        #   avoid a ValueError for RangeSlider range when max_f is NaN.
+        # When there are no plot data, max_f will be NaN, so test if it is nan to
+        #   avoid a ValueError for RangeSlider range.
         # https://towardsdatascience.com/5-methods-to-check-for-nan-values-in-in-python-3f21ddd17eed
         if max_f != max_f:
             max_limit = 1
@@ -424,7 +436,6 @@ class PlotTasks(TaskDataFrame):
             max_limit = max_f + max_f * 0.02
 
         # RangeSlider Coord: (LEFT, BOTTOM, WIDTH, HEIGHT).
-        # self.ax_slider = plt.axes((0.11, 0.15, 0.60, 0.02)) # horiz
         self.ax_slider = plt.axes((0.05, 0.38, 0.01, 0.52))  # vert
 
         # Invert min/max values on vertical slider so max is on top.
@@ -604,8 +615,8 @@ class PlotTasks(TaskDataFrame):
         tick labels only show on bottom (self.ax2) plot).
         Called from plot_fgrpG1_freq() and plot_gw_O3_freq().
 
-        :param t_limits: Constrain x-axis of task times to from
-            zero to max value plus a small buffer.
+        :param t_limits: Constrain x-axis of task times from zero to
+            maximum value, plus a small buffer.
         :return: None
         """
         #
@@ -620,6 +631,8 @@ class PlotTasks(TaskDataFrame):
         except ValueError:
             pass
 
+        # TODO: FIX, the Home tool sets (remembers) axes limits of the
+        #  initially selected freq plot, fgrp or gwO3, instead of current plot.
         self.ax1.set_xlabel('Task completion time, sec',
                             fontsize='medium', fontweight='bold')
 
@@ -665,6 +678,28 @@ class PlotTasks(TaskDataFrame):
 
         for plot, _ in self.isplotted.items():
             self.isplotted[plot] = False
+
+    def is_data(self, clicked_label: str) -> None:
+        """
+        When there are no data to plot for a clicked plot label, post a
+        message in the plot area. Called from manage_plots().
+
+        :param clicked_label: The checked checkbox data series label.
+        """
+
+        # Need to first clear any prior no-data text message.
+        for txt in self.fig.texts:
+            txt.set_visible(False)
+
+        # When a project series has no data, its is_<project> df column
+        #  has no True values and therefore sums to zero (False).
+        #  The IS_DATA dict pairs grp.CHKBOX_LABELS to grp.PROJECTS strings.
+        if not sum(self.tasks_df[f'is_{grp.IS_DATA[clicked_label]}']):
+            self.fig.text(0.5, 0.51,
+                          f'There are no {clicked_label} data to plot.',
+                          horizontalalignment='center',
+                          verticalalignment='center',
+                          transform=self.ax1.transAxes)
 
     def plot_all(self):
         self.ax1.plot(self.tasks_df.time_stamp,
@@ -902,7 +937,7 @@ class PlotTasks(TaskDataFrame):
 
         self.isplotted['gw_O3_freq'] = True
 
-    def manage_plots(self, clicked_label):
+    def manage_plots(self, clicked_label: str):
         """
         Conditions determining which columns, defined by selected checkbox
         labels, to plot and which other columns are inclusive and exclusive
@@ -926,6 +961,8 @@ class PlotTasks(TaskDataFrame):
         # Note: ischecked and self.isplotted dictionary values are boolean.
         if clicked_label == 'all' and ischecked[clicked_label]:
 
+            self.is_data(clicked_label)
+
             # Was toggled on...
             # Need to uncheck all others project labels.
             for _label in grp.CHKBOX_LABELS:
@@ -946,6 +983,9 @@ class PlotTasks(TaskDataFrame):
             self.reset_plots()
 
         if clicked_label in grp.ALL_INCLUSIVE and ischecked[clicked_label]:
+
+            self.is_data(clicked_label)
+
             for _plot in grp.ALL_EXCLUDED:
                 if self.isplotted[_plot] or ischecked[_plot]:
                     self.isplotted[_plot] = False
@@ -973,6 +1013,8 @@ class PlotTasks(TaskDataFrame):
 
         if clicked_label == 'gw_series' and ischecked[clicked_label]:
 
+            self.is_data(clicked_label)
+
             # Uncheck excluded checkbox labels if plotted.
             for excluded in grp.GW_SERIES_EXCLUDED:
                 if self.isplotted[excluded] or ischecked[excluded]:
@@ -993,6 +1035,8 @@ class PlotTasks(TaskDataFrame):
 
         if clicked_label == 'fgrpG1_freq' and ischecked[clicked_label]:
 
+            self.is_data(clicked_label)
+
             # Was toggled on...
             # Need to uncheck all other checked project labels.
             for _label in grp.CHKBOX_LABELS:
@@ -1007,6 +1051,9 @@ class PlotTasks(TaskDataFrame):
             self.plot_proj[clicked_label]()
 
         if clicked_label == 'gw_O3_freq' and ischecked[clicked_label]:
+
+            self.is_data(clicked_label)
+
             for _label in grp.CHKBOX_LABELS:
                 if _label != clicked_label and (self.isplotted[_label] or ischecked[_label]):
                     ischecked[_label] = False
