@@ -91,6 +91,9 @@ class TaskDataFrame:
         self.tasks_df = pd.DataFrame()
 
         self.setup_df()
+        self.add_proj_id()
+        self.add_frequencies()
+        self.add_daily_counts()
 
     def setup_df(self):
         """
@@ -154,7 +157,11 @@ class TaskDataFrame:
         self.tasks_df['null_time'] = pd.to_datetime(0.0, unit='s')
         self.tasks_df['null_Dcnt'] = 0
 
-        # Need columns that boolean flag each task's Project and sub-Project.
+    def add_proj_id(self):
+        """
+        Add columns that boolean flag each task's associated Project and
+        sub-Project.
+        """
         self.tasks_df['is_all'] = True
         self.tasks_df['is_gw'] = where(
             self.tasks_df.task_name.str.startswith('h1_'), True, False)
@@ -178,8 +185,9 @@ class TaskDataFrame:
             self.tasks_df[is_series] = where(
                 self.tasks_df.task_name.str.contains(series), True, False)
 
-        # Add columns of search frequencies, parsed from the task name.
+    def add_frequencies(self):
         """
+        Add columns of search frequencies, parsed from the task name.
         Regex for base frequency will match these task name structures:
         FGRP task: 'LATeah4013L03_988.0_0_0.0_9010205_1'
         GW task: 'h1_0681.20_O3aC01Cl1In0__O3AS1a_681.50Hz_19188_1'
@@ -194,11 +202,16 @@ class TaskDataFrame:
                                         .str.extract(pattern_fgrpg1_freq).astype(float)
                                         .where(self.tasks_df.is_fgrpG1))
 
+    def add_daily_counts(self):
         """
-        Idea to tally using groupby and transform, source:
-        https://stackoverflow.com/questions/17709270/
-          create-column-of-value-counts-in-pandas-dataframe
+        Add columns to tasks_df of daily counts for each Project and
+        sub-Project.
         """
+
+        #  Idea to tally using groupby and transform, source:
+        #         https://stackoverflow.com/questions/17709270/
+        #           create-column-of-value-counts-in-pandas-dataframe
+
         # Make dict of daily task counts (Dcnt) for each Project and sub-Project.
         # NOTE: gw times are not plotted (use O2 + O3), but gw_Dcnt is used in
         #   plot_gw_series().
@@ -214,7 +227,6 @@ class TaskDataFrame:
                     .transform('count')
             )
 
-        # Add columns to tasks_df of daily counts for each Project and sub-Project.
         #  Note that _Dcnt column values are floats (counts of Booleans), not integers.
         for _proj, _ in daily_counts.items():
             self.tasks_df[_proj] = daily_counts[_proj]
@@ -1025,7 +1037,7 @@ class PlotTasks(TaskDataFrame):
                 self.do_replot = False
 
             for _proj, status in ischecked.items():
-                if status and _proj in grp.ALL_INCLUSIVE and not self.isplotted[_proj]:
+                if status and (_proj in grp.ALL_INCLUSIVE) and not self.isplotted[_proj]:
                     self.plot_proj[_proj]()
 
         elif not ischecked[clicked_label]:
