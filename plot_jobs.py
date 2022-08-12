@@ -65,7 +65,6 @@ except (ImportError, ModuleNotFoundError) as import_err:
           ' for the Python package installer (PIP):\n'
           '   python3 -m pip install -r requirements.txt\n\n'
           'Alternative command formats (system dependent):\n'
-          '   python3 -m pip install -r requirements.txt (MacOS)\n'
           '   py -m pip install -r requirements.txt (Windows)\n'
           '   pip install -r requirements.txt\n\n'
           'A package may already be installed, but needs an update;\n'
