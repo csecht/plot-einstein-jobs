@@ -79,9 +79,13 @@ Example plot of all gravitational wave tasks, by sub-series, over time.
 
 Zoom-in detail of FGRPG1 tasks time and counts.
 
+![plot_hz_vs_time](images/GRfreq_x_time.png)
+
+FGRPG1 gamma-ray tasks' frequency (Hz) vs. datetime. New as of ver 0.1.14.
+
 ![plot fgrp freq](images/fgrp_freq.png)
 
-FGRPG1 gamma-ray task frequencies vs. task times.
+FGRPG1 gamma-ray tasks' Hz vs. task completion time, with Hz range selection slider.
 
 ![plot hz_range](images/fgrp_freq_slider.png)
 
