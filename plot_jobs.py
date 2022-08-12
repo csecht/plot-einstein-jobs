@@ -215,7 +215,7 @@ class TaskDataFrame:
             )
 
         # Add columns to tasks_df of daily counts for each Project and sub-Project.
-        #  Note that _Dcnt column values are returned as floats (counts of Booleans), not integers.
+        #  Note that _Dcnt column values are floats (counts of Booleans), not integers.
         for _proj, _ in daily_counts.items():
             self.tasks_df[_proj] = daily_counts[_proj]
 
@@ -229,8 +229,8 @@ class PlotTasks(TaskDataFrame):
         setup_plot_manager, format_legends, toggle_legends, on_pick_report,
         joblog_report, about_report, setup_count_axes, setup_freq_axes,
         reset_plots, plot_all, plot_gw_O2, plot_gw_O3, plot_fgrp5,
-        plot_fgrpG1, plot_brp4, plot_gw_series, plot_fgrpG1_freq,
-        plot_gw_O3_freq, manage_plots.
+        plot_fgrpG1, plot_brp4, plot_gw_series, plot_grG1hz_X_t,
+        plot_gwO3hz_X_t, manage_plots.
     """
 
     # https://stackoverflow.com/questions/472000/usage-of-slots
@@ -258,18 +258,19 @@ class PlotTasks(TaskDataFrame):
         self.do_replot = False
         self.legend_btn_on = True
 
-        # These keys must match grp.CHKBOX_LABELS in project_groups.py.
+        # These keys must match CHKBOX_LABELS in project_groups.py.
         self.plot_proj = {
             'all': self.plot_all,
-            'fgrpG1': self.plot_fgrpG1,
             'fgrp5': self.plot_fgrp5,
+            'fgrpG1': self.plot_fgrpG1,
+            'fgrp_hz': self.plot_fgrp_hz,
             'gw_O3': self.plot_gw_O3,
             'gw_O2': self.plot_gw_O2,
             'gw_series': self.plot_gw_series,
             'brp4': self.plot_brp4,
             'brp7': self.plot_brp7,
-            'gw_O3_freq': self.plot_gw_O3_freq,
-            'fgrpG1_freq': self.plot_fgrpG1_freq,
+            'gwO3hz_X_t': self.plot_gwO3hz_X_t,
+            'grG1hz_X_t': self.plot_grG1hz_X_t,
         }
 
         self.chkbox_labelid = {}
@@ -613,7 +614,7 @@ class PlotTasks(TaskDataFrame):
         """
         Remove bottom axis and show tick labels (b/c when sharex=True,
         tick labels only show on bottom (self.ax2) plot).
-        Called from plot_fgrpG1_freq() and plot_gw_O3_freq().
+        Called from plot_grG1hz_X_t() and plot_gwO3hz_X_t().
 
         :param t_limits: Constrain x-axis of task times from zero to
             maximum value, plus a small buffer.
@@ -631,9 +632,9 @@ class PlotTasks(TaskDataFrame):
         except ValueError:
             pass
 
-        # Neet to FIX, the Home tool sets (remembers) axes range of the
-        #  first selected freq plot, fgrp or gwO3, instead of current
-        #  freq plot, but only when the zoom tool is used.
+        # Need to FIX: the Home tool sets (remembers) axes range of the
+        #  first selected freq vs time plot, instead of current
+        #  freq vs time plot, but only when the Zoom tool has been used.
         self.ax1.set_xlabel('Task completion time, sec',
                             fontsize='medium', fontweight='bold')
 
@@ -801,8 +802,42 @@ class PlotTasks(TaskDataFrame):
                       label='FGRBPG1',
                       color=mark.CBLIND_COLOR['vermilion'],
                       )
+
         self.format_legends()
         self.isplotted['fgrpG1'] = True
+
+    def plot_fgrp_hz(self):
+        """
+        Plot of frequency (Hz) vs. datetime for FGRPG1 tasks.
+        """
+
+        self.reset_plots()
+
+        self.ax1.plot(self.tasks_df.time_stamp,
+                      self.tasks_df.fgrpG1_freq,
+                      mark.MARKER_STYLE['tri_right'],
+                      markersize=self.marker_size,
+                      label='fgrp_hz',
+                      color=mark.CBLIND_COLOR['vermilion'],
+                      alpha=0.3,
+                      picker=self.pick_radius,
+                      )
+        self.ax2.plot(self.tasks_df.time_stamp,
+                      self.tasks_df.fgrpG1_Dcnt,
+                      mark.MARKER_STYLE['square'],
+                      markersize=self.dcnt_size,
+                      label='FGRBPG1',
+                      color=mark.CBLIND_COLOR['vermilion'],
+                      )
+
+        self.ax1.set_ylabel('Task base frequency, Hz',
+                            fontsize='medium', fontweight='bold')
+        self.ax1.yaxis.set_major_formatter(ticker.FormatStrFormatter('%.2f'))
+        self.ax1.yaxis.set_major_locator(ticker.AutoLocator())
+        self.ax1.yaxis.set_minor_locator(ticker.AutoMinorLocator())
+
+        self.format_legends()
+        self.isplotted['fgrp_hz'] = True
 
     def plot_brp4(self):
         self.ax1.plot(self.tasks_df.time_stamp,
@@ -867,7 +902,7 @@ class PlotTasks(TaskDataFrame):
         self.format_legends()
         self.isplotted['gw_series'] = True
 
-    def plot_fgrpG1_freq(self):
+    def plot_grG1hz_X_t(self):
         num_freq = self.tasks_df.fgrpG1_freq.nunique()
         min_f = self.tasks_df.fgrpG1_freq.min()
         max_f = self.tasks_df.fgrpG1_freq.max()
@@ -900,9 +935,9 @@ class PlotTasks(TaskDataFrame):
                       picker=self.pick_radius,
                       )
 
-        self.isplotted['fgrpG1_freq'] = True
+        self.isplotted['grG1hz_X_t'] = True
 
-    def plot_gw_O3_freq(self):
+    def plot_gwO3hz_X_t(self):
         num_freq = self.tasks_df.gw_freq.where(self.tasks_df.is_gw_O3).nunique()
         min_f = self.tasks_df.gw_freq.where(self.tasks_df.is_gw_O3).min()
         max_f = self.tasks_df.gw_freq.where(self.tasks_df.is_gw_O3).max()
@@ -938,14 +973,14 @@ class PlotTasks(TaskDataFrame):
 
         self.isplotted['gw_O3_freq'] = True
 
-    def manage_plots(self, clicked_label: str):
+    def manage_plots(self, clicked_label: str) -> None:
         """
-        Conditions determining which columns, defined by selected checkbox
-        labels, to plot and which other columns are inclusive and exclusive
-        for co-plotting. Called from the checkbox.on_clicked() method.
+        Conditions determining which plot functions, selected from
+        checkbox labels, to plot, either with each other or solo.
+        Called from checkbox.on_clicked() callback.
 
         :param clicked_label: Implicit event that returns the label name
-          selected in the checkbox. Labels are defined in chkbox_labels.
+          selected from the checkbox CheckButton widget.
         :return: None
         """
 
@@ -957,34 +992,26 @@ class PlotTasks(TaskDataFrame):
         #   (all conditions are evaluated with every click).
 
         # ischecked key is project label, value is True/False check status.
+        # Note: ischecked and self.isplotted dictionary values are boolean.
         ischecked = dict(zip(grp.CHKBOX_LABELS, self.checkbox.get_status()))
 
-        # Note: ischecked and self.isplotted dictionary values are boolean.
-        if clicked_label == 'all' and ischecked[clicked_label]:
+        # Exclusive plots can only be plotted by themselves.
+        for _plot in grp.EXCLUSIVE_PLOTS:
+            if clicked_label == _plot and ischecked[clicked_label]:
 
-            self.is_project(clicked_label)
+                # Need to post notice if selected data are not available.
+                self.is_project(clicked_label)
 
-            # Was toggled on...
-            # Need to uncheck all others project labels.
-            for _label in grp.CHKBOX_LABELS:
-                if _label != clicked_label and (self.isplotted[_label] or ischecked[_label]):
-                    ischecked[_label] = False
-                    # Toggle off all excluded plots.
-                    self.checkbox.set_active(self.chkbox_labelid[_label])
-                    # Set a flag to avoid multiple resets.
-                    self.do_replot = True
+                # Was toggled on...
+                # Need to uncheck other checked project labels.
+                for _l in grp.CHKBOX_LABELS:
+                    if _l != clicked_label and (self.isplotted[_l] or ischecked[_l]):
+                        self.checkbox.set_active(self.chkbox_labelid[_l])
 
-            if self.do_replot:
-                self.reset_plots()
-                self.do_replot = False
+                self.plot_proj[clicked_label]()
 
-            self.plot_all()
-
-        elif not ischecked[clicked_label]:
-            self.reset_plots()
-
+        # Inclusive plots can be plotted with each another.
         if clicked_label in grp.ALL_INCLUSIVE and ischecked[clicked_label]:
-
             self.is_project(clicked_label)
 
             for _plot in grp.ALL_EXCLUDED:
@@ -1012,8 +1039,11 @@ class PlotTasks(TaskDataFrame):
                 if _proj == 'gw_series' and status:
                     self.plot_gw_series()
 
+        # GW series can be plotted only with fgrp5, fgrpG1, and brp and
+        #   only when those are plotted before gw_series; clicking any
+        #   of those after gw_series is plotted will remove the gw_series
+        #   plot. Exclude/include logic needs work.
         if clicked_label == 'gw_series' and ischecked[clicked_label]:
-
             self.is_project(clicked_label)
 
             # Uncheck excluded checkbox labels if plotted.
@@ -1024,38 +1054,6 @@ class PlotTasks(TaskDataFrame):
             for _proj, status in ischecked.items():
                 if status and _proj in grp.GW_SERIES_INCLUSIVE and not self.isplotted[_proj]:
                     self.plot_proj[_proj]()
-
-        elif not ischecked[clicked_label]:
-
-            # Was toggled off, so need to remove gw_series plot,
-            # but not others. Reset all, then replot the others.
-            self.reset_plots()
-            for _proj, status in ischecked.items():
-                if status and _proj in grp.GW_SERIES_INCLUSIVE:
-                    self.plot_proj[_proj]()
-
-        if clicked_label == 'fgrpG1_freq' and ischecked[clicked_label]:
-
-            self.is_project(clicked_label)
-
-            # Was toggled on...
-            # Need to uncheck other checked project labels.
-            for _label in grp.CHKBOX_LABELS:
-                if _label != clicked_label and (self.isplotted[_label] or ischecked[_label]):
-                    self.checkbox.set_active(self.chkbox_labelid[_label])
-
-            self.plot_proj[clicked_label]()
-
-        if clicked_label == 'gw_O3_freq' and ischecked[clicked_label]:
-
-            self.is_project(clicked_label)
-
-            for _label in grp.CHKBOX_LABELS:
-                if _label != clicked_label and (self.isplotted[_label] or ischecked[_label]):
-                    ischecked[_label] = False
-                    self.checkbox.set_active(self.chkbox_labelid[_label])
-
-            self.plot_proj[clicked_label]()
 
         self.fig.canvas.draw_idle()
 
