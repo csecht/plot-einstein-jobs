@@ -85,6 +85,9 @@ class TaskDataFrame:
     Is called only as an inherited Class from PlotTasks.
     Methods:
          setup_df - Set up main dataframe from an E@H job_log text file.
+         add_proj_id - Add columns of boolean flags for Project ID.
+         add_frequencies - Add task base (parent) search frequencies.
+         add_daily_counts - Add daily counts for each Project.
     """
 
     def __init__(self):
@@ -204,8 +207,7 @@ class TaskDataFrame:
 
     def add_daily_counts(self):
         """
-        Add columns to tasks_df of daily counts for each Project and
-        sub-Project.
+        Add columns daily counts for each Project and sub-Project.
         """
 
         #  Idea to tally using groupby and transform, source:
