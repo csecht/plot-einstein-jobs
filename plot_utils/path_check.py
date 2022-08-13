@@ -10,10 +10,13 @@ MY_OS - the system platform in use.
 """
 # Copyright (C) 2021 C. Echt under GNU General Public License'
 
+# Standard library imports
 import sys
 from pathlib import Path
+from re import search
 
-import plot_utils
+# Local application imports
+from plot_utils import URL
 
 CFGFILE = Path('plot_cfg.txt').resolve()
 TESTFILE = Path('plot_utils/testdata.txt')
@@ -31,11 +34,12 @@ def set_datapath(use_test_file=False) -> Path:
     :return: pathlib Path object.
     """
     if use_test_file and Path.is_file(TESTFILE):
+        validate_datafile(TESTFILE)
         return TESTFILE
     elif not Path.is_file(TESTFILE):
         notest = (f'The sample data file, {TESTFILE} was not found.'
                   ' Was it moved or renamed?\n'
-                  f'It can be downloaded from {plot_utils.URL}')
+                  f'It can be downloaded from {URL}')
         sys.exit(notest)
 
     if Path.is_file(CFGFILE):
@@ -66,4 +70,25 @@ def set_datapath(use_test_file=False) -> Path:
                 f" the configuration file: {CFGFILE}.")
             sys.exit(badpath_msg)
         else:
+            validate_datafile(default_logpath[MY_OS])
             return default_logpath[MY_OS]
+
+
+def validate_datafile(filepath: Path) -> None:
+    """
+    Verify that the job log data file has the expected data format.
+    Check only the timestamp on the file's first line.
+
+    :return: None
+    """
+    # Expect the first line of the plot log file to have this structure:
+    # 1555763244 ue 3228.229683 ct 132.696900 fe 525000000000000 nm LATeah1049R_180.0_0_0.0_49704725_1 et 808.042782 es 0
+
+    with open(filepath) as file:
+        first_line = next(file)
+        valid_timestamp = search(r'(^\d{10}\s+ue)', first_line)
+        if not valid_timestamp:
+            sys.exit(f'*** Sorry, but the job log file {filepath}'
+                     ' does not contain usable data. ***\n'
+                     f'    The first line should start with a'
+                     ' BOINC reporting timestamp of 10 digits (Epoch seconds).')
