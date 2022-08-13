@@ -911,8 +911,8 @@ class PlotTasks(TaskDataFrame):
         num_freq = self.tasks_df.fgrpG1_freq.nunique()
         min_f = self.tasks_df.fgrpG1_freq.min()
         max_f = self.tasks_df.fgrpG1_freq.max()
-        min_t = self.tasks_df.task_sec.where(self.tasks_df.is_fgrpG1).min().astype(float)
-        max_t = self.tasks_df.task_sec.where(self.tasks_df.is_fgrpG1).max().astype(float)
+        min_t = self.tasks_df.task_sec.where(self.tasks_df.is_fgrpG1).min()
+        max_t = self.tasks_df.task_sec.where(self.tasks_df.is_fgrpG1).max()
 
         # Add a 2% margin to time axis upper limit.
         self.setup_freq_axes((0, max_t + (max_t * 0.02)))
