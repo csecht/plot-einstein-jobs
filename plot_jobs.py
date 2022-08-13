@@ -439,7 +439,7 @@ class PlotTasks(TaskDataFrame):
         if max_f != max_f:
             max_limit = 1
         else:
-            max_limit = max_f + max_f * 0.02
+            max_limit = max_f * 1.02
 
         # RangeSlider Coord: (LEFT, BOTTOM, WIDTH, HEIGHT).
         self.ax_slider = plt.axes((0.05, 0.38, 0.01, 0.52))  # vert
@@ -915,7 +915,7 @@ class PlotTasks(TaskDataFrame):
         max_t = self.tasks_df.task_sec.where(self.tasks_df.is_fgrpG1).max()
 
         # Add a 2% margin to time axis upper limit.
-        self.setup_freq_axes((0, max_t + (max_t * 0.02)))
+        self.setup_freq_axes((0, max_t * 1.02))
 
         self.setup_slider(max_f)
 
@@ -950,7 +950,7 @@ class PlotTasks(TaskDataFrame):
         max_t = self.tasks_df.task_sec.where(self.tasks_df.is_gw_O3).max()
 
         # Add a 2% margin to time axis upper limit.
-        self.setup_freq_axes((0, max_t + (max_t * 0.02)))
+        self.setup_freq_axes((0, max_t * 1.02))
 
         self.setup_slider(max_f)
 
