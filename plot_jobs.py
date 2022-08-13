@@ -145,9 +145,11 @@ class TaskDataFrame:
                      '  timestamp of 10 digits (seconds).')
 
         #  Need to convert timestamp epoch seconds to datetimes for readable plotting.
-        self.tasks_df['time_stamp'] = pd.to_datetime(self.tasks_df['time_stamp'],
-                                                     unit='s',
-                                                     infer_datetime_format=True)
+        time_colmn = ('time_stamp', 'task_t')
+        for col in time_colmn:
+            self.tasks_df[col] = pd.to_datetime(self.tasks_df[col],
+                                                unit='s',
+                                                infer_datetime_format=True)
 
         # Zero data columns are used to visually clear plots in reset_plots().
         self.tasks_df['null_time'] = pd.to_datetime(0.0, unit='s')
