@@ -135,7 +135,7 @@ class TaskDataFrame:
         # NOTE: If no timestamps are missing, then column is dtype numpy.int64,
         #   but if any NaN present, then column is dtype numpy.float64,
         #   so force all values to floats. This will allow proper evaluation of
-        #   an expected timestamp length of 12 (1234567890.0).
+        #   an expected timestamp string length of 12 (e.g., 1234567890.0).
         #   Exit if the first timestamp fails evaluation.
         self.tasks_df['time_stamp'] = self.tasks_df.time_stamp.astype(float)
         if len(self.tasks_df.loc[0, 'time_stamp'].astype(str)) != 12:
@@ -144,16 +144,10 @@ class TaskDataFrame:
                      f'    The first line should start with a'
                      '  timestamp of 10 digits (seconds).')
 
-        # Need to retain original elapsed time as integer seconds for
-        #   plotting frequency data:
-        self.tasks_df['task_sec'] = self.tasks_df.task_t.astype(int)
-
-        #  Need to convert times to datetimes for efficient plotting.
-        time_colmn = ('time_stamp', 'task_t')
-        for col in time_colmn:
-            self.tasks_df[col] = pd.to_datetime(self.tasks_df[col],
-                                                unit='s',
-                                                infer_datetime_format=True)
+        #  Need to convert timestamp epoch seconds to datetimes for readable plotting.
+        self.tasks_df['time_stamp'] = pd.to_datetime(self.tasks_df['time_stamp'],
+                                                     unit='s',
+                                                     infer_datetime_format=True)
 
         # Zero data columns are used to visually clear plots in reset_plots().
         self.tasks_df['null_time'] = pd.to_datetime(0.0, unit='s')
@@ -781,7 +775,7 @@ class PlotTasks(TaskDataFrame):
                       self.tasks_df.task_t.where(self.tasks_df.is_fgrp5),
                       mark.MARKER_STYLE['tri_left'],
                       markersize=self.marker_size,
-                      label='fgrp5',
+                      label='FGRP5',
                       color=mark.CBLIND_COLOR['bluish green'],
                       alpha=0.3,
                       picker=self.pick_radius,
@@ -790,7 +784,7 @@ class PlotTasks(TaskDataFrame):
                       self.tasks_df.fgrp5_Dcnt,
                       mark.MARKER_STYLE['square'],
                       markersize=self.dcnt_size,
-                      label='fgrp5',
+                      label='FGRP5',
                       color=mark.CBLIND_COLOR['bluish green'],
                       alpha=0.4,
                       picker=self.pick_radius,
@@ -919,8 +913,8 @@ class PlotTasks(TaskDataFrame):
         num_freq = self.tasks_df.fgrpG1_freq.nunique()
         min_f = self.tasks_df.fgrpG1_freq.min()
         max_f = self.tasks_df.fgrpG1_freq.max()
-        min_t = self.tasks_df.task_sec.where(self.tasks_df.is_fgrpG1).min()
-        max_t = self.tasks_df.task_sec.where(self.tasks_df.is_fgrpG1).max()
+        min_t = self.tasks_df.task_t.where(self.tasks_df.is_fgrpG1).min()
+        max_t = self.tasks_df.task_t.where(self.tasks_df.is_fgrpG1).max()
 
         # Add a 2% margin to time axis upper limit.
         self.setup_freq_axes((0, max_t + (max_t * 0.02)))
@@ -939,7 +933,7 @@ class PlotTasks(TaskDataFrame):
                       bbox=self.freq_bbox,
                       )
 
-        self.ax1.plot(self.tasks_df.task_sec.where(self.tasks_df.is_fgrpG1),
+        self.ax1.plot(self.tasks_df.task_t.where(self.tasks_df.is_fgrpG1),
                       self.tasks_df.fgrpG1_freq,
                       mark.MARKER_STYLE['point'],
                       markersize=self.marker_size,
@@ -954,8 +948,8 @@ class PlotTasks(TaskDataFrame):
         num_freq = self.tasks_df.gw_freq.where(self.tasks_df.is_gw_O3).nunique()
         min_f = self.tasks_df.gw_freq.where(self.tasks_df.is_gw_O3).min()
         max_f = self.tasks_df.gw_freq.where(self.tasks_df.is_gw_O3).max()
-        min_t = self.tasks_df.task_sec.where(self.tasks_df.is_gw_O3).min()
-        max_t = self.tasks_df.task_sec.where(self.tasks_df.is_gw_O3).max()
+        min_t = self.tasks_df.task_t.where(self.tasks_df.is_gw_O3).min()
+        max_t = self.tasks_df.task_t.where(self.tasks_df.is_gw_O3).max()
 
         # Add a 2% margin to time axis upper limit.
         self.setup_freq_axes((0, max_t + (max_t * 0.02)))
@@ -975,7 +969,7 @@ class PlotTasks(TaskDataFrame):
                       )
 
         # NOTE that there is not a separate df column for O3 freq.
-        self.ax1.plot(self.tasks_df.task_sec.where(self.tasks_df.is_gw_O3),
+        self.ax1.plot(self.tasks_df.task_t.where(self.tasks_df.is_gw_O3),
                       self.tasks_df.gw_freq.where(self.tasks_df.is_gw_O3),
                       mark.MARKER_STYLE['point'],
                       markersize=self.marker_size,
