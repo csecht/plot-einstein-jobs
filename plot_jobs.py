@@ -3,9 +3,10 @@
 BOINC client job log files.
 
 Plot types are:
-    Task times vs reported datetime
+    Task elapsed times vs reported datetime
     Task counts/day vs. reported datetime
-    Task frequency (Hz) vs. task time (sec)
+    Task frequency (Hz) vs. reported datetime
+    Task Hz vs. task time (sec)
 Plots can be specified for various E@H Projects.
 A job log file can store records of reported tasks for up to about three
 years of full-time work. This can include hundreds of thousands to
