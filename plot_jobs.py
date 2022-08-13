@@ -262,6 +262,7 @@ class PlotTasks(TaskDataFrame):
         self.legend_btn_on = True
 
         # These keys must match CHKBOX_LABELS in project_groups.py.
+        # Dictionary pairs plot name to plot method.
         self.plot_proj = {
             'all': self.plot_all,
             'fgrp5': self.plot_fgrp5,
@@ -315,13 +316,14 @@ class PlotTasks(TaskDataFrame):
 
     def setup_window(self) -> None:
         """
-        A tkinter window for the figure canvas that makes the
-        CheckButton checkbox actions for plotting more responsive.
+        A tkinter window for the figure canvas: makes the CheckButton
+        actions for drawing plots more responsive.
         """
+        # canvas_window is the Tk object defined in if __name__ == "__main__".
         canvas_window.title('Plotting E@H tasks')
         canvas_window.minsize(850, 550)
 
-        # Allow full resizing of plot, but only horiz for toolbar.
+        # Allow full resizing of plot, but only horizontally for toolbar.
         canvas_window.rowconfigure(0, weight=1)
         canvas_window.columnconfigure(0, weight=1)
         canvas_window.configure(bg=mark.CBLIND_COLOR['blue'])
@@ -351,7 +353,7 @@ class PlotTasks(TaskDataFrame):
                                     sticky=tk.NSEW,
                                     )
         # Because macOS tool icon images won't render properly,
-        #   need to provide text description for tool functions.
+        #   need to provide text descriptions of tool button functions.
         if sys.platform == 'darwin':
             tool_lbl = tk.Label(canvas_window,
                                 text='Home Fwd Back | Pan  Zoom | Save',
@@ -365,7 +367,7 @@ class PlotTasks(TaskDataFrame):
         Specify in the Figure title which data are plotted, those from the
         sample data file, plot_utils.testdata.txt, or the user's job log
         file. Called from if __name__ == "__main__".
-        self.text is inherited from TaskDataFrame(use_test_file) as boolean
+        self.test is inherited from TaskDataFrame(use_test_file) as boolean
         via call from if __name__ == "__main__".
 
         :return: None
