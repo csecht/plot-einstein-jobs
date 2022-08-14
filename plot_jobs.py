@@ -433,10 +433,10 @@ class PlotTasks(TaskDataFrame):
         self.ax_slider.remove()
 
         # Add a 2% margin to the slider upper limit when frequency data are available.
-        # When there are no plot data, max_f will be NaN, so test if it is nan to
-        #   avoid a ValueError for RangeSlider range.
+        # When there are no plot data, max_f will be NaN, so use some NaN magic
+        #   to test that and avoid a ValueError for RangeSlider max range.
         # https://towardsdatascience.com/5-methods-to-check-for-nan-values-in-in-python-3f21ddd17eed
-        if max_f != max_f:
+        if max_f != max_f:  # Will be True if max_f is NaN.
             max_limit = 1
         else:
             max_limit = max_f * 1.02
@@ -603,8 +603,7 @@ class PlotTasks(TaskDataFrame):
         self.ax1.yaxis.set_major_locator(ticker.AutoLocator())
         self.ax1.yaxis.set_minor_locator(ticker.AutoMinorLocator())
 
-        self.ax2.yaxis.set_major_locator(ticker.AutoLocator())
-        self.ax2.yaxis.set_minor_locator(ticker.AutoMinorLocator())
+        self.ax2.yaxis.set_major_locator(ticker.MaxNLocator(nbins=6, integer=True))
 
         self.ax1.grid(True)
         self.ax2.grid(True)
@@ -647,14 +646,7 @@ class PlotTasks(TaskDataFrame):
                             fontsize='medium', fontweight='bold')
 
         self.ax1.xaxis.set_major_formatter(ticker.FormatStrFormatter('%.0f'))
-
-        self.ax1.xaxis.set_major_locator(ticker.AutoLocator())
-        self.ax1.xaxis.set_minor_locator(ticker.AutoMinorLocator())
-
         self.ax1.yaxis.set_major_formatter(ticker.FormatStrFormatter('%.2f'))
-
-        self.ax1.yaxis.set_major_locator(ticker.AutoLocator())
-        self.ax1.yaxis.set_minor_locator(ticker.AutoMinorLocator())
 
     def reset_plots(self):
         """
