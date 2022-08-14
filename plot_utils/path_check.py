@@ -13,7 +13,7 @@ MY_OS - the system platform in use.
 # Standard library imports
 import sys
 from pathlib import Path
-from re import search
+from re import match
 
 # Local application imports
 from plot_utils import URL
@@ -81,13 +81,12 @@ def validate_datafile(filepath: Path) -> None:
 
     :return: None
     """
-    # Expect the first line of the plot log file to have this structure:
-    # 1555763244 ue 3228.229683 ct 132.696900 fe 525000000000000 nm LATeah1049R_180.0_0_0.0_49704725_1 et 808.042782 es 0
 
+    # Expected first line of the plot log file has this structure:
+    # 1555763244 ue 3228.229683 ct 132.696900 fe 525000000000000 nm LATeah1049R_180.0_0_0.0_49704725_1 et 808.042782 es 0
     with open(filepath) as file:
-        first_line = next(file)
-        valid_timestamp = search(r'(^\d{10}\s+ue)', first_line)
-        if not valid_timestamp:
+        # Start of 1st line, look for 10-digit timestamp + 1 space.
+        if not match(r'\d{10}\s', file.readline(11)):
             sys.exit(f'*** Sorry, but the job log file {filepath}'
                      ' does not contain usable data. ***\n'
                      f'    The first line should start with a'
