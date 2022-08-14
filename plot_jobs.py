@@ -111,11 +111,11 @@ class TaskDataFrame:
 
         # To include all numerical data in space-delimited job_log, use this:
         # joblog_col_index = 0, 2, 4, 6, 8, 10  # All reported data
-        # headers = ('time_stamp', 'est_sec', 'cpu_sec', 'est_flops', 'task_name', 'task_t')
-        # time_col = ('time_stamp', 'est_sec', 'cpu_sec', 'task_t')
+        # headers = ('time_stamp', 'est_sec', 'cpu_sec', 'est_flops', 'task_name', 'elapsed_t')
+        # time_col = ('time_stamp', 'est_sec', 'cpu_sec', 'elapsed_t')
         # Job log data of current interest:
         joblog_col_index = 0, 8, 10
-        _headers = ('time_stamp', 'task_name', 'task_t')
+        _headers = ('time_stamp', 'task_name', 'elapsed_t')
 
         # The datapath path is defined in if __name__ == "__main__".
         self.tasks_df = pd.read_table(data_path,
@@ -125,21 +125,14 @@ class TaskDataFrame:
                                       names=_headers,
                                       )
 
-        # Developer note: Can check for presence NaN values with:
-        # print('Any null values?', self.tasks_df.isnull().values.any())  # -> True
-        # print("Sum of null timestamps:", self.tasks_df['time_stamp'].isnull().sum())
-        # print("Sum of ALL nulls:", self.tasks_df.isnull().sum()).sum())
-        # Need to replace NaN values with usable data.
-        #   Assumes read_table of job_log file will produce NaN ONLY for timestamp.
-        # NOTE: If no timestamps are missing, then column dtype is numpy.int64,
-        #   but if any NaN present, then column dtype is numpy.float64.
-        self.tasks_df.time_stamp.interpolate(inplace=True)
+        # Need to replace NaN time values with usable data.
+        self.manage_bad_times()
 
         # Need to retain original elapsed time as seconds to plot Hz x time:
-        self.tasks_df['task_sec'] = self.tasks_df.task_t
+        self.tasks_df['elapsed_sec'] = self.tasks_df.elapsed_t
 
-        #  Need to convert timestamp epoch seconds to datetimes for readable plotting.
-        time_colmn = ('time_stamp', 'task_t')
+        #  Need to convert timestamp epoch seconds to datetimes for readability.
+        time_colmn = ('time_stamp', 'elapsed_t')
         for col in time_colmn:
             self.tasks_df[col] = pd.to_datetime(self.tasks_df[col],
                                                 unit='s',
@@ -148,6 +141,34 @@ class TaskDataFrame:
         # Zero data columns are used to visually clear plots in reset_plots().
         self.tasks_df['null_time'] = pd.to_datetime(0.0, unit='s')
         self.tasks_df['null_Dcnt'] = 0
+
+    def manage_bad_times(self) -> None:
+        """
+        Report and interpolate timestamp and elapsed time values that are
+        read from file as NaN.
+
+        :return: None
+        """
+        # NOTE: If no times are missing, then column dtype is numpy.int64,
+        #   but if any NaN present, then column dtype is numpy.float64.
+        ts_missing = self.tasks_df[self.tasks_df.time_stamp.isna()]
+        ts_num_nan = self.tasks_df.time_stamp.isna().sum()
+        et_missing = self.tasks_df[self.tasks_df.elapsed_t.isna()]
+        et_num_nan = self.tasks_df.elapsed_t.isna().sum()
+
+        if ts_num_nan > 0:
+            self.tasks_df.time_stamp.interpolate(
+                method='linear', inplace=True)
+            print(f'*** Heads up: {ts_num_nan} timestamp values could not'
+                  ' be read from the file and have been interpolated. ***\n'
+                  f'Tasks with "bad" times in the file:\nrow #\n{ts_missing}')
+
+        if et_num_nan > 0:
+            self.tasks_df.elapsed_t.interpolate(
+                method='linear', inplace=True)
+            print(f'*** Heads up: {et_num_nan} elapsed time values could not'
+                  ' be read from the file and have been interpolated. ***\n'
+                  f'Tasks with "bad" times in the file:\nrow #\n{et_missing}')
 
     def add_proj_id(self):
         """
@@ -624,7 +645,7 @@ class PlotTasks(TaskDataFrame):
             maximum value, plus a small buffer.
         :return: None
         """
-        #
+
         self.ax2.set_visible(False)
         self.ax1.tick_params('x', labelbottom=True)
 
@@ -702,7 +723,7 @@ class PlotTasks(TaskDataFrame):
 
     def plot_all(self):
         self.ax1.plot(self.tasks_df.time_stamp,
-                      self.tasks_df.task_t,
+                      self.tasks_df.elapsed_t,
                       mark.MARKER_STYLE['point'],
                       markersize=self.marker_size,
                       label='all',
@@ -722,7 +743,7 @@ class PlotTasks(TaskDataFrame):
 
     def plot_gw_O2(self):
         self.ax1.plot(self.tasks_df.time_stamp,
-                      self.tasks_df.task_t.where(self.tasks_df.is_gw_O2),
+                      self.tasks_df.elapsed_t.where(self.tasks_df.is_gw_O2),
                       mark.MARKER_STYLE['triangle_down'],
                       markersize=self.marker_size,
                       label='gw_O2MD1',
@@ -742,7 +763,7 @@ class PlotTasks(TaskDataFrame):
 
     def plot_gw_O3(self):
         self.ax1.plot(self.tasks_df.time_stamp,
-                      self.tasks_df.task_t.where(self.tasks_df.is_gw_O3),
+                      self.tasks_df.elapsed_t.where(self.tasks_df.is_gw_O3),
                       mark.MARKER_STYLE['triangle_up'],
                       markersize=self.marker_size,
                       label='gw_O3AS',
@@ -762,7 +783,7 @@ class PlotTasks(TaskDataFrame):
 
     def plot_fgrp5(self):
         self.ax1.plot(self.tasks_df.time_stamp,
-                      self.tasks_df.task_t.where(self.tasks_df.is_fgrp5),
+                      self.tasks_df.elapsed_t.where(self.tasks_df.is_fgrp5),
                       mark.MARKER_STYLE['tri_left'],
                       markersize=self.marker_size,
                       label='FGRP5',
@@ -784,7 +805,7 @@ class PlotTasks(TaskDataFrame):
 
     def plot_fgrpG1(self):
         self.ax1.plot(self.tasks_df.time_stamp,
-                      self.tasks_df.task_t.where(self.tasks_df.is_fgrpG1),
+                      self.tasks_df.elapsed_t.where(self.tasks_df.is_fgrpG1),
                       mark.MARKER_STYLE['tri_right'],
                       markersize=self.marker_size,
                       label='FGRBPG1',
@@ -838,7 +859,7 @@ class PlotTasks(TaskDataFrame):
 
     def plot_brp4(self):
         self.ax1.plot(self.tasks_df.time_stamp,
-                      self.tasks_df.task_t.where(self.tasks_df.is_brp4),
+                      self.tasks_df.elapsed_t.where(self.tasks_df.is_brp4),
                       mark.MARKER_STYLE['pentagon'],
                       markersize=self.marker_size,
                       label='BRP4 & BRP4G',
@@ -858,7 +879,7 @@ class PlotTasks(TaskDataFrame):
 
     def plot_brp7(self):
         self.ax1.plot(self.tasks_df.time_stamp,
-                      self.tasks_df.task_t.where(self.tasks_df.is_brp7),
+                      self.tasks_df.elapsed_t.where(self.tasks_df.is_brp7),
                       mark.MARKER_STYLE['diamond'],
                       markersize=self.marker_size,
                       label='BRP7',
@@ -881,7 +902,7 @@ class PlotTasks(TaskDataFrame):
             is_subproj = f'is_{subproj}'
 
             self.ax1.plot(self.tasks_df.time_stamp,
-                          self.tasks_df.task_t.where(self.tasks_df[is_subproj]),
+                          self.tasks_df.elapsed_t.where(self.tasks_df[is_subproj]),
                           mark.next_marker(),
                           label=subproj,
                           markersize=self.marker_size,
@@ -903,8 +924,8 @@ class PlotTasks(TaskDataFrame):
         num_freq = self.tasks_df.fgrpG1_freq.nunique()
         min_f = self.tasks_df.fgrpG1_freq.min()
         max_f = self.tasks_df.fgrpG1_freq.max()
-        min_t = self.tasks_df.task_sec.where(self.tasks_df.is_fgrpG1).min()
-        max_t = self.tasks_df.task_sec.where(self.tasks_df.is_fgrpG1).max()
+        min_t = self.tasks_df.elapsed_sec.where(self.tasks_df.is_fgrpG1).min()
+        max_t = self.tasks_df.elapsed_sec.where(self.tasks_df.is_fgrpG1).max()
 
         # Add a 2% margin to time axis upper limit.
         self.setup_freq_axes((0, max_t * 1.02))
@@ -923,7 +944,7 @@ class PlotTasks(TaskDataFrame):
                       bbox=self.freq_bbox,
                       )
 
-        self.ax1.plot(self.tasks_df.task_sec.where(self.tasks_df.is_fgrpG1),
+        self.ax1.plot(self.tasks_df.elapsed_sec.where(self.tasks_df.is_fgrpG1),
                       self.tasks_df.fgrpG1_freq,
                       mark.MARKER_STYLE['point'],
                       markersize=self.marker_size,
@@ -938,8 +959,8 @@ class PlotTasks(TaskDataFrame):
         num_freq = self.tasks_df.gw_freq.where(self.tasks_df.is_gw_O3).nunique()
         min_f = self.tasks_df.gw_freq.where(self.tasks_df.is_gw_O3).min()
         max_f = self.tasks_df.gw_freq.where(self.tasks_df.is_gw_O3).max()
-        min_t = self.tasks_df.task_sec.where(self.tasks_df.is_gw_O3).min()
-        max_t = self.tasks_df.task_sec.where(self.tasks_df.is_gw_O3).max()
+        min_t = self.tasks_df.elapsed_sec.where(self.tasks_df.is_gw_O3).min()
+        max_t = self.tasks_df.elapsed_sec.where(self.tasks_df.is_gw_O3).max()
 
         # Add a 2% margin to time axis upper limit.
         self.setup_freq_axes((0, max_t * 1.02))
@@ -959,7 +980,7 @@ class PlotTasks(TaskDataFrame):
                       )
 
         # NOTE that there is not a separate df column for O3 freq.
-        self.ax1.plot(self.tasks_df.task_sec.where(self.tasks_df.is_gw_O3),
+        self.ax1.plot(self.tasks_df.elapsed_sec.where(self.tasks_df.is_gw_O3),
                       self.tasks_df.gw_freq.where(self.tasks_df.is_gw_O3),
                       mark.MARKER_STYLE['point'],
                       markersize=self.marker_size,
