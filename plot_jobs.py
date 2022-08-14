@@ -149,24 +149,24 @@ class TaskDataFrame:
 
         :return: None
         """
-        # NOTE: If no times are missing, then column dtype is numpy.int64,
+        # NOTE: If no times are NaN, then column dtype is numpy.int64,
         #   but if any NaN present, then column dtype is numpy.float64.
-        ts_missing = self.tasks_df[self.tasks_df.time_stamp.isna()]
-        ts_num_nan = self.tasks_df.time_stamp.isna().sum()
-        et_missing = self.tasks_df[self.tasks_df.elapsed_t.isna()]
-        et_num_nan = self.tasks_df.elapsed_t.isna().sum()
+        ts_num_na = self.tasks_df.time_stamp.isna().sum()
+        et_num_na = self.tasks_df.elapsed_t.isna().sum()
 
-        if ts_num_nan > 0:
+        if ts_num_na > 0:
+            ts_missing = self.tasks_df[self.tasks_df.time_stamp.isna()]
             self.tasks_df.time_stamp.interpolate(
                 method='linear', inplace=True)
-            print(f'*** Heads up: {ts_num_nan} timestamp values could not'
+            print(f'*** Heads up: {ts_num_na} timestamp values could not'
                   ' be read from the file and have been interpolated. ***\n'
                   f'Tasks with "bad" times in the file:\nrow #\n{ts_missing}')
 
-        if et_num_nan > 0:
+        if et_num_na > 0:
+            et_missing = self.tasks_df[self.tasks_df.elapsed_t.isna()]
             self.tasks_df.elapsed_t.interpolate(
                 method='linear', inplace=True)
-            print(f'*** Heads up: {et_num_nan} elapsed time values could not'
+            print(f'*** Heads up: {et_num_na} elapsed time values could not'
                   ' be read from the file and have been interpolated. ***\n'
                   f'Tasks with "bad" times in the file:\nrow #\n{et_missing}')
 
@@ -921,7 +921,7 @@ class PlotTasks(TaskDataFrame):
         self.isplotted['gw_series'] = True
 
     def plot_grG1hz_X_t(self):
-        num_freq = self.tasks_df.fgrpG1_freq.nunique()
+        num_f = self.tasks_df.fgrpG1_freq.nunique()
         min_f = self.tasks_df.fgrpG1_freq.min()
         max_f = self.tasks_df.fgrpG1_freq.max()
         min_t = self.tasks_df.elapsed_sec.where(self.tasks_df.is_fgrpG1).min()
@@ -934,7 +934,7 @@ class PlotTasks(TaskDataFrame):
 
         # Position text below lower left corner of plot area.
         self.ax1.text(0.0, -0.15,
-                      f'Frequencies, N: {num_freq}\n'
+                      f'Frequencies, N: {num_f}\n'
                       f'Hz, min--max: {min_f}--{max_f}\n'
                       f'Time, min--max: {min_t}--{max_t}',
                       style='italic',
@@ -956,7 +956,7 @@ class PlotTasks(TaskDataFrame):
         self.isplotted['grG1hz_X_t'] = True
 
     def plot_gwO3hz_X_t(self):
-        num_freq = self.tasks_df.gw_freq.where(self.tasks_df.is_gw_O3).nunique()
+        num_f = self.tasks_df.gw_freq.where(self.tasks_df.is_gw_O3).nunique()
         min_f = self.tasks_df.gw_freq.where(self.tasks_df.is_gw_O3).min()
         max_f = self.tasks_df.gw_freq.where(self.tasks_df.is_gw_O3).max()
         min_t = self.tasks_df.elapsed_sec.where(self.tasks_df.is_gw_O3).min()
@@ -969,7 +969,7 @@ class PlotTasks(TaskDataFrame):
 
         # Position text below lower left corner of axes.
         self.ax1.text(0.0, -0.15,
-                      f'Frequencies, N: {num_freq}\n'
+                      f'Frequencies, N: {num_f}\n'
                       f'Hz, min--max: {min_f}--{max_f}\n'
                       f'Time, min--max: {min_t}--{max_t}',
                       style='italic',
