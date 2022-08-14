@@ -851,8 +851,6 @@ class PlotTasks(TaskDataFrame):
         self.ax1.set_ylabel('Task base frequency, Hz',
                             fontsize='medium', fontweight='bold')
         self.ax1.yaxis.set_major_formatter(ticker.FormatStrFormatter('%.2f'))
-        self.ax1.yaxis.set_major_locator(ticker.AutoLocator())
-        self.ax1.yaxis.set_minor_locator(ticker.AutoMinorLocator())
 
         self.format_legends()
         self.isplotted['fgrp_hz'] = True
