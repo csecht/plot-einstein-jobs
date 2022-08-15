@@ -1,7 +1,9 @@
 """
-Establish paths for data files.
+Establish paths and validity for data files.
 Functions:
 set_datapath - Return Path of text file to be read into a DataFrame.
+validate_datafile - Check that file starts with timestamp; exit if not.
+
 Constants:
 CFGFILE - the configuration file for setting a custom data file path.
 TESTFILE - Path to the sample data file to test the program's functions.

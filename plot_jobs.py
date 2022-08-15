@@ -85,6 +85,7 @@ class TaskDataFrame:
     Is called only as an inherited Class from PlotTasks.
     Methods:
          setup_df - Set up main dataframe from an E@H job_log text file.
+         manage_bad_times - Interpolate missing time data.
          add_proj_id - Add columns of boolean flags for Project ID.
          add_frequencies - Add task base (parent) search frequencies.
          add_daily_counts - Add daily counts for each Project.
@@ -125,13 +126,14 @@ class TaskDataFrame:
                                       names=_headers,
                                       )
 
-        # Need to replace NaN time values with usable data.
+        # Need to replace NaN time data with interpolated time values.
         self.manage_bad_times()
 
         # Need to retain original elapsed time as seconds to plot Hz x time:
         self.tasks_df['elapsed_sec'] = self.tasks_df.elapsed_t
 
-        #  Need to convert timestamp epoch seconds to datetimes for readability.
+        #  Need to convert time seconds (int or float) to datetimes for
+        #    plot axis tick readability.
         time_colmn = ('time_stamp', 'elapsed_t')
         for col in time_colmn:
             self.tasks_df[col] = pd.to_datetime(self.tasks_df[col],
@@ -145,28 +147,28 @@ class TaskDataFrame:
     def manage_bad_times(self) -> None:
         """
         Report and interpolate timestamp and elapsed time values that are
-        read from file as NaN.
+        interpreted from file as NaN.
 
         :return: None
         """
         # NOTE: If no times are NaN, then column dtype is numpy.int64,
         #   but if any NaN present, then column dtype is numpy.float64.
-        ts_num_na = self.tasks_df.time_stamp.isna().sum()
-        et_num_na = self.tasks_df.elapsed_t.isna().sum()
+        ts_nan_count = self.tasks_df.time_stamp.isna().sum()
+        et_nan_count = self.tasks_df.elapsed_t.isna().sum()
 
-        if ts_num_na > 0:
+        if ts_nan_count > 0:
             ts_missing = self.tasks_df[self.tasks_df.time_stamp.isna()]
             self.tasks_df.time_stamp.interpolate(
                 method='linear', inplace=True)
-            print(f'*** Heads up: {ts_num_na} timestamp values could not'
+            print(f'*** Heads up: {ts_nan_count} timestamp values could not'
                   ' be read from the file and have been interpolated. ***\n'
                   f'Tasks with "bad" times in the file:\nrow #\n{ts_missing}')
 
-        if et_num_na > 0:
+        if et_nan_count > 0:
             et_missing = self.tasks_df[self.tasks_df.elapsed_t.isna()]
             self.tasks_df.elapsed_t.interpolate(
                 method='linear', inplace=True)
-            print(f'*** Heads up: {et_num_na} elapsed time values could not'
+            print(f'*** Heads up: {et_nan_count} elapsed time values could not'
                   ' be read from the file and have been interpolated. ***\n'
                   f'Tasks with "bad" times in the file:\nrow #\n{et_missing}')
 
