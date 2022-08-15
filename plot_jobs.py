@@ -41,8 +41,6 @@ Developed in Python 3.8-3.9.
 import sys
 
 # Local application imports
-import numpy as np
-
 from plot_utils import (path_check, reports, utils,
                         markers as mark,
                         project_groups as grp)
@@ -198,10 +196,13 @@ class TaskDataFrame:
         self.tasks_df['is_brp7'] = where(
             self.tasks_df.task_name.str.startswith('M22'), True, False)
 
-        for series in grp.GW_SERIES:
-            is_series = f'is_{series}'
-            self.tasks_df[is_series] = where(
-                self.tasks_df.task_name.str.contains(series), True, False)
+        # Adding columns to the df for all GW series IDs can take 1-4 seconds,
+        #  so shorten the startup time when user has no GW jobs.
+        if self.tasks_df.is_gw.sum() > 0:
+            for series in grp.GW_SERIES:
+                is_series = f'is_{series}'
+                self.tasks_df[is_series] = where(
+                    self.tasks_df.task_name.str.contains(series), True, False)
 
     def add_frequencies(self):
         """
