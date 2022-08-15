@@ -41,6 +41,8 @@ Developed in Python 3.8-3.9.
 import sys
 
 # Local application imports
+import numpy as np
+
 from plot_utils import (path_check, reports, utils,
                         markers as mark,
                         project_groups as grp)
@@ -120,7 +122,8 @@ class TaskDataFrame:
 
         # The datapath path is defined in if __name__ == "__main__".
         self.tasks_df = pd.read_table(data_path,
-                                      sep=' ',
+                                      engine='c',
+                                      delim_whitespace=True,
                                       header=None,
                                       usecols=joblog_col_index,
                                       names=_headers,
@@ -248,8 +251,9 @@ class TaskDataFrame:
 class PlotTasks(TaskDataFrame):
     """
     Set up and display Matplotlib Figure and pyplot Plots of task (job)
-    data from the inherited DataFrame.
+    data.
     The plotted Pandas dataframe is inherited from TaskDataFrame.
+    Called only from if __name__ == "__main__".
     Methods: setup_window, setup_title, setup_buttons, setup_slider,
         setup_plot_manager, format_legends, toggle_legends, on_pick_report,
         joblog_report, about_report, setup_count_axes, setup_freq_axes,
@@ -271,7 +275,7 @@ class PlotTasks(TaskDataFrame):
     def __init__(self, use_test_file: bool):
         super().__init__()
 
-        # The test_arg parameter is set from an invocation argument.
+        # use_test_file boolean is defined by an invocation argument.
         self.test = use_test_file
 
         self.marker_size = 4
@@ -742,46 +746,6 @@ class PlotTasks(TaskDataFrame):
         self.format_legends()
         self.isplotted['all'] = True
 
-    def plot_gw_O2(self):
-        self.ax1.plot(self.tasks_df.time_stamp,
-                      self.tasks_df.elapsed_t.where(self.tasks_df.is_gw_O2),
-                      mark.MARKER_STYLE['triangle_down'],
-                      markersize=self.marker_size,
-                      label='gw_O2MD1',
-                      color=mark.CBLIND_COLOR['orange'],
-                      alpha=0.4,
-                      picker=self.pick_radius,
-                      )
-        self.ax2.plot(self.tasks_df.time_stamp,
-                      self.tasks_df.gw_O2_Dcnt,
-                      mark.MARKER_STYLE['square'],
-                      markersize=self.dcnt_size,
-                      label='gw_O2MD1',
-                      color=mark.CBLIND_COLOR['orange'],
-                      )
-        self.format_legends()
-        self.isplotted['gw_O2'] = True
-
-    def plot_gw_O3(self):
-        self.ax1.plot(self.tasks_df.time_stamp,
-                      self.tasks_df.elapsed_t.where(self.tasks_df.is_gw_O3),
-                      mark.MARKER_STYLE['triangle_up'],
-                      markersize=self.marker_size,
-                      label='gw_O3AS',
-                      color=mark.CBLIND_COLOR['sky blue'],
-                      alpha=0.3,
-                      picker=self.pick_radius,
-                      )
-        self.ax2.plot(self.tasks_df.time_stamp,
-                      self.tasks_df.gw_O3_Dcnt,
-                      mark.MARKER_STYLE['square'],
-                      markersize=self.dcnt_size,
-                      label='gw_O3AS',
-                      color=mark.CBLIND_COLOR['sky blue'],
-                      )
-        self.format_legends()
-        self.isplotted['gw_O3'] = True
-
     def plot_fgrp5(self):
         self.ax1.plot(self.tasks_df.time_stamp,
                       self.tasks_df.elapsed_t.where(self.tasks_df.is_fgrp5),
@@ -856,6 +820,69 @@ class PlotTasks(TaskDataFrame):
         self.format_legends()
         self.isplotted['fgrp_hz'] = True
 
+    def plot_gw_O2(self):
+        self.ax1.plot(self.tasks_df.time_stamp,
+                      self.tasks_df.elapsed_t.where(self.tasks_df.is_gw_O2),
+                      mark.MARKER_STYLE['triangle_down'],
+                      markersize=self.marker_size,
+                      label='gw_O2MD1',
+                      color=mark.CBLIND_COLOR['orange'],
+                      alpha=0.4,
+                      picker=self.pick_radius,
+                      )
+        self.ax2.plot(self.tasks_df.time_stamp,
+                      self.tasks_df.gw_O2_Dcnt,
+                      mark.MARKER_STYLE['square'],
+                      markersize=self.dcnt_size,
+                      label='gw_O2MD1',
+                      color=mark.CBLIND_COLOR['orange'],
+                      )
+        self.format_legends()
+        self.isplotted['gw_O2'] = True
+
+    def plot_gw_O3(self):
+        self.ax1.plot(self.tasks_df.time_stamp,
+                      self.tasks_df.elapsed_t.where(self.tasks_df.is_gw_O3),
+                      mark.MARKER_STYLE['triangle_up'],
+                      markersize=self.marker_size,
+                      label='gw_O3AS',
+                      color=mark.CBLIND_COLOR['sky blue'],
+                      alpha=0.3,
+                      picker=self.pick_radius,
+                      )
+        self.ax2.plot(self.tasks_df.time_stamp,
+                      self.tasks_df.gw_O3_Dcnt,
+                      mark.MARKER_STYLE['square'],
+                      markersize=self.dcnt_size,
+                      label='gw_O3AS',
+                      color=mark.CBLIND_COLOR['sky blue'],
+                      )
+        self.format_legends()
+        self.isplotted['gw_O3'] = True
+
+    def plot_gw_series(self):
+        for subproj in grp.GW_SERIES:
+            is_subproj = f'is_{subproj}'
+
+            self.ax1.plot(self.tasks_df.time_stamp,
+                          self.tasks_df.elapsed_t.where(self.tasks_df[is_subproj]),
+                          mark.next_marker(),
+                          label=subproj,
+                          markersize=self.marker_size,
+                          alpha=0.3,
+                          picker=True,
+                          pickradius=self.pick_radius,
+                          )
+
+        self.ax2.plot(self.tasks_df.time_stamp,
+                      self.tasks_df.gw_Dcnt,
+                      mark.MARKER_STYLE['square'],
+                      label='All GW',
+                      markersize=self.dcnt_size,
+                      )
+        self.format_legends()
+        self.isplotted['gw_series'] = True
+
     def plot_brp4(self):
         self.ax1.plot(self.tasks_df.time_stamp,
                       self.tasks_df.elapsed_t.where(self.tasks_df.is_brp4),
@@ -896,29 +923,6 @@ class PlotTasks(TaskDataFrame):
         self.format_legends()
         self.isplotted['brp7'] = True
 
-    def plot_gw_series(self):
-        for subproj in grp.GW_SERIES:
-            is_subproj = f'is_{subproj}'
-
-            self.ax1.plot(self.tasks_df.time_stamp,
-                          self.tasks_df.elapsed_t.where(self.tasks_df[is_subproj]),
-                          mark.next_marker(),
-                          label=subproj,
-                          markersize=self.marker_size,
-                          alpha=0.3,
-                          picker=True,
-                          pickradius=self.pick_radius,
-                          )
-
-        self.ax2.plot(self.tasks_df.time_stamp,
-                      self.tasks_df.gw_Dcnt,
-                      mark.MARKER_STYLE['square'],
-                      label='All GW',
-                      markersize=self.dcnt_size,
-                      )
-        self.format_legends()
-        self.isplotted['gw_series'] = True
-
     def plot_grG1hz_X_t(self):
         num_f = self.tasks_df.fgrpG1_freq.nunique()
         min_f = self.tasks_df.fgrpG1_freq.min()
@@ -945,9 +949,9 @@ class PlotTasks(TaskDataFrame):
 
         self.ax1.plot(self.tasks_df.elapsed_sec.where(self.tasks_df.is_fgrpG1),
                       self.tasks_df.fgrpG1_freq,
-                      mark.MARKER_STYLE['point'],
+                      mark.MARKER_STYLE['tri_right'],
                       markersize=self.marker_size,
-                      color=mark.CBLIND_COLOR['blue'],
+                      color=mark.CBLIND_COLOR['vermilion'],
                       alpha=0.3,
                       picker=self.pick_radius,
                       )
@@ -981,9 +985,9 @@ class PlotTasks(TaskDataFrame):
         # NOTE that there is not a separate df column for O3 freq.
         self.ax1.plot(self.tasks_df.elapsed_sec.where(self.tasks_df.is_gw_O3),
                       self.tasks_df.gw_freq.where(self.tasks_df.is_gw_O3),
-                      mark.MARKER_STYLE['point'],
+                      mark.MARKER_STYLE['triangle_up'],
                       markersize=self.marker_size,
-                      color=mark.CBLIND_COLOR['blue'],
+                      color=mark.CBLIND_COLOR['sky blue'],
                       alpha=0.3,
                       picker=self.pick_radius,
                       )
