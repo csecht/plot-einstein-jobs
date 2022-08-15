@@ -142,7 +142,7 @@ class TaskDataFrame:
 
         # Zero data columns are used to visually clear plots in reset_plots().
         self.tasks_df['null_time'] = pd.to_datetime(0.0, unit='s')
-        self.tasks_df['null_Dcnt'] = 0
+        self.tasks_df['null_Dcnt'] = 0.0
 
     def manage_bad_times(self) -> None:
         """
@@ -238,10 +238,9 @@ class TaskDataFrame:
                 self.tasks_df.time_stamp
                     .groupby(self.tasks_df.time_stamp.dt.floor('D')
                              .where(self.tasks_df[is_proj]))
-                    .transform('count')
+                    .transform('count').astype('float')
             )
 
-        #  Note that _Dcnt column values are floats (counts of Booleans), not integers.
         for _proj, _ in daily_counts.items():
             self.tasks_df[_proj] = daily_counts[_proj]
 
