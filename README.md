@@ -70,30 +70,29 @@ Navigation bar icons images are not showing up in MacOS. They are functional, bu
 ![plot all sample data](images/test_start.png)
 
 Opening window using the sample data option, --test.
+Plots all tasks in the job log for task completion time and daily count vs. reporting date.
 
-![plot GW series](images/gw_all.png)
+![plot_fgrp_freq](images/fgrp_freq.png)
 
-Example plot of all gravitational wave tasks, by sub-series, over time.
+Plot of only FGRPG1 gamma-ray tasks.
+
 
 ![plot_fgrp_zoom](images/fgrpG1_zoom.png)
 
-Zoom-in detail of FGRPG1 tasks time and counts.
+Zoom-in detail of FGRPG1 tasks times and counts.
 
 ![plot_hz_vs_time](images/GRfreq_x_time.png)
 
-FGRPG1 gamma-ray tasks' frequency (Hz) vs. datetime. New as of ver 0.1.14.
+FGRPG1 gamma-ray tasks' frequency (Hz) vs. datetime.
 
-![plot fgrp freq](images/fgrp_freq.png)
+![plot hz_range](images/slider_fgrpG1.png)
 
 FGRPG1 gamma-ray tasks' Hz vs. task completion time, with Hz range selection slider.
-
-![plot hz_range](images/fgrp_freq_slider.png)
-
-Use Hz range slider as an alternative way to zoom in on frequency ranges. The slider and Navigation bar tools don't always work well together, so generally use one or the other.
+The Hz range slider can be used as an alternative way to zoom in on frequency ranges. The slider and Navigation bar tools don't always work well together, so it is best to generally use one or the other.
 
 ![popup-task-info](images/task_info.png)
 
-Pop-up window of task information for tasks nearest a clicked plot coordinate.
+Pop-up window of task information for tasks nearest a clicked plot coordinate. The cursor arrow to click on plot points appears when no navigation bar tools (pan or zoom) are active (highlighted).
 
 ### Keyboard shortcuts for navigation bar buttons and actions
 
@@ -111,5 +110,3 @@ Pop-up window of task information for tasks nearest a clicked plot coordinate.
 | grid_minor | G                        | cycle grid lines show/hide                                                 |
 | yscale     | l                        | toggle scaling of y-axes ('log'/'linear')                                  |
 | xscale     | k, L                     | toggle scaling of x-axes ('log'/'linear')                                  |
-
-When no navigation bar buttons are active, clicking on task points displays task details.
