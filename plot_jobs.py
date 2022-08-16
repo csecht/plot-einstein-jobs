@@ -201,12 +201,12 @@ class TaskDataFrame:
         """
         # pattern_gw_freq = r'h1_[0]?(\d+\.\d+)_?'  # Ignore leading 0 in capture.
         # pattern_gw_freq = r'h1.*_(\d+\.\d{2})Hz_'  # Capture highest freq, not base freq.
-        pattern_gwo3_freq = r'h1_(\d+\.\d+)?_.+__O3'  # Capture the base/parent freq.
-        pattern_fgrpg1_freq = r'LATeah.*?_(\d+)'
+        regex_gwo3_freq = r'h1_(\d+\.\d+)_.+__O3'  # Capture the base/parent freq.
+        regex_fgrpg1_freq = r'LATeah.*?_(\d+)'
         self.tasks_df['gwO3_freq'] = (self.tasks_df.task_name
-                                      .str.extract(pattern_gwo3_freq).astype(float))
+                                      .str.extract(regex_gwo3_freq).astype(float))
         self.tasks_df['fgrpG1_freq'] = (self.tasks_df.task_name
-                                        .str.extract(pattern_fgrpg1_freq).astype(float)
+                                        .str.extract(regex_fgrpg1_freq).astype(float)
                                         .where(self.tasks_df.is_fgrpG1))
 
     def add_daily_counts(self):
@@ -218,21 +218,17 @@ class TaskDataFrame:
         #         https://stackoverflow.com/questions/17709270/
         #           create-column-of-value-counts-in-pandas-dataframe
 
-        # Make dict of daily task counts (Dcnt) for each Project.
         # For clarity, Project names here are those used in:
         #   PROJ_TO_REPORT (tuple), isplotted (dict), and chkbox_labels (tuple).
-        daily_counts = {}
         for _proj in grp.PROJECTS:
             is_proj = f'is_{_proj}'
-            daily_counts[f'{_proj}_Dcnt'] = (
+            is_daily = f'{_proj}_Dcnt'
+            self.tasks_df[is_daily] = (
                 self.tasks_df.time_stamp
                     .groupby(self.tasks_df.time_stamp.dt.floor('D')
                              .where(self.tasks_df[is_proj]))
-                    .transform('count').astype('float')
+                    .transform('count')
             )
-
-        for _proj, _ in daily_counts.items():
-            self.tasks_df[_proj] = daily_counts[_proj]
 
 
 class PlotTasks(TaskDataFrame):
