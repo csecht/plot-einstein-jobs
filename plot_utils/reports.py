@@ -133,7 +133,7 @@ def on_pick_report(event, dataframe: pd) -> None:
     :return: None
     """
 
-    _header = ('Tasks nearest the selected point\n'
+    _header = ("Project's tasks nearest the selected point\n"
                '      Date | name | completion time')
 
     _n = len(event.ind)  # VertexSelector(line), in lines.py
