@@ -97,6 +97,7 @@ def joblog_report(dataframe: pd) -> None:
     # gw_O3      126263     350.7      360
     # gw_O2       87989     197.7      445
     # brp4            0         0        0
+    # brp7          236      78.7        3
     # Listed Projects total: 366884
     _report = (f'{data_file}\n\n'
                f'Counts for {num_days} days:\n\n'
