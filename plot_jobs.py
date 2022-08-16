@@ -170,22 +170,14 @@ class TaskDataFrame:
 
     def add_proj_id(self):
         """
-        Add columns that boolean flag each task's associated Project and
-        sub-Project.
+        Add columns that boolean flag each task's associated Project.
         """
+
         self.tasks_df['is_all'] = True
-        self.tasks_df['is_gw_O2'] = where(
-            self.tasks_df.task_name.str.contains('_O2'), True, False)
-        self.tasks_df['is_gw_O3'] = where(
-            self.tasks_df.task_name.str.contains('_O3'), True, False)
-        self.tasks_df['is_fgrp5'] = where(
-            self.tasks_df.task_name.str.contains(r'LATeah\d{4}F'), True, False)
-        self.tasks_df['is_fgrpG1'] = where(
-            self.tasks_df.task_name.str.contains(r'LATeah\d{4}L|LATeah1049'), True, False)
-        self.tasks_df['is_brp4'] = where(
-            self.tasks_df.task_name.str.startswith('p'), True, False)
-        self.tasks_df['is_brp7'] = where(
-            self.tasks_df.task_name.str.startswith('M22'), True, False)
+        for _proj, _regex in grp.PROJ_NAME_REGEX.items():
+            is_proj = f'is_{_proj}'
+            self.tasks_df[is_proj] = where(
+                self.tasks_df.task_name.str.contains(_regex), True, False)
 
     def add_frequencies(self):
         """
@@ -201,20 +193,19 @@ class TaskDataFrame:
         self.tasks_df['gwO3_freq'] = (self.tasks_df.task_name
                                       .str.extract(regex_gwo3_freq).astype(float))
         self.tasks_df['fgrpG1_freq'] = (self.tasks_df.task_name
-                                        .str.extract(regex_fgrpg1_freq).astype(float)
-                                        .where(self.tasks_df.is_fgrpG1))
+                                        .str.extract(regex_fgrpg1_freq).astype(float))
 
     def add_daily_counts(self):
         """
-        Add columns daily counts for each Project and sub-Project.
+        Add columns of daily reported task counts for each E@H Project.
         """
 
         #  Idea to tally using groupby and transform, source:
         #         https://stackoverflow.com/questions/17709270/
         #           create-column-of-value-counts-in-pandas-dataframe
 
-        # For clarity, Project names here are those used in:
-        #   PROJ_TO_REPORT (tuple), isplotted (dict), and chkbox_labels (tuple).
+        # For clarity, PROJECTS names used here need to match those used
+        #   in isplotted (dict) and chkbox_labels (tuple).
         for _proj in grp.PROJECTS:
             is_proj = f'is_{_proj}'
             is_daily = f'{_proj}_Dcnt'
@@ -681,7 +672,7 @@ class PlotTasks(TaskDataFrame):
         for plot, _ in self.isplotted.items():
             self.isplotted[plot] = False
 
-    def is_project(self, clicked_label: str) -> None:
+    def project_label(self, clicked_label: str) -> None:
         """
         When there are no data to plot for a clicked plot label, post a
         message in the plot area. Called from manage_plots().
@@ -695,8 +686,8 @@ class PlotTasks(TaskDataFrame):
 
         # When a project series has no data, its is_<project> df column
         #  has no True values and therefore sums to zero (False).
-        #  The IS_PROJECT dict pairs grp.CHKBOX_LABELS to grp.PROJECTS strings.
-        if not sum(self.tasks_df[f'is_{grp.IS_PROJECT[clicked_label]}']):
+        #  The PROJECT_LABEL dict pairs grp.CHKBOX_LABELS to grp.PROJECTS strings.
+        if not sum(self.tasks_df[f'is_{grp.PROJECT_LABEL[clicked_label]}']):
             self.fig.text(0.5, 0.51,
                           f'There are no {clicked_label} data to plot.',
                           horizontalalignment='center',
@@ -975,7 +966,7 @@ class PlotTasks(TaskDataFrame):
             if clicked_label == _plot and ischecked[clicked_label]:
 
                 # Need to post notice if selected data are not available.
-                self.is_project(clicked_label)
+                self.project_label(clicked_label)
 
                 # Was toggled on...
                 # Need to uncheck other checked project labels.
@@ -987,7 +978,7 @@ class PlotTasks(TaskDataFrame):
 
         # Inclusive plots can be plotted with each another.
         if clicked_label in grp.ALL_INCLUSIVE and ischecked[clicked_label]:
-            self.is_project(clicked_label)
+            self.project_label(clicked_label)
 
             for _plot in grp.ALL_EXCLUDED:
                 if self.isplotted[_plot] or ischecked[_plot]:

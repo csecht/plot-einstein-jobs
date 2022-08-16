@@ -60,7 +60,7 @@ def joblog_report(dataframe: pd) -> None:
     proj_days = []
     p_tally = []
 
-    for _p in grp.PROJ_TO_REPORT:
+    for _p in grp.PROJECTS:
         is_p = f'is_{_p}'
         proj_totals.append(dataframe[is_p].sum())
 
@@ -81,7 +81,7 @@ def joblog_report(dataframe: pd) -> None:
     data_file = path_check.set_datapath(use_test_file=utils.manage_args())
 
     _results = tuple(zip(
-        grp.PROJ_TO_REPORT, proj_totals, proj_daily_means, proj_days))
+        grp.PROJECTS, proj_totals, proj_daily_means, proj_days))
 
     num_days = len(pd.to_datetime(dataframe.time_stamp).dt.date.unique())
 
