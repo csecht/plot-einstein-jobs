@@ -149,7 +149,7 @@ def on_pick_report(event, dataframe: pd) -> None:
             task_info_list.append(
                 f'{dataframe.loc[dataidx].time_stamp.date()} | '
                 f'{dataframe.loc[dataidx].task_name} | '
-                f'{dataframe.loc[dataidx].task_t.time()}')
+                f'{dataframe.loc[dataidx].elapsed_t.time()}')
         _limit -= 1
 
     _report = '\n\n'.join(map(str, task_info_list))
