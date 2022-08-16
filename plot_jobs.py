@@ -201,10 +201,10 @@ class TaskDataFrame:
         """
         # pattern_gw_freq = r'h1_[0]?(\d+\.\d+)_?'  # Ignore leading 0 in capture.
         # pattern_gw_freq = r'h1.*_(\d+\.\d{2})Hz_'  # Capture highest freq, not base freq.
-        pattern_gw_freq = r'h1_(\d+\.\d+)_?'  # Capture the base/parent freq.
+        pattern_gwo3_freq = r'h1_(\d+\.\d+)?_.+__O3'  # Capture the base/parent freq.
         pattern_fgrpg1_freq = r'LATeah.*?_(\d+)'
-        self.tasks_df['gw_freq'] = (self.tasks_df.task_name
-                                    .str.extract(pattern_gw_freq).astype(float))
+        self.tasks_df['gwO3_freq'] = (self.tasks_df.task_name
+                                      .str.extract(pattern_gwo3_freq).astype(float))
         self.tasks_df['fgrpG1_freq'] = (self.tasks_df.task_name
                                         .str.extract(pattern_fgrpg1_freq).astype(float)
                                         .where(self.tasks_df.is_fgrpG1))
@@ -922,9 +922,9 @@ class PlotTasks(TaskDataFrame):
         self.isplotted['grG1hz_X_t'] = True
 
     def plot_gwO3hz_X_t(self):
-        num_f = self.tasks_df.gw_freq.where(self.tasks_df.is_gw_O3).nunique()
-        min_f = self.tasks_df.gw_freq.where(self.tasks_df.is_gw_O3).min()
-        max_f = self.tasks_df.gw_freq.where(self.tasks_df.is_gw_O3).max()
+        num_f = self.tasks_df.gwO3_freq.nunique()
+        min_f = self.tasks_df.gwO3_freq.min()
+        max_f = self.tasks_df.gwO3_freq.max()
         min_t = self.tasks_df.elapsed_sec.where(self.tasks_df.is_gw_O3).min()
         max_t = self.tasks_df.elapsed_sec.where(self.tasks_df.is_gw_O3).max()
 
@@ -947,7 +947,7 @@ class PlotTasks(TaskDataFrame):
 
         # NOTE that there is not a separate df column for O3 freq.
         self.ax1.plot(self.tasks_df.elapsed_sec.where(self.tasks_df.is_gw_O3),
-                      self.tasks_df.gw_freq.where(self.tasks_df.is_gw_O3),
+                      self.tasks_df.gwO3_freq,
                       mark.MARKER_STYLE['triangle_up'],
                       markersize=self.marker_size,
                       color=mark.CBLIND_COLOR['sky blue'],
