@@ -179,14 +179,10 @@ class TaskDataFrame:
         sub-Project.
         """
         self.tasks_df['is_all'] = True
-        self.tasks_df['is_gw'] = where(
-            self.tasks_df.task_name.str.startswith('h1_'), True, False)
         self.tasks_df['is_gw_O2'] = where(
             self.tasks_df.task_name.str.contains('_O2'), True, False)
         self.tasks_df['is_gw_O3'] = where(
             self.tasks_df.task_name.str.contains('_O3'), True, False)
-        self.tasks_df['is_fgrp'] = where(
-            self.tasks_df.task_name.str.startswith('LATeah'), True, False)
         self.tasks_df['is_fgrp5'] = where(
             self.tasks_df.task_name.str.contains(r'LATeah\d{4}F'), True, False)
         self.tasks_df['is_fgrpG1'] = where(
@@ -195,14 +191,6 @@ class TaskDataFrame:
             self.tasks_df.task_name.str.startswith('p'), True, False)
         self.tasks_df['is_brp7'] = where(
             self.tasks_df.task_name.str.startswith('M22'), True, False)
-
-        # Adding columns to the df for all GW series IDs can take 1-4 seconds,
-        #  so shorten the startup time when user has no GW jobs.
-        if self.tasks_df.is_gw.sum() > 0:
-            for series in grp.GW_SERIES:
-                is_series = f'is_{series}'
-                self.tasks_df[is_series] = where(
-                    self.tasks_df.task_name.str.contains(series), True, False)
 
     def add_frequencies(self):
         """
@@ -230,9 +218,7 @@ class TaskDataFrame:
         #         https://stackoverflow.com/questions/17709270/
         #           create-column-of-value-counts-in-pandas-dataframe
 
-        # Make dict of daily task counts (Dcnt) for each Project and sub-Project.
-        # NOTE: gw times are not plotted (use O2 + O3), but gw_Dcnt is used in
-        #   plot_gw_series().
+        # Make dict of daily task counts (Dcnt) for each Project.
         # For clarity, Project names here are those used in:
         #   PROJ_TO_REPORT (tuple), isplotted (dict), and chkbox_labels (tuple).
         daily_counts = {}
@@ -297,7 +283,6 @@ class PlotTasks(TaskDataFrame):
             'fgrp_hz': self.plot_fgrp_hz,
             'gw_O3': self.plot_gw_O3,
             'gw_O2': self.plot_gw_O2,
-            'gw_series': self.plot_gw_series,
             'brp4': self.plot_brp4,
             'brp7': self.plot_brp7,
             'gwO3hz_X_t': self.plot_gwO3hz_X_t,
@@ -861,29 +846,6 @@ class PlotTasks(TaskDataFrame):
         self.format_legends()
         self.isplotted['gw_O3'] = True
 
-    def plot_gw_series(self):
-        for subproj in grp.GW_SERIES:
-            is_subproj = f'is_{subproj}'
-
-            self.ax1.plot(self.tasks_df.time_stamp,
-                          self.tasks_df.elapsed_t.where(self.tasks_df[is_subproj]),
-                          mark.next_marker(),
-                          label=subproj,
-                          markersize=self.marker_size,
-                          alpha=0.3,
-                          picker=True,
-                          pickradius=self.pick_radius,
-                          )
-
-        self.ax2.plot(self.tasks_df.time_stamp,
-                      self.tasks_df.gw_Dcnt,
-                      mark.MARKER_STYLE['square'],
-                      label='All GW',
-                      markersize=self.dcnt_size,
-                      )
-        self.format_legends()
-        self.isplotted['gw_series'] = True
-
     def plot_brp4(self):
         self.ax1.plot(self.tasks_df.time_stamp,
                       self.tasks_df.elapsed_t.where(self.tasks_df.is_brp4),
@@ -1058,24 +1020,8 @@ class PlotTasks(TaskDataFrame):
             for _proj, status in ischecked.items():
                 if _proj in grp.ALL_INCLUSIVE and status:
                     self.plot_proj[_proj]()
-                if _proj == 'gw_series' and status:
-                    self.plot_gw_series()
-
-        # GW series can be plotted only with fgrp5, fgrpG1, and brp and
-        #   only when those are plotted before gw_series; clicking any
-        #   of those after gw_series is plotted will remove the gw_series
-        #   plot. Exclude/include logic needs work.
-        if clicked_label == 'gw_series' and ischecked[clicked_label]:
-            self.is_project(clicked_label)
-
-            # Uncheck excluded checkbox labels if plotted.
-            for excluded in grp.GW_SERIES_EXCLUDED:
-                if self.isplotted[excluded] or ischecked[excluded]:
-                    self.checkbox.set_active(self.chkbox_labelid[excluded])
-
-            for _proj, status in ischecked.items():
-                if status and _proj in grp.GW_SERIES_INCLUSIVE and not self.isplotted[_proj]:
-                    self.plot_proj[_proj]()
+                # if _proj == 'gw_series' and status:
+                #     self.plot_gw_series()
 
         self.fig.canvas.draw_idle()
 
