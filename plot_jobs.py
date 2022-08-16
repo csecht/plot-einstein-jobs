@@ -154,24 +154,19 @@ class TaskDataFrame:
         """
         # NOTE: If no times are NaN, then column dtype is numpy.int64,
         #   but if any NaN present, then column dtype is numpy.float64.
-        ts_nan_count = self.tasks_df.time_stamp.isna().sum()
-        et_nan_count = self.tasks_df.elapsed_t.isna().sum()
+        ts_nan_sum = self.tasks_df.time_stamp.isna().sum()
+        et_nan_sum = self.tasks_df.elapsed_t.isna().sum()
+        time_and_nansum = (('time_stamp', ts_nan_sum),
+                           ('elapsed_t', et_nan_sum))
 
-        if ts_nan_count > 0:
-            ts_missing = self.tasks_df[self.tasks_df.time_stamp.isna()]
-            self.tasks_df.time_stamp.interpolate(
-                method='linear', inplace=True)
-            print(f'*** Heads up: {ts_nan_count} timestamp values could not'
-                  ' be read from the file and have been interpolated. ***\n'
-                  f'Tasks with "bad" times in the file:\nrow #\n{ts_missing}')
-
-        if et_nan_count > 0:
-            et_missing = self.tasks_df[self.tasks_df.elapsed_t.isna()]
-            self.tasks_df.elapsed_t.interpolate(
-                method='linear', inplace=True)
-            print(f'*** Heads up: {et_nan_count} elapsed time values could not'
-                  ' be read from the file and have been interpolated. ***\n'
-                  f'Tasks with "bad" times in the file:\nrow #\n{et_missing}')
+        for _t in time_and_nansum:
+            if _t[1] > 0:
+                list_missing = self.tasks_df[self.tasks_df['time_stamp'].isna()]
+                self.tasks_df.time_stamp.interpolate(
+                    method='linear', inplace=True)
+                print(f'*** Heads up: {_t[1]} {_t[0]} values could not'
+                      ' be read from the file and have been interpolated. ***\n'
+                      f'Tasks with "bad" times in the file:\nrow #\n{list_missing}')
 
     def add_proj_id(self):
         """
