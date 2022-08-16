@@ -207,12 +207,10 @@ class TaskDataFrame:
         # For clarity, PROJECTS names used here need to match those used
         #   in isplotted (dict) and chkbox_labels (tuple).
         for _proj in grp.PROJECTS:
-            is_proj = f'is_{_proj}'
-            is_daily = f'{_proj}_Dcnt'
-            self.tasks_df[is_daily] = (
+            self.tasks_df[f'{_proj}_Dcnt'] = (
                 self.tasks_df.time_stamp
                     .groupby(self.tasks_df.time_stamp.dt.floor('D')
-                             .where(self.tasks_df[is_proj]))
+                             .where(self.tasks_df[f'is_{_proj}']))
                     .transform('count')
             )
 
