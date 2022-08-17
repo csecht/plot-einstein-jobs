@@ -70,24 +70,25 @@ Navigation bar icons images are not showing up in MacOS. They are functional, bu
 ![plot all sample data](images/test_start.png)
 
 Opening window using the sample data option, --test.
-Plots all tasks in the job log for task completion time and daily count vs. reporting date.
+Plots of task completion time and daily count vs. BOINC reporting date.
+Using the navigation bar zoom tool, datetimes can scale down to month-date hour increments.
 
-![plot_fgrp_freq](images/fgrp_freq.png)
+![plot_multiple_projects](images/GR_and_GW_plots.png)
 
-Plot of only FGRPG1 gamma-ray tasks.
+Overlaid plots of FGRPG1 gamma-ray and O2 and O3 gravitational wave tasks.
 
 
 ![plot_fgrp_zoom](images/fgrpG1_zoom.png)
 
 Zoom-in detail of FGRPG1 tasks times and counts.
 
-![plot_hz_vs_time](images/GRfreq_x_time.png)
+![plot_hz_vs_time](images/fgrp_all_Hz.png)
 
-FGRPG1 gamma-ray tasks' frequency (Hz) vs. datetime.
+Frequency (Hz) vs. datetime for all FGRP tasks
 
-![plot hz_range](images/slider_fgrpG1.png)
+![plot hz_range](images/slider_gwO3.png)
 
-FGRPG1 gamma-ray tasks' Hz vs. task completion time, with Hz range selection slider.
+GWO3 tasks' Hz vs. task completion time, with Hz range selection slider.
 The Hz range slider can be used as an alternative way to zoom in on frequency ranges. The slider and Navigation bar tools don't always work well together, so it is best to generally use one or the other.
 
 ![popup-task-info](images/task_info.png)
