@@ -186,14 +186,13 @@ class TaskDataFrame:
         FGRP task: 'LATeah4013L03_988.0_0_0.0_9010205_1'
         GW task: 'h1_0681.20_O3aC01Cl1In0__O3AS1a_681.50Hz_19188_1'
         """
-        # pattern_gw_freq = r'h1_[0]?(\d+\.\d+)_?'  # Ignore leading 0 in capture.
         # pattern_gw_freq = r'h1.*_(\d+\.\d{2})Hz_'  # Capture highest freq, not base freq.
         regex_gwo3_freq = r'h1_(\d+\.\d+)_.+__O3'  # Capture the base/parent freq.
-        regex_fgrpg1_freq = r'LATeah.*?_(\d+)'
+        regex_fgrp_freq = r'LATeah.*?_(\d+)'
         self.tasks_df['gwO3_freq'] = (self.tasks_df.task_name
                                       .str.extract(regex_gwo3_freq).astype(float))
-        self.tasks_df['fgrpG1_freq'] = (self.tasks_df.task_name
-                                        .str.extract(regex_fgrpg1_freq).astype(float))
+        self.tasks_df['fgrp_freq'] = (self.tasks_df.task_name
+                                      .str.extract(regex_fgrp_freq).astype(float))
 
     def add_daily_counts(self):
         """
@@ -225,7 +224,7 @@ class PlotTasks(TaskDataFrame):
         setup_plot_manager, format_legends, toggle_legends, on_pick_report,
         joblog_report, about_report, setup_count_axes, setup_freq_axes,
         reset_plots, plot_all, plot_gw_O2, plot_gw_O3, plot_fgrp5,
-        plot_fgrpG1, plot_brp4, plot_gw_series, plot_grG1hz_X_t,
+        plot_fgrpG1, plot_brp4, plot_gw_series, plot_fgrpHz_X_t,
         plot_gwO3hz_X_t, manage_plots.
     """
 
@@ -266,7 +265,7 @@ class PlotTasks(TaskDataFrame):
             'brp4': self.plot_brp4,
             'brp7': self.plot_brp7,
             'gwO3hz_X_t': self.plot_gwO3hz_X_t,
-            'grG1hz_X_t': self.plot_grG1hz_X_t,
+            'fgrpHz_X_t': self.plot_fgrpHz_X_t,
         }
 
         self.chkbox_labelid = {}
@@ -302,7 +301,6 @@ class PlotTasks(TaskDataFrame):
         self.ax_slider = plt.axes()
 
         self.setup_window()
-        self.setup_title()
         self.setup_buttons()
         self.setup_count_axes()
 
@@ -312,7 +310,7 @@ class PlotTasks(TaskDataFrame):
         actions for drawing plots more responsive.
         """
         # canvas_window is the Tk object defined in if __name__ == "__main__".
-        canvas_window.title('Plotting E@H tasks')
+        canvas_window.title(self.setup_title())
         canvas_window.minsize(850, 550)
 
         # Allow full resizing of plot, but only horizontally for toolbar.
@@ -354,25 +352,25 @@ class PlotTasks(TaskDataFrame):
                           padx=5, pady=(0, 5),
                           sticky=tk.W)
 
-    def setup_title(self) -> None:
+    def setup_title(self) -> str:
         """
-        Specify in the Figure title which data are plotted, those from the
+        Specify the Tk title which data set is plotted, those from the
         sample data file, plot_utils.testdata.txt, or the user's job log
-        file. Called from if __name__ == "__main__".
-        self.test is inherited from TaskDataFrame(use_test_file) as boolean
-        via call from if __name__ == "__main__".
+        file. Called setup_title().
+        self.test is inherited from TaskDataFrame(use_test_file) as
+        boolean via Class instantiation in if __name__ == "__main__".
 
-        :return: None
+        :return: The correct title for the main plot canvas window.
         """
         if self.test:
             _title = 'Sample data'
+            print("Using sample data")
+
         else:
             _title = 'E@H job_log data'
+            print("Using live data")
 
-        self.fig.suptitle(_title,
-                          fontsize='large',
-                          fontweight='bold',
-                          )
+        return _title
 
     def setup_buttons(self) -> None:
         """
@@ -610,7 +608,7 @@ class PlotTasks(TaskDataFrame):
         """
         Remove bottom axis and show tick labels (b/c when sharex=True,
         tick labels only show on bottom (self.ax2) plot).
-        Called from plot_grG1hz_X_t() and plot_gwO3hz_X_t().
+        Called from plot_fgrpHz_X_t() and plot_gwO3hz_X_t().
 
         :param t_limits: Constrain x-axis of task times from zero to
             maximum value, plus a small buffer.
@@ -670,7 +668,7 @@ class PlotTasks(TaskDataFrame):
         for plot, _ in self.isplotted.items():
             self.isplotted[plot] = False
 
-    def project_label(self, clicked_label: str) -> None:
+    def clicked_plot(self, clicked_label: str) -> None:
         """
         When there are no data to plot for a clicked plot label, post a
         message in the plot area. Called from manage_plots().
@@ -684,8 +682,8 @@ class PlotTasks(TaskDataFrame):
 
         # When a project series has no data, its is_<project> df column
         #  has no True values and therefore sums to zero (False).
-        #  The PROJECT_LABEL dict pairs grp.CHKBOX_LABELS to grp.PROJECTS strings.
-        if not sum(self.tasks_df[f'is_{grp.PROJECT_LABEL[clicked_label]}']):
+        #  The CLICKED_PLOT dict pairs grp.CHKBOX_LABELS to grp.PROJECTS strings.
+        if not sum(self.tasks_df[f'is_{grp.CLICKED_PLOT[clicked_label]}']):
             self.fig.text(0.5, 0.51,
                           f'There are no {clicked_label} data to plot.',
                           horizontalalignment='center',
@@ -717,7 +715,7 @@ class PlotTasks(TaskDataFrame):
                       self.tasks_df.elapsed_t.where(self.tasks_df.is_fgrp5),
                       mark.MARKER_STYLE['tri_left'],
                       markersize=self.marker_size,
-                      label='FGRP5',
+                      label='fgrp5',
                       color=mark.CBLIND_COLOR['bluish green'],
                       alpha=0.3,
                       picker=self.pick_radius,
@@ -726,7 +724,7 @@ class PlotTasks(TaskDataFrame):
                       self.tasks_df.fgrp5_Dcnt,
                       mark.MARKER_STYLE['square'],
                       markersize=self.dcnt_size,
-                      label='FGRP5',
+                      label='fgrp5',
                       color=mark.CBLIND_COLOR['bluish green'],
                       alpha=0.4,
                       picker=self.pick_radius,
@@ -739,7 +737,7 @@ class PlotTasks(TaskDataFrame):
                       self.tasks_df.elapsed_t.where(self.tasks_df.is_fgrpG1),
                       mark.MARKER_STYLE['tri_right'],
                       markersize=self.marker_size,
-                      label='FGRBPG1',
+                      label='fgrpG1',
                       color=mark.CBLIND_COLOR['vermilion'],
                       alpha=0.3,
                       picker=self.pick_radius,
@@ -748,7 +746,7 @@ class PlotTasks(TaskDataFrame):
                       self.tasks_df.fgrpG1_Dcnt,
                       mark.MARKER_STYLE['square'],
                       markersize=self.dcnt_size,
-                      label='FGRBPG1',
+                      label='fgrpG1',
                       color=mark.CBLIND_COLOR['vermilion'],
                       )
 
@@ -757,13 +755,13 @@ class PlotTasks(TaskDataFrame):
 
     def plot_fgrp_hz(self):
         """
-        Plot of frequency (Hz) vs. datetime for FGRPG1 tasks.
+        Plot of frequency (Hz) vs. datetime for all FGRP tasks (5 + G1).
         """
 
         self.reset_plots()
 
         self.ax1.plot(self.tasks_df.time_stamp,
-                      self.tasks_df.fgrpG1_freq,
+                      self.tasks_df.fgrp_freq,
                       mark.MARKER_STYLE['tri_right'],
                       markersize=self.marker_size,
                       label='fgrp_hz',
@@ -772,10 +770,10 @@ class PlotTasks(TaskDataFrame):
                       picker=self.pick_radius,
                       )
         self.ax2.plot(self.tasks_df.time_stamp,
-                      self.tasks_df.fgrpG1_Dcnt,
+                      self.tasks_df[['fgrpG1_Dcnt', 'fgrp5_Dcnt']].sum(axis=1),
                       mark.MARKER_STYLE['square'],
                       markersize=self.dcnt_size,
-                      label='FGRBPG1',
+                      label='fgrp5 & fgrpG1',
                       color=mark.CBLIND_COLOR['vermilion'],
                       )
 
@@ -866,12 +864,12 @@ class PlotTasks(TaskDataFrame):
         self.format_legends()
         self.isplotted['brp7'] = True
 
-    def plot_grG1hz_X_t(self):
-        num_f = self.tasks_df.fgrpG1_freq.nunique()
-        min_f = self.tasks_df.fgrpG1_freq.min()
-        max_f = self.tasks_df.fgrpG1_freq.max()
-        min_t = self.tasks_df.elapsed_sec.where(self.tasks_df.is_fgrpG1).min()
-        max_t = self.tasks_df.elapsed_sec.where(self.tasks_df.is_fgrpG1).max()
+    def plot_fgrpHz_X_t(self):
+        num_f = self.tasks_df.fgrp_freq.nunique()
+        min_f = self.tasks_df.fgrp_freq.min()
+        max_f = self.tasks_df.fgrp_freq.max()
+        min_t = self.tasks_df.elapsed_sec.where(self.tasks_df.is_fgrp).min()
+        max_t = self.tasks_df.elapsed_sec.where(self.tasks_df.is_fgrp).max()
 
         # Add a 2% margin to time axis upper limit.
         self.setup_freq_axes((0, max_t * 1.02))
@@ -890,8 +888,8 @@ class PlotTasks(TaskDataFrame):
                       bbox=self.freq_bbox,
                       )
 
-        self.ax1.plot(self.tasks_df.elapsed_sec.where(self.tasks_df.is_fgrpG1),
-                      self.tasks_df.fgrpG1_freq,
+        self.ax1.plot(self.tasks_df.elapsed_sec.where(self.tasks_df.is_fgrp),
+                      self.tasks_df.fgrp_freq,
                       mark.MARKER_STYLE['tri_right'],
                       markersize=self.marker_size,
                       color=mark.CBLIND_COLOR['vermilion'],
@@ -899,7 +897,7 @@ class PlotTasks(TaskDataFrame):
                       picker=self.pick_radius,
                       )
 
-        self.isplotted['grG1hz_X_t'] = True
+        self.isplotted['fgrpHz_X_t'] = True
 
     def plot_gwO3hz_X_t(self):
         num_f = self.tasks_df.gwO3_freq.nunique()
@@ -964,7 +962,7 @@ class PlotTasks(TaskDataFrame):
             if clicked_label == _plot and ischecked[clicked_label]:
 
                 # Need to post notice if selected data are not available.
-                self.project_label(clicked_label)
+                self.clicked_plot(clicked_label)
 
                 # Was toggled on...
                 # Need to uncheck other checked project labels.
@@ -976,7 +974,7 @@ class PlotTasks(TaskDataFrame):
 
         # Inclusive plots can be plotted with each another.
         if clicked_label in grp.ALL_INCLUSIVE and ischecked[clicked_label]:
-            self.project_label(clicked_label)
+            self.clicked_plot(clicked_label)
 
             for _plot in grp.ALL_EXCLUDED:
                 if self.isplotted[_plot] or ischecked[_plot]:
