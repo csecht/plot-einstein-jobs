@@ -271,7 +271,7 @@ class PlotTasks(TaskDataFrame):
         # Establish the style for text fancy boxes.
         self.text_bbox = dict(facecolor='white',
                               edgecolor='grey',
-                              boxstyle='round',
+                              boxstyle='round4',
                               pad=0.7,
                               )
 
