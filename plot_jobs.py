@@ -112,11 +112,12 @@ class TaskDataFrame:
 
         # To include all numerical data in space-delimited job_log, use this:
         # joblog_col_index = 0, 2, 4, 6, 8, 10  # All reported data
-        # headers = ('time_stamp', 'est_sec', 'cpu_sec', 'est_flops', 'task_name', 'elapsed_t')
-        # time_col = ('time_stamp', 'est_sec', 'cpu_sec', 'elapsed_t')
+        # names = ('time_stamp', 'est_sec', 'cpu_sec', 'est_flops', 'task_name', 'elapsed_t')
+        # time_names = ('time_stamp', 'est_sec', 'cpu_sec', 'elapsed_t')
+
         # Job log data of current interest:
         joblog_col_index = 0, 8, 10
-        _headers = ('time_stamp', 'task_name', 'elapsed_t')
+        names = ('time_stamp', 'task_name', 'elapsed_t')
 
         # The datapath path is defined in if __name__ == "__main__".
         self.tasks_df = pd.read_table(data_path,
@@ -124,7 +125,7 @@ class TaskDataFrame:
                                       delim_whitespace=True,
                                       header=None,
                                       usecols=joblog_col_index,
-                                      names=_headers,
+                                      names=names,
                                       )
 
         # Need to replace NaN time data with interpolated time values.
@@ -159,12 +160,12 @@ class TaskDataFrame:
         time_and_nansum = (('time_stamp', ts_nan_sum),
                            ('elapsed_t', et_nan_sum))
 
-        for _t in time_and_nansum:
-            if _t[1] > 0:
+        for tup in time_and_nansum:
+            if tup[1] > 0:
                 list_missing = self.tasks_df[self.tasks_df['time_stamp'].isna()]
                 self.tasks_df.time_stamp.interpolate(
                     method='linear', inplace=True)
-                print(f'*** Heads up: {_t[1]} {_t[0]} values could not'
+                print(f'*** Heads up: {tup[1]} {tup[0]} values could not'
                       ' be read from the file and have been interpolated. ***\n'
                       f'Tasks with "bad" times in the file:\nrow #\n{list_missing}')
 
@@ -186,13 +187,13 @@ class TaskDataFrame:
         FGRP task: 'LATeah4013L03_988.0_0_0.0_9010205_1'
         GW task: 'h1_0681.20_O3aC01Cl1In0__O3AS1a_681.50Hz_19188_1'
         """
+        regex_fgrp_freq = r'LATeah.*?_(\d+)'
         # pattern_gw_freq = r'h1.*_(\d+\.\d{2})Hz_'  # Capture highest freq, not base freq.
         regex_gwo3_freq = r'h1_(\d+\.\d+)_.+__O3'  # Capture the base/parent freq.
-        regex_fgrp_freq = r'LATeah.*?_(\d+)'
-        self.tasks_df['gwO3_freq'] = (self.tasks_df.task_name
-                                      .str.extract(regex_gwo3_freq).astype(float))
         self.tasks_df['fgrp_freq'] = (self.tasks_df.task_name
                                       .str.extract(regex_fgrp_freq).astype(float))
+        self.tasks_df['gwO3_freq'] = (self.tasks_df.task_name
+                                      .str.extract(regex_gwo3_freq).astype(float))
 
     def add_daily_counts(self):
         """
@@ -643,7 +644,7 @@ class PlotTasks(TaskDataFrame):
         Clear plots. axis labels, ticks, formats, legends, etc.
         Clears plotted data by setting all data values to zero and removing marks.
         Use to avoid stacking of plots, which affects on_pick_report() display of
-        nearby task info. Note that with this the full x-axis datetime range
+        nearby task info. Note that, with this, the full x-axis datetime range
         in job lob is always plotted; therefore, the methods ax.relim()
         ax.autoscale_view() and ax.autoscale() have no effect on individual
         data plots.
