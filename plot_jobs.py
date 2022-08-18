@@ -232,18 +232,14 @@ class PlotTasks(TaskDataFrame):
     # https://stackoverflow.com/questions/472000/usage-of-slots
     # https://towardsdatascience.com/understand-slots-in-python-e3081ef5196d
     __slots__ = (
-        'test',
         'marker_size', 'marker_scale', 'dcnt_size', 'pick_radius',
         'fig', 'ax1', 'ax2',
         'checkbox', 'do_replot', 'legend_btn_on', 'plot_proj',
         'chkbox_labelid', 'isplotted', 'freq_bbox', 'ax_slider',
     )
 
-    def __init__(self, use_test_file: bool):
+    def __init__(self):
         super().__init__()
-
-        # use_test_file boolean is defined by an invocation argument.
-        self.test = use_test_file
 
         self.marker_size = 4
         self.marker_scale = 1
@@ -310,8 +306,16 @@ class PlotTasks(TaskDataFrame):
         A tkinter window for the figure canvas: makes the CheckButton
         actions for drawing plots more responsive.
         """
+
+        # test_arg is boolean, defined in if __name__ == "__main__" from
+        #   the --test invocation argument (default: False).
+        if test_arg:
+            _title = 'Sample data'
+        else:
+            _title = 'E@H job_log data'
+
         # canvas_window is the Tk object defined in if __name__ == "__main__".
-        canvas_window.title(self.setup_title())
+        canvas_window.title(_title)
         canvas_window.minsize(850, 550)
 
         # Allow full resizing of plot, but only horizontally for toolbar.
@@ -352,24 +356,6 @@ class PlotTasks(TaskDataFrame):
             tool_lbl.grid(row=2, column=0,
                           padx=5, pady=(0, 5),
                           sticky=tk.W)
-
-    def setup_title(self) -> str:
-        """
-        Specify the Tk title which data set is plotted, those from the
-        sample data file, plot_utils.testdata.txt, or the user's job log
-        file. Called setup_title().
-        self.test is inherited from TaskDataFrame(use_test_file) as
-        boolean via Class instantiation in if __name__ == "__main__".
-
-        :return: The correct title for the main plot canvas window.
-        """
-        if self.test:
-            _title = 'Sample data'
-
-        else:
-            _title = 'E@H job_log data'
-
-        return _title
 
     def setup_buttons(self) -> None:
         """
@@ -1024,7 +1010,7 @@ if __name__ == "__main__":
     # This call will set up an inherited pd dataframe in TaskDataFrame,
     #  then plot 'all' tasks as specified in setup_plot_manager().
     #  After that, plots are managed by CheckButton states in manage_plots().
-    PlotTasks(use_test_file=test_arg).setup_plot_manager()
+    PlotTasks().setup_plot_manager()
 
     print('The plot window is ready.')
 
