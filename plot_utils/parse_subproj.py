@@ -1,8 +1,10 @@
+"""This Module is used only for development. The extract_it() method is
+a ad-hoc approach using regex to find tasks of Project sub-series."""
 import re
 # Copyright (C) 2021 C. Echt under GNU General Public License'
 
 
-def extract(dataframe):
+def extract_it(dataframe):
     """
     Use this to extract subprojects. NOT part of plot-einstein-jobs distribution.
     This is only for development.
