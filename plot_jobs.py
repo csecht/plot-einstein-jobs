@@ -235,7 +235,7 @@ class PlotTasks(TaskDataFrame):
         'marker_size', 'marker_scale', 'dcnt_size', 'pick_radius',
         'fig', 'ax1', 'ax2',
         'checkbox', 'do_replot', 'legend_btn_on', 'plot_proj',
-        'chkbox_labelid', 'isplotted', 'freq_bbox', 'ax_slider',
+        'chkbox_labelid', 'isplotted', 'text_bbox', 'ax_slider',
     )
 
     def __init__(self):
@@ -268,11 +268,14 @@ class PlotTasks(TaskDataFrame):
         self.chkbox_labelid = {}
         self.isplotted = {}
 
-        self.freq_bbox = dict(facecolor='white',
+        # Establish the style for text fancy boxes.
+        self.text_bbox = dict(facecolor='white',
                               edgecolor='grey',
                               boxstyle='round',
+                              pad=0.7,
                               )
 
+        # Make the Figure and Axes objects; establish geometry of axes.
         self.fig, (self.ax1, self.ax2) = plt.subplots(
             2,
             sharex='all',
@@ -439,7 +442,7 @@ class PlotTasks(TaskDataFrame):
                       fontsize=6,
                       verticalalignment='top',
                       transform=self.ax1.transAxes,
-                      bbox=self.freq_bbox,
+                      bbox=self.text_bbox,
                       )
         self.ax_slider._slider = hz_slider  # Prevent garbage collection.
 
@@ -853,8 +856,10 @@ class PlotTasks(TaskDataFrame):
         num_f = self.tasks_df.fgrp_freq.nunique()
         min_f = self.tasks_df.fgrp_freq.min()
         max_f = self.tasks_df.fgrp_freq.max()
-        min_t = self.tasks_df.elapsed_sec.where(self.tasks_df.is_fgrp).min()
-        max_t = self.tasks_df.elapsed_sec.where(self.tasks_df.is_fgrp).max()
+        min_t = self.tasks_df.elapsed_sec.where(
+            self.tasks_df.is_fgrp).min().astype('int64')
+        max_t = self.tasks_df.elapsed_sec.where(
+            self.tasks_df.is_fgrp).max().astype('int64')
 
         # Add a 2% margin to time axis upper limit.
         self.setup_freq_axes((0, max_t * 1.02))
@@ -870,7 +875,7 @@ class PlotTasks(TaskDataFrame):
                       fontsize=6,
                       verticalalignment='top',
                       transform=self.ax1.transAxes,
-                      bbox=self.freq_bbox,
+                      bbox=self.text_bbox,
                       )
 
         self.ax1.plot(self.tasks_df.elapsed_sec.where(self.tasks_df.is_fgrp),
@@ -888,8 +893,10 @@ class PlotTasks(TaskDataFrame):
         num_f = self.tasks_df.gwO3_freq.nunique()
         min_f = self.tasks_df.gwO3_freq.min()
         max_f = self.tasks_df.gwO3_freq.max()
-        min_t = self.tasks_df.elapsed_sec.where(self.tasks_df.is_gw_O3).min()
-        max_t = self.tasks_df.elapsed_sec.where(self.tasks_df.is_gw_O3).max()
+        min_t = self.tasks_df.elapsed_sec.where(
+            self.tasks_df.is_gw_O3).min().astype('int64')
+        max_t = self.tasks_df.elapsed_sec.where(
+            self.tasks_df.is_gw_O3).max().astype('int64')
 
         # Add a 2% margin to time axis upper limit.
         self.setup_freq_axes((0, max_t * 1.02))
@@ -905,7 +912,7 @@ class PlotTasks(TaskDataFrame):
                       fontsize=6,
                       verticalalignment='top',
                       transform=self.ax1.transAxes,
-                      bbox=self.freq_bbox,
+                      bbox=self.text_bbox,
                       )
 
         # NOTE that there is not a separate df column for O3 freq.
