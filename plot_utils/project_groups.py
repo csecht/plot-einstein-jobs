@@ -7,11 +7,11 @@ used in various plot_utils modules.
 PROJECTS = ('all', 'fgrp5', 'fgrpG1', 'gw_O2', 'gw_O3', 'brp4', 'brp7')
 
 CHKBOX_LABELS = ('all', 'fgrp5', 'fgrpG1', 'fgrp_hz', 'gw_O3', 'gw_O2',
-                 'brp4', 'brp7', 'fgrpHz_X_t', 'gwO3hz_X_t')
+                 'brp4', 'brp7', 'fgrpHz_X_t', 'gwO3Hz_X_t')
 
-EXCLUSIVE_PLOTS = ('all', 'fgrp_hz', 'fgrpHz_X_t', 'gwO3hz_X_t')
+EXCLUSIVE_PLOTS = ('all', 'fgrp_hz', 'fgrpHz_X_t', 'gwO3Hz_X_t')
 
-ALL_EXCLUDED = ('all', 'fgrp_hz', 'fgrpHz_X_t', 'gwO3hz_X_t')
+ALL_EXCLUDED = ('all', 'fgrp_hz', 'fgrpHz_X_t', 'gwO3Hz_X_t')
 
 ALL_INCLUSIVE = ('fgrp5', 'fgrpG1', 'gw_O3', 'gw_O2', 'brp4', 'brp7')
 
@@ -40,5 +40,5 @@ CLICKED_PLOT = {
     'brp4': 'brp4',
     'brp7': 'brp7',
     'fgrpHz_X_t': 'fgrp',
-    'gwO3hz_X_t': 'gw_O3',
+    'gwO3Hz_X_t': 'gw_O3',
 }

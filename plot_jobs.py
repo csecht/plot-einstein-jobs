@@ -226,7 +226,7 @@ class PlotTasks(TaskDataFrame):
         joblog_report, about_report, setup_count_axes, setup_freq_axes,
         reset_plots, plot_all, plot_gw_O2, plot_gw_O3, plot_fgrp5,
         plot_fgrpG1, plot_brp4, plot_gw_series, plot_fgrpHz_X_t,
-        plot_gwO3hz_X_t, manage_plots.
+        plot_gwO3Hz_X_t, manage_plots.
     """
 
     # https://stackoverflow.com/questions/472000/usage-of-slots
@@ -265,7 +265,7 @@ class PlotTasks(TaskDataFrame):
             'gw_O2': self.plot_gw_O2,
             'brp4': self.plot_brp4,
             'brp7': self.plot_brp7,
-            'gwO3hz_X_t': self.plot_gwO3hz_X_t,
+            'gwO3Hz_X_t': self.plot_gwO3Hz_X_t,
             'fgrpHz_X_t': self.plot_fgrpHz_X_t,
         }
 
@@ -296,8 +296,8 @@ class PlotTasks(TaskDataFrame):
         self.fig.canvas.mpl_connect(
             'pick_event', lambda _: reports.on_pick_report(_, self.tasks_df))
 
-        # Slider used in *_freq plots to set Hz ranges; initialize here
-        #  so that it can be removed/redrawn with each *_freq plot call
+        # Slider used in *_Hz plots to set Hz ranges; initialize here
+        #  so that it can be removed/redrawn with each *_Hz plot call
         #  and hidden for all other plots.
         self.ax_slider = plt.axes()
 
@@ -365,11 +365,9 @@ class PlotTasks(TaskDataFrame):
         """
         if self.test:
             _title = 'Sample data'
-            print("Using sample data")
 
         else:
             _title = 'E@H job_log data'
-            print("Using live data")
 
         return _title
 
@@ -609,7 +607,7 @@ class PlotTasks(TaskDataFrame):
         """
         Remove bottom axis and show tick labels (b/c when sharex=True,
         tick labels only show on bottom (self.ax2) plot).
-        Called from plot_fgrpHz_X_t() and plot_gwO3hz_X_t().
+        Called from plot_fgrpHz_X_t() and plot_gwO3Hz_X_t().
 
         :param t_limits: Constrain x-axis of task times from zero to
             maximum value, plus a small buffer.
@@ -900,7 +898,7 @@ class PlotTasks(TaskDataFrame):
 
         self.isplotted['fgrpHz_X_t'] = True
 
-    def plot_gwO3hz_X_t(self):
+    def plot_gwO3Hz_X_t(self):
         num_f = self.tasks_df.gwO3_freq.nunique()
         min_f = self.tasks_df.gwO3_freq.min()
         max_f = self.tasks_df.gwO3_freq.max()
