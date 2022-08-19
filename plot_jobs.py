@@ -191,9 +191,9 @@ class TaskDataFrame:
         # pattern_gw_freq = r'h1.*_(\d+\.\d{2})Hz_'  # Capture highest freq, not base freq.
         regex_gwo3_freq = r'h1_(\d+\.\d+)_.+__O3'  # Capture the base/parent freq.
         self.tasks_df['fgrp_freq'] = (self.tasks_df.task_name
-                                      .str.extract(regex_fgrp_freq).astype(float))
+                                      .str.extract(regex_fgrp_freq).astype('float64'))
         self.tasks_df['gwO3_freq'] = (self.tasks_df.task_name
-                                      .str.extract(regex_gwo3_freq).astype(float))
+                                      .str.extract(regex_gwo3_freq).astype('float64'))
 
     def add_daily_counts(self):
         """
