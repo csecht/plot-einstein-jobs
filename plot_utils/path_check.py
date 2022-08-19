@@ -34,19 +34,28 @@ def set_datapath(use_test_file=False) -> Path:
         or a user-defined custom path.
     :return: pathlib Path object.
     """
-    if use_test_file and Path.is_file(TESTFILE):
-        validate_datafile(TESTFILE)
-        return TESTFILE
-    elif not Path.is_file(TESTFILE):
-        notest = (f'The sample data file, {TESTFILE} was not found.'
-                  ' Was it moved or renamed?\n'
-                  f'It can be downloaded from {URL}')
-        sys.exit(notest)
 
-    if Path.is_file(CFGFILE):
+    default_datapath = {
+        'win': Path('/ProgramData/BOINC/job_log_einstein.phys.uwm.edu.txt'),
+        'lin': Path('/var/lib/boinc/job_log_einstein.phys.uwm.edu.txt'),
+        'dar': Path('/Library/Application Support/BOINC Data/job_log_einstein.phys.uwm.edu.txt')
+    }
+
+    if use_test_file:
+        if Path.is_file(TESTFILE):
+            validate_datafile(TESTFILE)
+            return TESTFILE
+        else:
+            notest = (f'The sample data file, {TESTFILE} was not found.'
+                      ' Was it moved or renamed?\n'
+                      f'It can be downloaded from {URL}')
+            sys.exit(notest)
+
+    elif Path.is_file(CFGFILE):
         cfg_text = Path(CFGFILE).read_text()
         for line in cfg_text.splitlines():
             if '#' not in line and 'custom_path' in line:
+                print('Now reading the file from the configured custom path.')
                 parts = line.split()
                 del parts[0]
                 custom_path = " ".join(parts)
@@ -56,23 +65,17 @@ def set_datapath(use_test_file=False) -> Path:
                     errmsg = f"The custom path, {custom_path}, is not working.\n"
                     sys.exit(errmsg)
 
-    default_logpath = {
-        'win': Path('/ProgramData/BOINC/job_log_einstein.phys.uwm.edu.txt'),
-        'lin': Path('/var/lib/boinc/job_log_einstein.phys.uwm.edu.txt'),
-        'dar': Path('/Library/Application Support/BOINC Data/job_log_einstein.phys.uwm.edu.txt')
-    }
+    # Supported system platforms have already been verified in plot_utils __init__.py.
+    elif not Path.is_file(default_datapath[chk.MY_OS]):
+        badpath_msg = (
+            '\nThe job_log data file is not in its expected default path:\n'
+            f'     {default_datapath[chk.MY_OS]}\n'
+            'You can enter a custom path for your job_log file in'
+            f" the configuration file: {CFGFILE}.")
+        sys.exit(badpath_msg)
 
-    if chk.MY_OS in default_logpath:
-        if not Path.is_file(default_logpath[chk.MY_OS]):
-            badpath_msg = (
-                '\nThe file is not in its expected default path: '
-                f'{default_logpath[chk.MY_OS]}\n'
-                'You should enter your custom path for the job_log file in'
-                f" the configuration file: {CFGFILE}.")
-            sys.exit(badpath_msg)
-        else:
-            validate_datafile(default_logpath[chk.MY_OS])
-            return default_logpath[chk.MY_OS]
+    validate_datafile(default_datapath[chk.MY_OS])
+    return default_datapath[chk.MY_OS]
 
 
 def validate_datafile(filepath: Path) -> None:
@@ -86,9 +89,9 @@ def validate_datafile(filepath: Path) -> None:
     # Expected first line of the plot log file has this structure:
     # 1555763244 ue 3228.229683 ct 132.696900 fe 525000000000000 nm LATeah1049R_180.0_0_0.0_49704725_1 et 808.042782 es 0
     with open(filepath, encoding='utf-8') as file:
-        # Start of 1st line, look for 10-digit timestamp + 1 space.
+        # At the start of the 1st line, look for a 10-digit timestamp + 1 space.
         if not match(r'\d{10}\s', file.readline(11)):
-            sys.exit(f'*** Sorry, but the job log file {filepath}'
-                     ' does not contain usable data. ***\n'
-                     f'    The first line should start with a'
+            sys.exit(f'*** Sorry, but the job log file {filepath}\n'
+                     '    does not contain usable data. ***\n'
+                     '    The first line should start with a'
                      ' BOINC reporting timestamp of 10 digits (Epoch seconds).')
