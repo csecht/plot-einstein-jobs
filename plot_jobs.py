@@ -162,12 +162,12 @@ class TaskDataFrame:
 
         for tup in time_and_nansum:
             if tup[1] > 0:
-                list_missing = self.tasks_df[self.tasks_df['time_stamp'].isna()]
+                list_nantasks = self.tasks_df[self.tasks_df[tup[0]].isna()]
                 self.tasks_df.time_stamp.interpolate(
                     method='linear', inplace=True)
                 print(f'*** Heads up: {tup[1]} {tup[0]} values could not'
                       ' be read from the file and have been interpolated. ***\n'
-                      f'Tasks with "bad" times in the file:\nrow #\n{list_missing}')
+                      f'Tasks with "bad" times in the file:\nrow #\n{list_nantasks}')
 
     def add_proj_id(self):
         """
