@@ -136,8 +136,7 @@ class TaskDataFrame:
 
         #  Need to convert time seconds (int or float) to datetimes for
         #    plot axis tick readability.
-        time_colmn = ('time_stamp', 'elapsed_t')
-        for col in time_colmn:
+        for col in ('time_stamp', 'elapsed_t'):
             self.tasks_df[col] = pd.to_datetime(self.tasks_df[col],
                                                 unit='s',
                                                 infer_datetime_format=True)
@@ -176,8 +175,7 @@ class TaskDataFrame:
 
         self.tasks_df['is_all'] = True
         for _proj, _regex in grp.PROJ_NAME_REGEX.items():
-            is_proj = f'is_{_proj}'
-            self.tasks_df[is_proj] = where(
+            self.tasks_df[f'is_{_proj}'] = where(
                 self.tasks_df.task_name.str.contains(_regex), True, False)
 
     def add_frequencies(self):
@@ -191,9 +189,11 @@ class TaskDataFrame:
         # pattern_gw_freq = r'h1.*_(\d+\.\d{2})Hz_'  # Capture highest freq, not base freq.
         regex_gwo3_freq = r'h1_(\d+\.\d+)_.+__O3'  # Capture the base/parent freq.
         self.tasks_df['fgrp_freq'] = (self.tasks_df.task_name
-                                      .str.extract(regex_fgrp_freq).astype('float64'))
+                                      .str.extract(regex_fgrp_freq)
+                                      .astype('float64'))
         self.tasks_df['gwO3_freq'] = (self.tasks_df.task_name
-                                      .str.extract(regex_gwo3_freq).astype('float64'))
+                                      .str.extract(regex_gwo3_freq)
+                                      .astype('float64'))
 
     def add_daily_counts(self):
         """
