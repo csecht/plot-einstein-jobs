@@ -131,11 +131,11 @@ class TaskDataFrame:
         # Need to replace NaN time data with interpolated time values.
         self.manage_bad_times()
 
-        # Need to retain original elapsed time as seconds to plot Hz x time:
+        # Need to retain original elapsed time as seconds to plot Hz x task time:
         self.tasks_df['elapsed_sec'] = self.tasks_df.elapsed_t
 
-        #  Need to convert time seconds (int or float) to datetimes for
-        #    plot axis tick readability.
+        #  Need to convert Epoch time and task time (int or float seconds)
+        #    to dtype np.datetime64 for plot axis tick readability.
         for col in ('time_stamp', 'elapsed_t'):
             self.tasks_df[col] = pd.to_datetime(self.tasks_df[col],
                                                 unit='s',
@@ -474,7 +474,7 @@ class PlotTasks(TaskDataFrame):
 
         # Relative coordinates in Figure, 4-tuple (LEFT, BOTTOM, WIDTH, HEIGHT)
         ax_chkbox = plt.axes((0.86, 0.54, 0.13, 0.36), facecolor=mark.DARK_GRAY)
-        ax_chkbox.set_xlabel('Plots',
+        ax_chkbox.set_xlabel('Project plots',
                              fontsize='medium',
                              fontweight='bold')
         ax_chkbox.xaxis.set_label_position('top')

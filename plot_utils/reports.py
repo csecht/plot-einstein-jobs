@@ -3,12 +3,14 @@ Summary reporting functions for job_log plot data.
 Functions:
 about_report - Display program and Project information.
 joblog_report - Display and print statistical metrics job_log data.
+number_since - Number of tasks for a Project since a given date.
 on_pick_report -  Display task details for tasks near clicked coordinates.
 view_report - Create the toplevel window to display report text.
 """
 # Copyright (C) 2022 C.S. Echt under GNU General Public License'
 
 # Standard library imports
+import re
 import tkinter as tk
 from pathlib import Path
 from tkinter.scrolledtext import ScrolledText
@@ -136,15 +138,16 @@ def on_pick_report(event, dataframe: pd) -> None:
 
     _header = ("Project's tasks nearest the selected point\n"
                '          Date time | name | completion time')
+    task_info_list = [_header]
 
     _n = len(event.ind)  # VertexSelector(line), in lines.py
     if not _n:
         print('event.ind is undefined')
         return event
 
-    _limit = 6  # Limit tasks, from total in self.pick_radius
-
-    task_info_list = [_header]
+    # Need to limit tasks from total included in the plot() 'picker'
+    #   parameter value defined by PlotTasks self.pick_radius.
+    _limit = 6
     for dataidx in event.ind:
         if _limit > 0:
             task_info_list.append(
@@ -152,6 +155,21 @@ def on_pick_report(event, dataframe: pd) -> None:
                 f'{dataframe.loc[dataidx].task_name} | '
                 f'{dataframe.loc[dataidx].elapsed_t.time()}')
         _limit -= 1
+
+    # Add something special and count the number of tasks reported for
+    #   a Project since the nearest clicked datetime.
+    date_since = dataframe.loc[event.ind[0]].time_stamp
+    _name = dataframe.loc[event.ind[0]].task_name
+    project = ''
+    for _proj, _regex in grp.PROJ_NAME_REGEX.items():
+        if re.search(_regex, _name):
+            project = _proj
+            break
+    num_since = number_since(dataframe, project, date_since)
+    task_info_list.append(
+        f"The nearest task's Project is {project}.\n"
+        f'Since {date_since}, {num_since} tasks have been reported'
+        ' for that Project.\n')
 
     _report = '\n\n'.join(map(str, task_info_list))
 
@@ -161,6 +179,31 @@ def on_pick_report(event, dataframe: pd) -> None:
     view_report(title='Task details (max 6)',
                 text=_report, minsize=(600, 300))
     return event
+
+
+def number_since(dataframe: pd, proj: str, since_date: str) -> int:
+    """
+    Count how many tasks for a Project were run since a given date.
+    Example: n = reports.number_since(self.tasks_df, 'brp7', '8/25/2022')
+    Called from on_pick(), which passes this datetime string format:
+    '2022-08-25 17:30:45'.
+
+    :param dataframe: The pandas main dataframe of all job log data.
+    :param proj: One of the plotted Projects listed in the module
+     project_groups.PROJECTS, e.g. 'all', 'fgrp5', 'fgrpG1', 'gw_O2',
+      'gw_O3', 'brp4', 'brp7'.
+    :param since_date: Any common date string, e.g. '25/8/2022',
+     'August 25, 2022', '25th of August, 2022', '25-08-2022'.
+      Does not recognize Epoch time (seconds).
+
+    :return: The count of Project tasks reported after the beginning of
+     *since_date*.
+    """
+    since_dt = pd.to_datetime(since_date, infer_datetime_format=True)
+    count_since = (dataframe[f'is_{proj}']
+                   .where(dataframe.time_stamp >= since_dt)
+                   ).sum()
+    return count_since
 
 
 def view_report(title: str, text: str, minsize: tuple, scroll=False) -> None:
@@ -198,3 +241,4 @@ def view_report(title: str, text: str, minsize: tuple, scroll=False) -> None:
 
     report_txt.insert(tk.INSERT, text)
     report_txt.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)
+
