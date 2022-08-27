@@ -626,13 +626,13 @@ class PlotTasks(TaskDataFrame):
 
     def reset_plots(self):
         """
-        Clear plots. axis labels, ticks, formats, legends, etc.
-        Clears plotted data by setting all data values to zero and removing marks.
-        Use to avoid stacking of plots, which affects on_pick_report() display of
-        nearby task info. Note that, with this, the full x-axis datetime range
-        in job lob is always plotted; therefore, the methods ax.relim()
-        ax.autoscale_view() and ax.autoscale() have no effect on individual
-        data plots.
+        Clear plots, axis labels, ticks, formats, legends, sliders, etc.
+        Clears plotted data by setting all data values to zero and
+        removing marks. Use to avoid stacking of plots, which affects
+        on_pick_report() display of nearby task info. Note that, with
+        this, the full x-axis datetime range in job lob is always
+        plotted; therefore, the methods ax.relim(), ax.autoscale_view(),
+        and ax.autoscale() have no effect on individual plots.
         Called from manage_plots().
         """
         self.ax1.clear()
@@ -659,7 +659,7 @@ class PlotTasks(TaskDataFrame):
         When there are no data to plot for a clicked plot label, post a
         message in the plot area. Called from manage_plots().
 
-        :param clicked_label: The checked checkbox data series label.
+        :param clicked_label: The checked checkbox Project plot label.
         """
 
         # Need to first clear any prior no-data text message.
