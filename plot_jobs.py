@@ -244,7 +244,7 @@ class PlotTasks(TaskDataFrame):
         self.marker_size = 4
         self.marker_scale = 1
         self.dcnt_size = 2
-        self.pick_radius = 6
+        pick_radius = 6
 
         self.checkbox = None
         self.do_replot = False
@@ -289,9 +289,11 @@ class PlotTasks(TaskDataFrame):
         )
 
         mplstyle.use(('seaborn-colorblind', 'fast'))
+        self.ax1.xaxis.set_pickradius(pick_radius)
+        self.ax1.yaxis.set_pickradius(pick_radius)
 
         # Need to have mpl_connect statement before any autoscale statements AND
-        #  need to have ax.autoscale() set for picker radius to work.
+        #  need to have ax.autoscale() set for set_pickradius() to work.
         self.fig.canvas.mpl_connect(
             'pick_event', lambda _: reports.on_pick_report(_, self.tasks_df))
 
@@ -686,7 +688,7 @@ class PlotTasks(TaskDataFrame):
                       label='all',
                       color=mark.CBLIND_COLOR['blue'],
                       alpha=0.2,
-                      picker=self.pick_radius,
+                      picker=True,
                       )
         self.ax2.plot(self.tasks_df.time_stamp,
                       self.tasks_df.all_Dcnt,
@@ -706,7 +708,7 @@ class PlotTasks(TaskDataFrame):
                       label='fgrp5',
                       color=mark.CBLIND_COLOR['bluish green'],
                       alpha=0.3,
-                      picker=self.pick_radius,
+                      picker=True,
                       )
         self.ax2.plot(self.tasks_df.time_stamp,
                       self.tasks_df.fgrp5_Dcnt,
@@ -715,7 +717,6 @@ class PlotTasks(TaskDataFrame):
                       label='fgrp5',
                       color=mark.CBLIND_COLOR['bluish green'],
                       alpha=0.4,
-                      picker=self.pick_radius,
                       )
         self.format_legends()
         self.isplotted['fgrp5'] = True
@@ -728,7 +729,7 @@ class PlotTasks(TaskDataFrame):
                       label='fgrpG1',
                       color=mark.CBLIND_COLOR['vermilion'],
                       alpha=0.3,
-                      picker=self.pick_radius,
+                      picker=True,
                       )
         self.ax2.plot(self.tasks_df.time_stamp,
                       self.tasks_df.fgrpG1_Dcnt,
@@ -755,7 +756,7 @@ class PlotTasks(TaskDataFrame):
                       label='fgrp_hz',
                       color=mark.CBLIND_COLOR['vermilion'],
                       alpha=0.3,
-                      picker=self.pick_radius,
+                      picker=True,
                       )
         self.ax2.plot(self.tasks_df.time_stamp,
                       self.tasks_df.fgrp5_Dcnt,
@@ -787,7 +788,7 @@ class PlotTasks(TaskDataFrame):
                       label='gw_O2MD1',
                       color=mark.CBLIND_COLOR['orange'],
                       alpha=0.4,
-                      picker=self.pick_radius,
+                      picker=True,
                       )
         self.ax2.plot(self.tasks_df.time_stamp,
                       self.tasks_df.gw_O2_Dcnt,
@@ -807,7 +808,7 @@ class PlotTasks(TaskDataFrame):
                       label='gw_O3AS',
                       color=mark.CBLIND_COLOR['sky blue'],
                       alpha=0.3,
-                      picker=self.pick_radius,
+                      picker=True,
                       )
         self.ax2.plot(self.tasks_df.time_stamp,
                       self.tasks_df.gw_O3AS_Dcnt,
@@ -827,7 +828,7 @@ class PlotTasks(TaskDataFrame):
                       label='BRP4 & BRP4G',
                       color=mark.CBLIND_COLOR['reddish purple'],
                       alpha=0.3,
-                      picker=self.pick_radius,
+                      picker=True,
                       )
         self.ax2.plot(self.tasks_df.time_stamp,
                       self.tasks_df.brp4_Dcnt,
@@ -847,7 +848,7 @@ class PlotTasks(TaskDataFrame):
                       label='BRP7',
                       color=mark.CBLIND_COLOR['yellow'],
                       alpha=0.5,
-                      picker=self.pick_radius,
+                      picker=True,
                       )
         self.ax2.plot(self.tasks_df.time_stamp,
                       self.tasks_df.brp7_Dcnt,
@@ -891,7 +892,7 @@ class PlotTasks(TaskDataFrame):
                       markersize=self.marker_size,
                       color=mark.CBLIND_COLOR['vermilion'],
                       alpha=0.3,
-                      picker=self.pick_radius,
+                      picker=True,
                       )
 
         self.isplotted['fgrpHz_X_t'] = True
@@ -928,7 +929,7 @@ class PlotTasks(TaskDataFrame):
                       markersize=self.marker_size,
                       color=mark.CBLIND_COLOR['sky blue'],
                       alpha=0.3,
-                      picker=self.pick_radius,
+                      picker=True,
                       )
 
         self.isplotted['gw_O3AS_freq'] = True

@@ -140,13 +140,15 @@ def on_pick_report(event, dataframe: pd) -> None:
                '          Date time | name | completion time')
     task_info_list = [_header]
 
-    _n = len(event.ind)  # VertexSelector(line), in lines.py
+    # VertexSelector(line), in lines.py; list of df indices included in
+    #   set_pickradius().
+    _n = len(event.ind)
     if not _n:
         print('event.ind is undefined')
         return event
 
-    # Need to limit tasks from total included in the plot() 'picker'
-    #   parameter value defined in PlotTasks() by self.pick_radius.
+    # Need to limit tasks from total included in set_pickradius(pick_radius)
+    #   defined as PlotTasks() attribute.
     report_limit = 6
     for dataidx in event.ind:
         if report_limit > 0:
