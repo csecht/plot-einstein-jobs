@@ -2,6 +2,11 @@
 
 from itertools import cycle
 
+SIZE = 4  # Plotted Line2D vertex marker size.
+SCALE = 1  # Adjust legend marker icon as factor of marker_size.
+DCNT_SIZE = 2  # Task daily count marker size.
+PICK_RADIUS = 6  # Radius used by set_pickradius for reports.on_pick_report().
+
 """
 Line and marker styles:
 ================    ===============================
@@ -39,7 +44,7 @@ filled_markers = ('o', 'v', '^', '<', '>', '8', 's', 'p', '*', 'h', 'H',
                   'D', 'd', 'P', 'X')
 """
 
-MARKER_STYLE = {
+STYLE = {
     'solid line': '-',
     'dashed line': '--',
     'dash-dot line': '-.',

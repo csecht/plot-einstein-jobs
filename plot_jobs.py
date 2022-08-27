@@ -232,7 +232,6 @@ class PlotTasks(TaskDataFrame):
     # https://stackoverflow.com/questions/472000/usage-of-slots
     # https://towardsdatascience.com/understand-slots-in-python-e3081ef5196d
     __slots__ = (
-        'marker_size', 'marker_scale', 'dcnt_size', 'pick_radius',
         'fig', 'ax1', 'ax2',
         'checkbox', 'do_replot', 'legend_btn_on', 'plot_proj',
         'chkbox_labelid', 'isplotted', 'text_bbox', 'ax_slider',
@@ -240,11 +239,6 @@ class PlotTasks(TaskDataFrame):
 
     def __init__(self):
         super().__init__()
-
-        self.marker_size = 4
-        self.marker_scale = 1
-        self.dcnt_size = 2
-        pick_radius = 6
 
         self.checkbox = None
         self.do_replot = False
@@ -289,15 +283,13 @@ class PlotTasks(TaskDataFrame):
         )
 
         mplstyle.use(('seaborn-colorblind', 'fast'))
-        self.ax1.xaxis.set_pickradius(pick_radius)
-        self.ax1.yaxis.set_pickradius(pick_radius)
 
         # Need to have mpl_connect statement before any autoscale statements AND
         #  need to have ax.autoscale() set for set_pickradius() to work.
         self.fig.canvas.mpl_connect(
             'pick_event', lambda _: reports.on_pick_report(_, self.tasks_df))
 
-        # Slider used in *_Hz plots to set Hz ranges; initialize here
+        # Slider used in *_Hz plots to set Hz ranges; attribute here
         #  so that it can be removed/redrawn with each *_Hz plot call
         #  and hidden for all other plots.
         self.ax_slider = plt.axes()
@@ -503,14 +495,14 @@ class PlotTasks(TaskDataFrame):
         self.ax1.legend(ncol=2,
                         fontsize='x-small',
                         loc='upper right',
-                        markerscale=self.marker_scale,
+                        markerscale=mark.SCALE,
                         edgecolor='black',
                         framealpha=0.5,
                         )
         self.ax2.legend(ncol=2,
                         fontsize='x-small',
                         loc='upper right',
-                        markerscale=self.marker_scale,
+                        markerscale=mark.SCALE,
                         edgecolor='black',
                         framealpha=0.4,
                         )
@@ -588,9 +580,13 @@ class PlotTasks(TaskDataFrame):
         self.ax1.grid(True)
         self.ax2.grid(True)
 
+        # Used by reports.on_pick_reports() with plot() parameter picker=True.
+        self.ax1.xaxis.set_pickradius(mark.PICK_RADIUS)
+        self.ax1.yaxis.set_pickradius(mark.PICK_RADIUS)
+
         # NOTE: autoscale methods have no visual effect when reset_plots() plots
         #  the full range datetimes from a job lob, BUT enabling autoscale
-        #  allows the picker radius to work properly.
+        #  allows set_pickradius() to work properly.
         self.ax1.autoscale()
         self.ax2.autoscale()
 
@@ -683,8 +679,8 @@ class PlotTasks(TaskDataFrame):
     def plot_all(self):
         self.ax1.plot(self.tasks_df.time_stamp,
                       self.tasks_df.elapsed_t,
-                      mark.MARKER_STYLE['point'],
-                      markersize=self.marker_size,
+                      mark.STYLE['point'],
+                      markersize=mark.SIZE,
                       label='all',
                       color=mark.CBLIND_COLOR['blue'],
                       alpha=0.2,
@@ -692,8 +688,8 @@ class PlotTasks(TaskDataFrame):
                       )
         self.ax2.plot(self.tasks_df.time_stamp,
                       self.tasks_df.all_Dcnt,
-                      mark.MARKER_STYLE['square'],
-                      markersize=self.dcnt_size,
+                      mark.STYLE['square'],
+                      markersize=mark.DCNT_SIZE,
                       label='all',
                       color=mark.CBLIND_COLOR['blue'],
                       )
@@ -703,8 +699,8 @@ class PlotTasks(TaskDataFrame):
     def plot_fgrp5(self):
         self.ax1.plot(self.tasks_df.time_stamp,
                       self.tasks_df.elapsed_t.where(self.tasks_df.is_fgrp5),
-                      mark.MARKER_STYLE['tri_left'],
-                      markersize=self.marker_size,
+                      mark.STYLE['tri_left'],
+                      markersize=mark.SIZE,
                       label='fgrp5',
                       color=mark.CBLIND_COLOR['bluish green'],
                       alpha=0.3,
@@ -712,8 +708,8 @@ class PlotTasks(TaskDataFrame):
                       )
         self.ax2.plot(self.tasks_df.time_stamp,
                       self.tasks_df.fgrp5_Dcnt,
-                      mark.MARKER_STYLE['square'],
-                      markersize=self.dcnt_size,
+                      mark.STYLE['square'],
+                      markersize=mark.DCNT_SIZE,
                       label='fgrp5',
                       color=mark.CBLIND_COLOR['bluish green'],
                       alpha=0.4,
@@ -724,8 +720,8 @@ class PlotTasks(TaskDataFrame):
     def plot_fgrpG1(self):
         self.ax1.plot(self.tasks_df.time_stamp,
                       self.tasks_df.elapsed_t.where(self.tasks_df.is_fgrpG1),
-                      mark.MARKER_STYLE['tri_right'],
-                      markersize=self.marker_size,
+                      mark.STYLE['tri_right'],
+                      markersize=mark.SIZE,
                       label='fgrpG1',
                       color=mark.CBLIND_COLOR['vermilion'],
                       alpha=0.3,
@@ -733,8 +729,8 @@ class PlotTasks(TaskDataFrame):
                       )
         self.ax2.plot(self.tasks_df.time_stamp,
                       self.tasks_df.fgrpG1_Dcnt,
-                      mark.MARKER_STYLE['square'],
-                      markersize=self.dcnt_size,
+                      mark.STYLE['square'],
+                      markersize=mark.DCNT_SIZE,
                       label='fgrpG1',
                       color=mark.CBLIND_COLOR['vermilion'],
                       )
@@ -751,8 +747,8 @@ class PlotTasks(TaskDataFrame):
 
         self.ax1.plot(self.tasks_df.time_stamp,
                       self.tasks_df.fgrp_freq,
-                      mark.MARKER_STYLE['tri_right'],
-                      markersize=self.marker_size,
+                      mark.STYLE['tri_right'],
+                      markersize=mark.SIZE,
                       label='fgrp_hz',
                       color=mark.CBLIND_COLOR['vermilion'],
                       alpha=0.3,
@@ -760,15 +756,15 @@ class PlotTasks(TaskDataFrame):
                       )
         self.ax2.plot(self.tasks_df.time_stamp,
                       self.tasks_df.fgrp5_Dcnt,
-                      mark.MARKER_STYLE['square'],
-                      markersize=self.dcnt_size,
+                      mark.STYLE['square'],
+                      markersize=mark.DCNT_SIZE,
                       label='fgrp5',
                       color=mark.CBLIND_COLOR['black'],
                       )
         self.ax2.plot(self.tasks_df.time_stamp,
                       self.tasks_df.fgrpG1_Dcnt,
-                      mark.MARKER_STYLE['square'],
-                      markersize=self.dcnt_size,
+                      mark.STYLE['square'],
+                      markersize=mark.DCNT_SIZE,
                       label='fgrpG1',
                       color=mark.CBLIND_COLOR['vermilion'],
                       )
@@ -783,8 +779,8 @@ class PlotTasks(TaskDataFrame):
     def plot_gw_O2(self):
         self.ax1.plot(self.tasks_df.time_stamp,
                       self.tasks_df.elapsed_t.where(self.tasks_df.is_gw_O2),
-                      mark.MARKER_STYLE['triangle_down'],
-                      markersize=self.marker_size,
+                      mark.STYLE['triangle_down'],
+                      markersize=mark.SIZE,
                       label='gw_O2MD1',
                       color=mark.CBLIND_COLOR['orange'],
                       alpha=0.4,
@@ -792,8 +788,8 @@ class PlotTasks(TaskDataFrame):
                       )
         self.ax2.plot(self.tasks_df.time_stamp,
                       self.tasks_df.gw_O2_Dcnt,
-                      mark.MARKER_STYLE['square'],
-                      markersize=self.dcnt_size,
+                      mark.STYLE['square'],
+                      markersize=mark.DCNT_SIZE,
                       label='gw_O2MD1',
                       color=mark.CBLIND_COLOR['orange'],
                       )
@@ -803,8 +799,8 @@ class PlotTasks(TaskDataFrame):
     def plot_gw_O3AS(self):
         self.ax1.plot(self.tasks_df.time_stamp,
                       self.tasks_df.elapsed_t.where(self.tasks_df.is_gw_O3AS),
-                      mark.MARKER_STYLE['triangle_up'],
-                      markersize=self.marker_size,
+                      mark.STYLE['triangle_up'],
+                      markersize=mark.SIZE,
                       label='gw_O3AS',
                       color=mark.CBLIND_COLOR['sky blue'],
                       alpha=0.3,
@@ -812,8 +808,8 @@ class PlotTasks(TaskDataFrame):
                       )
         self.ax2.plot(self.tasks_df.time_stamp,
                       self.tasks_df.gw_O3AS_Dcnt,
-                      mark.MARKER_STYLE['square'],
-                      markersize=self.dcnt_size,
+                      mark.STYLE['square'],
+                      markersize=mark.DCNT_SIZE,
                       label='gw_O3AS',
                       color=mark.CBLIND_COLOR['sky blue'],
                       )
@@ -823,8 +819,8 @@ class PlotTasks(TaskDataFrame):
     def plot_brp4(self):
         self.ax1.plot(self.tasks_df.time_stamp,
                       self.tasks_df.elapsed_t.where(self.tasks_df.is_brp4),
-                      mark.MARKER_STYLE['pentagon'],
-                      markersize=self.marker_size,
+                      mark.STYLE['pentagon'],
+                      markersize=mark.SIZE,
                       label='BRP4 & BRP4G',
                       color=mark.CBLIND_COLOR['reddish purple'],
                       alpha=0.3,
@@ -832,8 +828,8 @@ class PlotTasks(TaskDataFrame):
                       )
         self.ax2.plot(self.tasks_df.time_stamp,
                       self.tasks_df.brp4_Dcnt,
-                      mark.MARKER_STYLE['square'],
-                      markersize=self.dcnt_size,
+                      mark.STYLE['square'],
+                      markersize=mark.DCNT_SIZE,
                       label='BRP4 & BRP4G',
                       color=mark.CBLIND_COLOR['reddish purple'],
                       )
@@ -843,8 +839,8 @@ class PlotTasks(TaskDataFrame):
     def plot_brp7(self):
         self.ax1.plot(self.tasks_df.time_stamp,
                       self.tasks_df.elapsed_t.where(self.tasks_df.is_brp7),
-                      mark.MARKER_STYLE['diamond'],
-                      markersize=self.marker_size,
+                      mark.STYLE['diamond'],
+                      markersize=mark.SIZE,
                       label='BRP7',
                       color=mark.CBLIND_COLOR['yellow'],
                       alpha=0.5,
@@ -852,8 +848,8 @@ class PlotTasks(TaskDataFrame):
                       )
         self.ax2.plot(self.tasks_df.time_stamp,
                       self.tasks_df.brp7_Dcnt,
-                      mark.MARKER_STYLE['square'],
-                      markersize=self.dcnt_size,
+                      mark.STYLE['square'],
+                      markersize=mark.DCNT_SIZE,
                       label='BRP7',
                       color=mark.CBLIND_COLOR['yellow'],
                       )
@@ -888,8 +884,8 @@ class PlotTasks(TaskDataFrame):
 
         self.ax1.plot(self.tasks_df.elapsed_sec.where(self.tasks_df.is_fgrp),
                       self.tasks_df.fgrp_freq,
-                      mark.MARKER_STYLE['tri_right'],
-                      markersize=self.marker_size,
+                      mark.STYLE['tri_right'],
+                      markersize=mark.SIZE,
                       color=mark.CBLIND_COLOR['vermilion'],
                       alpha=0.3,
                       picker=True,
@@ -925,8 +921,8 @@ class PlotTasks(TaskDataFrame):
 
         self.ax1.plot(self.tasks_df.elapsed_sec.where(self.tasks_df.is_gw_O3AS),
                       self.tasks_df.gwO3AS_freq,
-                      mark.MARKER_STYLE['triangle_up'],
-                      markersize=self.marker_size,
+                      mark.STYLE['triangle_up'],
+                      markersize=mark.SIZE,
                       color=mark.CBLIND_COLOR['sky blue'],
                       alpha=0.3,
                       picker=True,
