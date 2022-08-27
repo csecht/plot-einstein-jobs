@@ -187,11 +187,11 @@ class TaskDataFrame:
         """
         regex_fgrp_freq = r'LATeah.*?_(\d+)'
         # pattern_gw_freq = r'h1.*_(\d+\.\d{2})Hz_'  # Capture highest freq, not base freq.
-        regex_gwo3_freq = r'h1_(\d+\.\d+)_.+__O3'  # Capture the base/parent freq.
+        regex_gwo3_freq = r'h1_(\d+\.\d+)_.+__O3AS'  # Capture the base/parent freq.
         self.tasks_df['fgrp_freq'] = (self.tasks_df.task_name
                                       .str.extract(regex_fgrp_freq)
                                       .astype('float64'))
-        self.tasks_df['gwO3_freq'] = (self.tasks_df.task_name
+        self.tasks_df['gwO3AS_freq'] = (self.tasks_df.task_name
                                       .str.extract(regex_gwo3_freq)
                                       .astype('float64'))
 
@@ -810,7 +810,7 @@ class PlotTasks(TaskDataFrame):
                       color=mark.CBLIND_COLOR['sky blue'],
                       )
         self.format_legends()
-        self.isplotted['gw_O3'] = True
+        self.isplotted['gw_O3AS'] = True
 
     def plot_brp4(self):
         self.ax1.plot(self.tasks_df.time_stamp,
@@ -890,13 +890,13 @@ class PlotTasks(TaskDataFrame):
         self.isplotted['fgrpHz_X_t'] = True
 
     def plot_gwO3Hz_X_t(self):
-        num_f = self.tasks_df.gwO3_freq.nunique()
-        min_f = self.tasks_df.gwO3_freq.min()
-        max_f = self.tasks_df.gwO3_freq.max()
+        num_f = self.tasks_df.gwO3AS_freq.nunique()
+        min_f = self.tasks_df.gwO3AS_freq.min()
+        max_f = self.tasks_df.gwO3AS_freq.max()
         min_t = self.tasks_df.elapsed_sec.where(
-            self.tasks_df.is_gw_O3).min().astype('int64')
+            self.tasks_df.is_gw_O3AS).min().astype('int64')
         max_t = self.tasks_df.elapsed_sec.where(
-            self.tasks_df.is_gw_O3).max().astype('int64')
+            self.tasks_df.is_gw_O3AS).max().astype('int64')
 
         # Add a 2% margin to time axis upper limit.
         self.setup_freq_axes((0, max_t * 1.02))
@@ -915,9 +915,8 @@ class PlotTasks(TaskDataFrame):
                       bbox=self.text_bbox,
                       )
 
-        # NOTE that there is not a separate df column for O3 freq.
-        self.ax1.plot(self.tasks_df.elapsed_sec.where(self.tasks_df.is_gw_O3),
-                      self.tasks_df.gwO3_freq,
+        self.ax1.plot(self.tasks_df.elapsed_sec.where(self.tasks_df.is_gw_O3AS),
+                      self.tasks_df.gwO3AS_freq,
                       mark.MARKER_STYLE['triangle_up'],
                       markersize=self.marker_size,
                       color=mark.CBLIND_COLOR['sky blue'],
@@ -925,7 +924,7 @@ class PlotTasks(TaskDataFrame):
                       picker=self.pick_radius,
                       )
 
-        self.isplotted['gw_O3_freq'] = True
+        self.isplotted['gw_O3AS_freq'] = True
 
     def manage_plots(self, clicked_label: str) -> None:
         """
