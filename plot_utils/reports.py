@@ -136,7 +136,7 @@ def on_pick_report(event, dataframe: pd) -> None:
     :return: None
     """
 
-    _header = ("Project's tasks nearest the selected point\n"
+    _header = ('Tasks nearest the selected point\n'
                '          Date time | name | completion time')
     task_info_list = [_header]
 
@@ -146,37 +146,38 @@ def on_pick_report(event, dataframe: pd) -> None:
         return event
 
     # Need to limit tasks from total included in the plot() 'picker'
-    #   parameter value defined by PlotTasks self.pick_radius.
-    _limit = 6
+    #   parameter value defined in PlotTasks() by self.pick_radius.
+    report_limit = 6
     for dataidx in event.ind:
-        if _limit > 0:
+        if report_limit > 0:
             task_info_list.append(
                 f'{dataframe.loc[dataidx].time_stamp} | '
                 f'{dataframe.loc[dataidx].task_name} | '
                 f'{dataframe.loc[dataidx].elapsed_t.time()}')
-        _limit -= 1
+        report_limit -= 1
 
-    # Add something special and count the number of tasks reported for
-    #   a Project since the nearest clicked datetime.
-    date_since = dataframe.loc[event.ind[0]].time_stamp
+    # Add something special; count the number of tasks reported for
+    #   a Project since the datetime timestamp of the nearest task.
+    dt_since = dataframe.loc[event.ind[0]].time_stamp
     _name = dataframe.loc[event.ind[0]].task_name
     project = ''
     for _proj, _regex in grp.PROJ_NAME_REGEX.items():
         if re.search(_regex, _name):
             project = _proj
-            break
-    num_since = number_since(dataframe, project, date_since)
+
+    num_since = number_since(dataframe, project, dt_since)
     task_info_list.append(
-        f"The nearest task's Project is {project}.\n"
-        f'Since {date_since}, {num_since} tasks have been reported'
-        ' for that Project.\n')
+        f"The first task's Project is {project.upper()}.\n"
+        f'Since {dt_since}, {num_since} tasks have been reported for that Project.\n'
+    )
 
     _report = '\n\n'.join(map(str, task_info_list))
 
     # Display task info in Terminal and pop-up window.
+    #   (_report string uses two newlines, but Terminal string needs only one.)
     print('\n'.join(map(str, task_info_list)))
 
-    view_report(title='Task details (max 6)',
+    view_report(title='Task details (6 tasks maximum)',
                 text=_report, minsize=(600, 300))
     return event
 

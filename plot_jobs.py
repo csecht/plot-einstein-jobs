@@ -224,7 +224,7 @@ class PlotTasks(TaskDataFrame):
     Methods: setup_window, setup_title, setup_buttons, setup_slider,
         setup_plot_manager, format_legends, toggle_legends, on_pick_report,
         joblog_report, about_report, setup_count_axes, setup_freq_axes,
-        reset_plots, plot_all, plot_gw_O2, plot_gw_O3, plot_fgrp5,
+        reset_plots, plot_all, plot_gw_O2, plot_gw_O3AS, plot_fgrp5,
         plot_fgrpG1, plot_brp4, plot_gw_series, plot_fgrpHz_X_t,
         plot_gwO3Hz_X_t, manage_plots.
     """
@@ -257,8 +257,8 @@ class PlotTasks(TaskDataFrame):
             'fgrp5': self.plot_fgrp5,
             'fgrpG1': self.plot_fgrpG1,
             'fgrp_hz': self.plot_fgrp_hz,
-            'gw_O3': self.plot_gw_O3,
             'gw_O2': self.plot_gw_O2,
+            'gw_O3AS': self.plot_gw_O3AS,
             'brp4': self.plot_brp4,
             'brp7': self.plot_brp7,
             'gwO3Hz_X_t': self.plot_gwO3Hz_X_t,
@@ -792,9 +792,9 @@ class PlotTasks(TaskDataFrame):
         self.format_legends()
         self.isplotted['gw_O2'] = True
 
-    def plot_gw_O3(self):
+    def plot_gw_O3AS(self):
         self.ax1.plot(self.tasks_df.time_stamp,
-                      self.tasks_df.elapsed_t.where(self.tasks_df.is_gw_O3),
+                      self.tasks_df.elapsed_t.where(self.tasks_df.is_gw_O3AS),
                       mark.MARKER_STYLE['triangle_up'],
                       markersize=self.marker_size,
                       label='gw_O3AS',
@@ -803,7 +803,7 @@ class PlotTasks(TaskDataFrame):
                       picker=self.pick_radius,
                       )
         self.ax2.plot(self.tasks_df.time_stamp,
-                      self.tasks_df.gw_O3_Dcnt,
+                      self.tasks_df.gw_O3AS_Dcnt,
                       mark.MARKER_STYLE['square'],
                       markersize=self.dcnt_size,
                       label='gw_O3AS',
@@ -990,8 +990,6 @@ class PlotTasks(TaskDataFrame):
             for _proj, status in ischecked.items():
                 if _proj in grp.ALL_INCLUSIVE and status:
                     self.plot_proj[_proj]()
-                # if _proj == 'gw_series' and status:
-                #     self.plot_gw_series()
 
         self.fig.canvas.draw_idle()
 
