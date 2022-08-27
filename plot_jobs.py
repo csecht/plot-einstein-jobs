@@ -56,7 +56,7 @@ try:
 
     from matplotlib import ticker
     from matplotlib.widgets import CheckButtons, Button, RangeSlider
-    from numpy import where
+    from numpy import where, nan
 
 except (ImportError, ModuleNotFoundError) as import_err:
     print('*** One or more required Python packages were not found'
@@ -192,8 +192,8 @@ class TaskDataFrame:
                                       .str.extract(regex_fgrp_freq)
                                       .astype('float64'))
         self.tasks_df['gwO3AS_freq'] = (self.tasks_df.task_name
-                                      .str.extract(regex_gwo3_freq)
-                                      .astype('float64'))
+                                        .str.extract(regex_gwo3_freq)
+                                        .astype('float64'))
 
     def add_daily_counts(self):
         """
@@ -758,10 +758,17 @@ class PlotTasks(TaskDataFrame):
                       picker=self.pick_radius,
                       )
         self.ax2.plot(self.tasks_df.time_stamp,
-                      self.tasks_df[['fgrpG1_Dcnt', 'fgrp5_Dcnt']].sum(axis=1),
+                      self.tasks_df.fgrp5_Dcnt,
                       mark.MARKER_STYLE['square'],
                       markersize=self.dcnt_size,
-                      label='fgrp5 & fgrpG1',
+                      label='fgrp5',
+                      color=mark.CBLIND_COLOR['black'],
+                      )
+        self.ax2.plot(self.tasks_df.time_stamp,
+                      self.tasks_df.fgrpG1_Dcnt,
+                      mark.MARKER_STYLE['square'],
+                      markersize=self.dcnt_size,
+                      label='fgrpG1',
                       color=mark.CBLIND_COLOR['vermilion'],
                       )
 
