@@ -224,7 +224,7 @@ class PlotTasks(TaskDataFrame):
     Methods: setup_window, setup_title, setup_buttons, setup_slider,
         setup_plot_manager, format_legends, toggle_legends, on_pick_report,
         joblog_report, about_report, setup_count_axes, setup_freq_axes,
-        reset_plots, plot_all, plot_gw_O2, plot_gw_O3AS, plot_fgrp5,
+        reset_plots, plot_all, plot_gw_O2MD, plot_gw_O3AS, plot_fgrp5,
         plot_fgrpG1, plot_brp4, plot_gw_series, plot_fgrpHz_X_t,
         plot_gwO3Hz_X_t, manage_plots.
     """
@@ -251,7 +251,7 @@ class PlotTasks(TaskDataFrame):
             'fgrp5': self.plot_fgrp5,
             'fgrpG1': self.plot_fgrpG1,
             'fgrp_hz': self.plot_fgrp_hz,
-            'gw_O2': self.plot_gw_O2,
+            'gw_O2MD': self.plot_gw_O2MD,
             'gw_O3AS': self.plot_gw_O3AS,
             'brp4': self.plot_brp4,
             'brp7': self.plot_brp7,
@@ -724,7 +724,7 @@ class PlotTasks(TaskDataFrame):
                       markersize=mark.SIZE,
                       label='fgrpG1',
                       color=mark.CBLIND_COLOR['vermilion'],
-                      alpha=0.3,
+                      alpha=0.5,
                       picker=True,
                       )
         self.ax2.plot(self.tasks_df.time_stamp,
@@ -776,30 +776,30 @@ class PlotTasks(TaskDataFrame):
         self.format_legends()
         self.isplotted['fgrp_hz'] = True
 
-    def plot_gw_O2(self):
+    def plot_gw_O2MD(self):
         self.ax1.plot(self.tasks_df.time_stamp,
-                      self.tasks_df.elapsed_t.where(self.tasks_df.is_gw_O2),
+                      self.tasks_df.elapsed_t.where(self.tasks_df.is_gw_O2MD),
                       mark.STYLE['triangle_down'],
                       markersize=mark.SIZE,
-                      label='gw_O2MD1',
+                      label='gw_O2MD',
                       color=mark.CBLIND_COLOR['orange'],
                       alpha=0.4,
                       picker=True,
                       )
         self.ax2.plot(self.tasks_df.time_stamp,
-                      self.tasks_df.gw_O2_Dcnt,
+                      self.tasks_df.gw_O2MD_Dcnt,
                       mark.STYLE['square'],
                       markersize=mark.DCNT_SIZE,
-                      label='gw_O2MD1',
+                      label='gw_O2MD',
                       color=mark.CBLIND_COLOR['orange'],
                       )
         self.format_legends()
-        self.isplotted['gw_O2'] = True
+        self.isplotted['gw_O2MD'] = True
 
     def plot_gw_O3AS(self):
         self.ax1.plot(self.tasks_df.time_stamp,
                       self.tasks_df.elapsed_t.where(self.tasks_df.is_gw_O3AS),
-                      mark.STYLE['triangle_up'],
+                      mark.STYLE['thin_diamond'],
                       markersize=mark.SIZE,
                       label='gw_O3AS',
                       color=mark.CBLIND_COLOR['sky blue'],
