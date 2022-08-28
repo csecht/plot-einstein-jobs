@@ -209,9 +209,9 @@ class TaskDataFrame:
         for _proj in grp.PROJECTS:
             self.tasks_df[f'{_proj}_Dcnt'] = (
                 self.tasks_df.time_stamp
-                    .groupby(self.tasks_df.time_stamp.dt.floor('D')
-                             .where(self.tasks_df[f'is_{_proj}']))
-                    .transform('count')
+                .groupby(self.tasks_df.time_stamp.dt.floor('D')
+                         .where(self.tasks_df[f'is_{_proj}']))
+                .transform('count')
             )
 
 
@@ -225,7 +225,7 @@ class PlotTasks(TaskDataFrame):
         setup_plot_manager, format_legends, toggle_legends, on_pick_report,
         joblog_report, about_report, setup_count_axes, setup_freq_axes,
         reset_plots, plot_all, plot_gw_O2MD, plot_gw_O3AS, plot_fgrp5,
-        plot_fgrpG1, plot_brp4, plot_gw_series, plot_fgrpHz_X_t,
+        plot_fgrpBG1, plot_brp4, plot_gw_series, plot_fgrpHz_X_t,
         plot_gwO3Hz_X_t, manage_plots.
     """
 
@@ -249,7 +249,7 @@ class PlotTasks(TaskDataFrame):
         self.plot_proj = {
             'all': self.plot_all,
             'fgrp5': self.plot_fgrp5,
-            'fgrpG1': self.plot_fgrpG1,
+            'fgrpBG1': self.plot_fgrpBG1,
             'fgrp_hz': self.plot_fgrp_hz,
             'gw_O2MD': self.plot_gw_O2MD,
             'gw_O3AS': self.plot_gw_O3AS,
@@ -717,26 +717,26 @@ class PlotTasks(TaskDataFrame):
         self.format_legends()
         self.isplotted['fgrp5'] = True
 
-    def plot_fgrpG1(self):
+    def plot_fgrpBG1(self):
         self.ax1.plot(self.tasks_df.time_stamp,
-                      self.tasks_df.elapsed_t.where(self.tasks_df.is_fgrpG1),
+                      self.tasks_df.elapsed_t.where(self.tasks_df.is_fgrpBG1),
                       mark.STYLE['tri_right'],
                       markersize=mark.SIZE,
-                      label='fgrpG1',
+                      label='fgrpBG1',
                       color=mark.CBLIND_COLOR['vermilion'],
                       alpha=0.5,
                       picker=True,
                       )
         self.ax2.plot(self.tasks_df.time_stamp,
-                      self.tasks_df.fgrpG1_Dcnt,
+                      self.tasks_df.fgrpBG1_Dcnt,
                       mark.STYLE['square'],
                       markersize=mark.DCNT_SIZE,
-                      label='fgrpG1',
+                      label='fgrpBG1',
                       color=mark.CBLIND_COLOR['vermilion'],
                       )
 
         self.format_legends()
-        self.isplotted['fgrpG1'] = True
+        self.isplotted['fgrpBG1'] = True
 
     def plot_fgrp_hz(self):
         """
@@ -762,10 +762,10 @@ class PlotTasks(TaskDataFrame):
                       color=mark.CBLIND_COLOR['black'],
                       )
         self.ax2.plot(self.tasks_df.time_stamp,
-                      self.tasks_df.fgrpG1_Dcnt,
+                      self.tasks_df.fgrpBG1_Dcnt,
                       mark.STYLE['square'],
                       markersize=mark.DCNT_SIZE,
-                      label='fgrpG1',
+                      label='fgrpBG1',
                       color=mark.CBLIND_COLOR['vermilion'],
                       )
 
