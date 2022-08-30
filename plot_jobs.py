@@ -174,9 +174,9 @@ class TaskDataFrame:
         """
 
         self.tasks_df['is_all'] = True
-        for _proj, _regex in grp.PROJ_NAME_REGEX.items():
-            self.tasks_df[f'is_{_proj}'] = where(
-                self.tasks_df.task_name.str.contains(_regex), True, False)
+        for proj, regex in grp.PROJ_NAME_REGEX.items():
+            self.tasks_df[f'is_{proj}'] = where(
+                self.tasks_df.task_name.str.contains(regex), True, False)
 
     def add_frequencies(self):
         """
@@ -206,11 +206,11 @@ class TaskDataFrame:
 
         # For clarity, PROJECTS names used here need to match those used
         #   in isplotted (dict) and chkbox_labels (tuple).
-        for _proj in grp.PROJECTS:
-            self.tasks_df[f'{_proj}_Dcnt'] = (
+        for proj in grp.PROJECTS:
+            self.tasks_df[f'{proj}_Dcnt'] = (
                 self.tasks_df.time_stamp
                 .groupby(self.tasks_df.time_stamp.dt.floor('D')
-                         .where(self.tasks_df[f'is_{_proj}']))
+                         .where(self.tasks_df[f'is_{proj}']))
                 .transform('count')
             )
 
@@ -981,18 +981,18 @@ class PlotTasks(TaskDataFrame):
                 self.reset_plots()
                 self.do_replot = False
 
-            for _proj, status in ischecked.items():
-                if status and (_proj in grp.ALL_INCLUSIVE) and not self.isplotted[_proj]:
-                    self.plot_proj[_proj]()
+            for proj, status in ischecked.items():
+                if status and (proj in grp.ALL_INCLUSIVE) and not self.isplotted[proj]:
+                    self.plot_proj[proj]()
 
         elif not ischecked[clicked_label]:
 
             # Was toggled off, so remove all plots,
             #   then replot only inclusive checked ones.
             self.reset_plots()
-            for _proj, status in ischecked.items():
-                if _proj in grp.ALL_INCLUSIVE and status:
-                    self.plot_proj[_proj]()
+            for proj, status in ischecked.items():
+                if proj in grp.ALL_INCLUSIVE and status:
+                    self.plot_proj[proj]()
 
         self.fig.canvas.draw_idle()
 
