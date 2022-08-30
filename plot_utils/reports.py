@@ -108,8 +108,8 @@ def joblog_report(dataframe: pd) -> None:
                )
 
     for proj_tup in _results:
-        _proj, p_total, p_dmean, p_days = proj_tup
-        _report = _report + (f'{_proj.ljust(6)} {str(p_total).rjust(10)}'
+        proj, p_total, p_dmean, p_days = proj_tup
+        _report = _report + (f'{proj.ljust(6)} {str(p_total).rjust(10)}'
                              f' {str(p_dmean).rjust(9)} {str(p_days).rjust(8)}\n'
                              )
         p_tally.append(p_total)
@@ -163,9 +163,9 @@ def on_pick_report(event, dataframe: pd) -> None:
     dt_since = dataframe.loc[event.ind[0]].time_stamp
     _name = dataframe.loc[event.ind[0]].task_name
     project = ''
-    for _proj, _regex in grp.PROJ_NAME_REGEX.items():
-        if re.search(_regex, _name):
-            project = _proj
+    for proj, regex in grp.PROJ_NAME_REGEX.items():
+        if re.search(regex, _name):
+            project = proj
 
     num_since = number_since(dataframe, project, dt_since)
     task_info_list.append(
