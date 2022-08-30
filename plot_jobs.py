@@ -953,17 +953,17 @@ class PlotTasks(TaskDataFrame):
         ischecked = dict(zip(grp.CHKBOX_LABELS, self.checkbox.get_status()))
 
         # Exclusive plots can only be plotted by themselves.
-        for _plot in grp.EXCLUSIVE_PLOTS:
-            if clicked_label == _plot and ischecked[clicked_label]:
+        for plot in grp.EXCLUSIVE_PLOTS:
+            if clicked_label == plot and ischecked[clicked_label]:
 
                 # Need to post notice if selected data are not available.
                 self.clicked_plot(clicked_label)
 
                 # Was toggled on...
                 # Need to uncheck other checked project labels.
-                for _l in grp.CHKBOX_LABELS:
-                    if _l != clicked_label and (self.isplotted[_l] or ischecked[_l]):
-                        self.checkbox.set_active(self.chkbox_labelid[_l])
+                for lbl in grp.CHKBOX_LABELS:
+                    if lbl != clicked_label and (self.isplotted[lbl] or ischecked[lbl]):
+                        self.checkbox.set_active(self.chkbox_labelid[lbl])
 
                 self.plot_proj[clicked_label]()
 
@@ -971,10 +971,10 @@ class PlotTasks(TaskDataFrame):
         if clicked_label in grp.ALL_INCLUSIVE and ischecked[clicked_label]:
             self.clicked_plot(clicked_label)
 
-            for _plot in grp.ALL_EXCLUDED:
-                if self.isplotted[_plot] or ischecked[_plot]:
-                    self.isplotted[_plot] = False
-                    self.checkbox.set_active(self.chkbox_labelid[_plot])
+            for plot in grp.ALL_EXCLUDED:
+                if self.isplotted[plot] or ischecked[plot]:
+                    self.isplotted[plot] = False
+                    self.checkbox.set_active(self.chkbox_labelid[plot])
                     self.do_replot = True
 
             if self.do_replot:
