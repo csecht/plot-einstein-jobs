@@ -56,7 +56,7 @@ try:
 
     from matplotlib import ticker
     from matplotlib.widgets import CheckButtons, Button, RangeSlider
-    from numpy import where, nan
+    from numpy import where
 
 except (ImportError, ModuleNotFoundError) as import_err:
     print('*** One or more required Python packages were not found'
@@ -273,13 +273,12 @@ class PlotTasks(TaskDataFrame):
         self.fig, (self.ax1, self.ax2) = plt.subplots(
             2,
             sharex='all',
-            gridspec_kw={'height_ratios': [3, 1],
-                         'left': 0.15,
-                         'right': 0.85,
-                         'bottom': 0.16,
-                         'top': 0.92,
-                         'hspace': 0.15,
-                         },
+            gridspec_kw=dict(height_ratios=[3, 1.2],
+                             left=0.15,
+                             right=0.85,
+                             bottom=0.16,
+                             top=0.92,
+                             hspace=0.15),
         )
 
         mplstyle.use(('seaborn-colorblind', 'fast'))
@@ -478,34 +477,30 @@ class PlotTasks(TaskDataFrame):
         #  are plotted by default via manage_plots().
         self.checkbox = CheckButtons(ax_chkbox, grp.CHKBOX_LABELS)
         for label in self.checkbox.labels:
-            label.set_color('white')
-            label.set_size(8)
+            label.set(color='white',
+                      size=8, )
         for _r in self.checkbox.rectangles:
-            _r.set_width(0.08)
-            _r.set_edgecolor(mark.LIGHT_GRAY)
+            _r.set(width=0.08,
+                   edgecolor=mark.LIGHT_GRAY, )
         for line in self.checkbox.lines:
             for artist in line:
-                artist.set_linewidth(4)
-                artist.set_color('yellow')
+                artist.set(linewidth=4,
+                           color='yellow', )
 
         self.checkbox.on_clicked(self.manage_plots)
         self.checkbox.set_active(self.chkbox_labelid['all'])
 
     def format_legends(self):
-        self.ax1.legend(ncol=2,
-                        fontsize='x-small',
-                        loc='upper right',
-                        markerscale=mark.SCALE,
-                        edgecolor='black',
-                        framealpha=0.5,
-                        )
-        self.ax2.legend(ncol=2,
-                        fontsize='x-small',
-                        loc='upper right',
-                        markerscale=mark.SCALE,
-                        edgecolor='black',
-                        framealpha=0.4,
-                        )
+        kwargs = dict(ncol=1,
+                      fontsize='x-small',
+                      loc='upper right',
+                      markerscale=mark.SCALE,
+                      edgecolor='black',
+                      framealpha=0.4,
+                      fancybox=True,
+                      )
+        self.ax1.legend(**kwargs)
+        self.ax2.legend(**kwargs)
 
     def toggle_legends(self, event) -> None:
         """
@@ -547,15 +542,11 @@ class PlotTasks(TaskDataFrame):
         self.ax1.margins(0.02, 0.02)
         self.ax2.margins(0.02, 0.05)
 
-        self.ax1.set_ylabel('Task completion time',
-                            fontsize='medium',
-                            fontweight='bold')
-        self.ax2.set_xlabel('Task reporting datetime',
-                            fontsize='medium',
-                            fontweight='bold')
-        self.ax2.set_ylabel('Tasks/day',
-                            fontsize='medium',
-                            fontweight='bold')
+        kwargs = dict(fontsize='medium', fontweight='bold')
+
+        self.ax1.set_ylabel('Task completion time', **kwargs)
+        self.ax2.set_xlabel('Task reporting datetime', **kwargs)
+        self.ax2.set_ylabel('Tasks/day', **kwargs)
 
         # Need to set the Tasks/day axis label in a static position.
         self.ax2.yaxis.set_label_coords(-0.1, 0.55)
@@ -570,10 +561,9 @@ class PlotTasks(TaskDataFrame):
         for label in self.ax2.get_yticklabels(which='major'):
             label.set(fontsize='small')
 
-        self.ax1.yaxis.set_major_formatter(mdates.DateFormatter('%H:%M:%S'))
-
-        self.ax1.yaxis.set_major_locator(ticker.AutoLocator())
-        self.ax1.yaxis.set_minor_locator(ticker.AutoMinorLocator())
+        self.ax1.yaxis.set(major_formatter=mdates.DateFormatter('%H:%M:%S'),
+                           major_locator=ticker.AutoLocator(),
+                           minor_locator=ticker.AutoMinorLocator())
 
         self.ax2.yaxis.set_major_locator(ticker.MaxNLocator(nbins=6, integer=True))
 
@@ -640,15 +630,15 @@ class PlotTasks(TaskDataFrame):
 
         self.setup_count_axes()
 
+        kwargs = dict(visible=False, label='_leave blank')
+
         self.ax1.plot(self.tasks_df.time_stamp,
                       self.tasks_df.null_time,
-                      visible=False,
-                      label='_leave blank',
+                      **kwargs,
                       )
         self.ax2.plot(self.tasks_df.time_stamp,
                       self.tasks_df.null_Dcnt,
-                      visible=False,
-                      label='_leave blank',
+                      **kwargs,
                       )
 
         for plot, _ in self.isplotted.items():
@@ -668,7 +658,7 @@ class PlotTasks(TaskDataFrame):
 
         # When a project series has no data, its is_<project> df column
         #  has no True values and therefore sums to zero (False).
-        #  The CLICKED_PLOT dict pairs grp.CHKBOX_LABELS to grp.PROJECTS strings.
+        #  The CLICKED_PLOT dict pairs grp.CHKBOX_LABELS with grp.PROJECTS strings.
         if not sum(self.tasks_df[f'is_{grp.CLICKED_PLOT[clicked_label]}']):
             self.fig.text(0.5, 0.51,
                           f'There are no {clicked_label} data to plot.',
@@ -740,7 +730,7 @@ class PlotTasks(TaskDataFrame):
 
     def plot_fgrp_hz(self):
         """
-        Plot of frequency (Hz) vs. datetime for all FGRP tasks (5 + G1).
+        Plot of frequency (Hz) vs. datetime for all FGRP tasks (5 & G1).
         """
 
         self.reset_plots()
@@ -941,14 +931,14 @@ class PlotTasks(TaskDataFrame):
         :return: None
         """
 
-        #  NOTE: CANNOT have same plot points overlaid. That creates
+        #  NOTE: CANNOT have same plot points overlaid; that creates
         #    multiple on_pick_report() calls for the same task info.
 
         # NOTE: with checkbox.eventson = True (default),
-        #   all proj button clicks trigger this manage_plots() callback
-        #   (all conditions are evaluated with every click).
+        #   any proj button clicks trigger this manage_plots() callback,
+        #   so all conditions here are evaluated with every click.
 
-        # ischecked key is project label, value is True/False check status.
+        # ischecked key is project label, value is check status.
         # Note: ischecked and self.isplotted dictionary values are boolean.
         ischecked = dict(zip(grp.CHKBOX_LABELS, self.checkbox.get_status()))
 
