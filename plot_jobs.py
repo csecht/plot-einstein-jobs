@@ -281,7 +281,7 @@ class PlotTasks(TaskDataFrame):
                              hspace=0.15),
         )
 
-        mplstyle.use(('seaborn-colorblind', 'fast'))
+        plt.style.use(('fast',))
 
         # Need to have mpl_connect statement before any autoscale statements AND
         #  need to have ax.autoscale() set for set_pickradius() to work.
@@ -394,7 +394,7 @@ class PlotTasks(TaskDataFrame):
     def setup_slider(self, max_f: float) -> None:
         """
         Create a RangeSlider for real-time y-axis Hz range adjustments
-        of *_freq plots.
+        of *_freq plots. Also create usage text box.
 
         :param max_f: The plotted Project's maximum frequency value.
         """
@@ -423,12 +423,12 @@ class PlotTasks(TaskDataFrame):
                                 (0, max_limit),
                                 valstep=2,
                                 orientation='vertical',
-                                color=mark.CBLIND_COLOR['yellow'],
+                                color=mark.CBLIND_COLOR['blue'],
                                 handle_style={'size': 8, }
                                 )
 
         # Position text box above Navigation toolbar.
-        self.ax1.text(-0.19, -0.6,
+        self.ax1.text(-0.19, -0.7,
                       ("Range slider and Navigation bar tools may conflict.\n"
                        "If so, then toggle the plot's checkbox to reset."),
                       style='italic',
@@ -497,7 +497,6 @@ class PlotTasks(TaskDataFrame):
                       markerscale=mark.SCALE,
                       edgecolor='black',
                       framealpha=0.4,
-                      fancybox=True,
                       )
         self.ax1.legend(**kwargs)
         self.ax2.legend(**kwargs)
