@@ -244,21 +244,19 @@ class PlotTasks(TaskDataFrame):
         self.do_replot = False
         self.legend_btn_on = True
 
-        # These keys must match CHKBOX_LABELS in project_groups.py.
+        # These keys must match plot names in project_groups.CHKBOX_LABELS.
         # Dictionary pairs plot name to plot method.
-        self.plot_proj = {
-            'all': self.plot_all,
-            'fgrp5': self.plot_fgrp5,
-            'fgrpBG1': self.plot_fgrpBG1,
-            'fgrp_hz': self.plot_fgrp_hz,
-            'gw_O2MD': self.plot_gw_O2MD,
-            'gw_O3AS': self.plot_gw_O3AS,
-            'brp4': self.plot_brp4,
-            'brp7': self.plot_brp7,
-            'gwO3Hz_X_t': self.plot_gwO3Hz_X_t,
-            'fgrpHz_X_t': self.plot_fgrpHz_X_t,
-        }
-
+        self.plot_proj = dict(all=self.plot_all,
+                              fgrp5=self.plot_fgrp5,
+                              fgrpBG1=self.plot_fgrpBG1,
+                              fgrp_hz=self.plot_fgrp_hz,
+                              gw_O2MD=self.plot_gw_O2MD,
+                              gw_O3AS=self.plot_gw_O3AS,
+                              brp4=self.plot_brp4,
+                              brp7=self.plot_brp7,
+                              gwO3Hz_X_t=self.plot_gwO3Hz_X_t,
+                              fgrpHz_X_t=self.plot_fgrpHz_X_t
+                              )
         self.chkbox_labelid = {}
         self.isplotted = {}
 
