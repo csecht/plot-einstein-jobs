@@ -654,14 +654,19 @@ class PlotTasks(TaskDataFrame):
             txt.set_visible(False)
 
         # When a project series has no data, its is_<project> df column
-        #  has no True values and therefore sums to zero (False).
-        #  The CLICKED_PLOT dict pairs grp.CHKBOX_LABELS with grp.PROJECTS strings.
-        if not sum(self.tasks_df[f'is_{grp.CLICKED_PLOT[clicked_label]}']):
-            self.fig.text(0.5, 0.51,
-                          f'There are no {clicked_label} data to plot.',
-                          horizontalalignment='center',
-                          verticalalignment='center',
-                          transform=self.ax1.transAxes)
+        #   has no True values and therefore sums to zero (False).
+        #   The CLICKED_PLOT dict pairs grp.CHKBOX_LABELS with grp.PROJECTS strings.
+        # The 'no data' msg is removed when the no-data plot is unchecked or a
+        #   valid data plot is checked.
+        # Note: ischecked dictionary values are boolean.
+        ischecked = dict(zip(grp.CHKBOX_LABELS, self.checkbox.get_status()))
+        if ischecked[clicked_label]:
+            if not sum(self.tasks_df[f'is_{grp.CLICKED_PLOT[clicked_label]}']):
+                self.fig.text(0.5, 0.51,
+                              f'There are no {clicked_label} data to plot.',
+                              horizontalalignment='center',
+                              verticalalignment='center',
+                              transform=self.ax1.transAxes)
 
     def plot_all(self):
         self.ax1.plot(self.tasks_df.time_stamp,
@@ -943,9 +948,6 @@ class PlotTasks(TaskDataFrame):
         for plot in grp.EXCLUSIVE_PLOTS:
             if clicked_label == plot and ischecked[clicked_label]:
 
-                # Need to post notice if selected data are not available.
-                self.clicked_plot(clicked_label)
-
                 # Was toggled on...
                 # Need to uncheck other checked project labels.
                 for lbl in grp.CHKBOX_LABELS:
@@ -956,8 +958,6 @@ class PlotTasks(TaskDataFrame):
 
         # Inclusive plots can be plotted with each another.
         if clicked_label in grp.ALL_INCLUSIVE and ischecked[clicked_label]:
-            self.clicked_plot(clicked_label)
-
             for plot in grp.ALL_EXCLUDED:
                 if self.isplotted[plot] or ischecked[plot]:
                     self.isplotted[plot] = False
@@ -976,11 +976,13 @@ class PlotTasks(TaskDataFrame):
 
             # Was toggled off, so remove all plots,
             #   then replot only inclusive checked ones.
-            self.clicked_plot(clicked_label)
             self.reset_plots()
             for proj, status in ischecked.items():
                 if proj in grp.ALL_INCLUSIVE and status:
                     self.plot_proj[proj]()
+
+        # Need to post notice if selected plot data are not available.
+        self.clicked_plot(clicked_label)
 
         self.fig.canvas.draw_idle()
 
