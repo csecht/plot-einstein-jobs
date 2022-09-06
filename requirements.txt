@@ -1,7 +1,7 @@
-matplotlib>=3.5.2
-pandas>=1.4.3
-pillow>=9.2.0
-numpy>=1.23.1
+matplotlib
+pandas
+pillow
+numpy
 
 # Development version set as of July 2022, with Python 3.8:
 # matplotlib==3.5.2
