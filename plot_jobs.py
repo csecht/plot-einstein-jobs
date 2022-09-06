@@ -976,6 +976,7 @@ class PlotTasks(TaskDataFrame):
 
             # Was toggled off, so remove all plots,
             #   then replot only inclusive checked ones.
+            self.clicked_plot(clicked_label)
             self.reset_plots()
             for proj, status in ischecked.items():
                 if proj in grp.ALL_INCLUSIVE and status:
