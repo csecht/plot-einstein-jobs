@@ -11,12 +11,35 @@ view_report - Create the toplevel window to display report text.
 
 # Standard library imports
 import re
-import tkinter as tk
 from pathlib import Path
-from tkinter.scrolledtext import ScrolledText
+from sys import exit
 
 # Third party imports.
-import pandas as pd
+#   tkinter may not be installed in all Python distributions,
+try:
+    import pandas as pd
+    import tkinter as tk
+    from tkinter.scrolledtext import ScrolledText
+
+except (ImportError, ModuleNotFoundError) as import_err:
+    print('*** One or more required Python packages were not found'
+          ' or need an update:\n'
+          'Pandas, tkinter (tk/tcl).\n\n'
+          'To install: from the current folder, run this command'
+          ' for the Python package installer (PIP):\n'
+          '   python3 -m pip install -r requirements.txt\n\n'
+          'Alternative command formats (system dependent):\n'
+          '   py -m pip install -r requirements.txt (Windows)\n'
+          '   pip install -r requirements.txt\n\n'
+          'A package may already be installed, but needs an update;\n'
+          '   this may be the case when the error message (below) is a bit cryptic\n'
+          '   Example update command:\n'
+          '   python3 -m pip install -U pandas\n\n'
+          'On Linux, if tkinter is the problem, then try:\n'
+          '   sudo apt-get install python3-tk\n'
+          '   See also: https://tkdocs.com/tutorial/install.html \n\n'
+          f'Error message:\n{import_err}')
+    exit(1)
 
 # Local application imports
 import __main__
