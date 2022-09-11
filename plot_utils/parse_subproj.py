@@ -14,8 +14,8 @@ def extract_it(dataframe):
     #  where...contains() match unique. From TaskDataFrame.setup_df():
     #    for series in self.gw_series:
     #        is_ser = f'is_{series}'
-    #        self.tasks_df[is_ser] = where(
-    #        self.tasks_df.task_name.str.contains(series), True, False)
+    #        self.jobs_df[is_ser] = where(
+    #        self.jobs_df.task_name.str.contains(series), True, False)
 
     gw_names_list = dataframe.task_name.where(dataframe.is_fgrp5).to_list()
     pattern = r'__O.+?_'

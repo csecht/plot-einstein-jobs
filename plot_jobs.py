@@ -92,7 +92,7 @@ class TaskDataFrame:
     """
 
     def __init__(self):
-        self.tasks_df = pd.DataFrame()
+        self.jobs_df = pd.DataFrame()
 
         self.setup_df()
         self.add_proj_id()
@@ -120,30 +120,30 @@ class TaskDataFrame:
         names = ('time_stamp', 'task_name', 'elapsed_t')
 
         # The datapath path is defined in if __name__ == "__main__".
-        self.tasks_df = pd.read_table(data_path,
-                                      engine='c',
-                                      delim_whitespace=True,
-                                      header=None,
-                                      usecols=joblog_col_index,
-                                      names=names,
-                                      )
+        self.jobs_df = pd.read_table(data_path,
+                                     engine='c',
+                                     delim_whitespace=True,
+                                     header=None,
+                                     usecols=joblog_col_index,
+                                     names=names,
+                                     )
 
         # Need to replace NaN time data with interpolated time values.
         self.manage_bad_times()
 
         # Need to retain original elapsed time as seconds to plot Hz x task time:
-        self.tasks_df['elapsed_sec'] = self.tasks_df.elapsed_t
+        self.jobs_df['elapsed_sec'] = self.jobs_df.elapsed_t
 
         #  Need to convert Epoch time and task time (int or float seconds)
         #    to dtype np.datetime64 for plot axis tick readability.
         for col in ('time_stamp', 'elapsed_t'):
-            self.tasks_df[col] = pd.to_datetime(self.tasks_df[col],
-                                                unit='s',
-                                                infer_datetime_format=True)
+            self.jobs_df[col] = pd.to_datetime(self.jobs_df[col],
+                                               unit='s',
+                                               infer_datetime_format=True)
 
         # Zero data columns are used to visually clear plots in reset_plots().
-        self.tasks_df['null_time'] = pd.to_datetime(0.0, unit='s')
-        self.tasks_df['null_Dcnt'] = 0.0
+        self.jobs_df['null_time'] = pd.to_datetime(0.0, unit='s')
+        self.jobs_df['null_Dcnt'] = 0.0
 
     def manage_bad_times(self) -> None:
         """
@@ -154,15 +154,15 @@ class TaskDataFrame:
         """
         # NOTE: If no times are NaN, then column dtype is numpy.int64,
         #   but if any NaN present, then column dtype is numpy.float64.
-        ts_nan_sum = self.tasks_df.time_stamp.isna().sum()
-        et_nan_sum = self.tasks_df.elapsed_t.isna().sum()
+        ts_nan_sum = self.jobs_df.time_stamp.isna().sum()
+        et_nan_sum = self.jobs_df.elapsed_t.isna().sum()
         time_and_nansum = (('time_stamp', ts_nan_sum),
                            ('elapsed_t', et_nan_sum))
 
         for tup in time_and_nansum:
             if tup[1] > 0:
-                list_nantasks = self.tasks_df[self.tasks_df[tup[0]].isna()]
-                self.tasks_df.time_stamp.interpolate(
+                list_nantasks = self.jobs_df[self.jobs_df[tup[0]].isna()]
+                self.jobs_df.time_stamp.interpolate(
                     method='linear', inplace=True)
                 print(f'*** Heads up: {tup[1]} {tup[0]} values could not'
                       ' be read from the file and have been interpolated. ***\n'
@@ -173,10 +173,10 @@ class TaskDataFrame:
         Add columns that boolean flag each task's associated Project.
         """
 
-        self.tasks_df['is_all'] = True
+        self.jobs_df['is_all'] = True
         for proj, regex in grp.PROJ_NAME_REGEX.items():
-            self.tasks_df[f'is_{proj}'] = where(
-                self.tasks_df.task_name.str.contains(regex), True, False)
+            self.jobs_df[f'is_{proj}'] = where(
+                self.jobs_df.task_name.str.contains(regex), True, False)
 
     def add_frequencies(self):
         """
@@ -188,12 +188,12 @@ class TaskDataFrame:
         regex_fgrp_freq = r'LATeah.*?_(\d+)'
         # pattern_gw_freq = r'h1.*_(\d+\.\d{2})Hz_'  # Capture highest freq, not base freq.
         regex_gwo3_freq = r'h1_(\d+\.\d+)_.+__O3AS'  # Capture the base/parent freq.
-        self.tasks_df['fgrp_freq'] = (self.tasks_df.task_name
-                                      .str.extract(regex_fgrp_freq)
-                                      .astype('float64'))
-        self.tasks_df['gwO3AS_freq'] = (self.tasks_df.task_name
-                                        .str.extract(regex_gwo3_freq)
-                                        .astype('float64'))
+        self.jobs_df['fgrp_freq'] = (self.jobs_df.task_name
+                                     .str.extract(regex_fgrp_freq)
+                                     .astype('float64'))
+        self.jobs_df['gwO3AS_freq'] = (self.jobs_df.task_name
+                                       .str.extract(regex_gwo3_freq)
+                                       .astype('float64'))
 
     def add_daily_counts(self):
         """
@@ -207,10 +207,10 @@ class TaskDataFrame:
         # For clarity, PROJECTS names used here need to match those used
         #   in isplotted (dict) and chkbox_labels (tuple).
         for proj in grp.PROJECTS:
-            self.tasks_df[f'{proj}_Dcnt'] = (
-                self.tasks_df.time_stamp
-                .groupby(self.tasks_df.time_stamp.dt.floor('D')
-                         .where(self.tasks_df[f'is_{proj}']))
+            self.jobs_df[f'{proj}_Dcnt'] = (
+                self.jobs_df.time_stamp
+                .groupby(self.jobs_df.time_stamp.dt.floor('D')
+                         .where(self.jobs_df[f'is_{proj}']))
                 .transform('count')
             )
 
@@ -284,7 +284,7 @@ class PlotTasks(TaskDataFrame):
         # Need to have mpl_connect statement before any autoscale statements AND
         #  need to have ax.autoscale() set for set_pickradius() to work.
         self.fig.canvas.mpl_connect(
-            'pick_event', lambda _: reports.on_pick_report(_, self.tasks_df))
+            'pick_event', lambda _: reports.on_pick_report(_, self.jobs_df))
 
         # Slider used in *_Hz plots to set Hz ranges; attribute here
         #  so that it can be removed/redrawn with each *_Hz plot call
@@ -377,7 +377,7 @@ class PlotTasks(TaskDataFrame):
                       'Job log\ncounts',
                       hovercolor=mark.CBLIND_COLOR['orange'],
                       )
-        sbtn.on_clicked(lambda _: reports.joblog_report(self.tasks_df))
+        sbtn.on_clicked(lambda _: reports.joblog_report(self.jobs_df))
         ax_statsbtn._button = sbtn  # Prevent garbage collection.
 
         # Position About button to bottom right corner.
@@ -629,12 +629,12 @@ class PlotTasks(TaskDataFrame):
 
         kwargs = dict(visible=False, label='_leave blank')
 
-        self.ax1.plot(self.tasks_df.time_stamp,
-                      self.tasks_df.null_time,
+        self.ax1.plot(self.jobs_df.time_stamp,
+                      self.jobs_df.null_time,
                       **kwargs,
                       )
-        self.ax2.plot(self.tasks_df.time_stamp,
-                      self.tasks_df.null_Dcnt,
+        self.ax2.plot(self.jobs_df.time_stamp,
+                      self.jobs_df.null_Dcnt,
                       **kwargs,
                       )
 
@@ -661,7 +661,7 @@ class PlotTasks(TaskDataFrame):
         # Note: ischecked dictionary values are boolean.
         ischecked = dict(zip(grp.CHKBOX_LABELS, self.checkbox.get_status()))
         if ischecked[clicked_label]:
-            if not sum(self.tasks_df[f'is_{grp.CLICKED_PLOT[clicked_label]}']):
+            if not sum(self.jobs_df[f'is_{grp.CLICKED_PLOT[clicked_label]}']):
                 self.fig.text(0.5, 0.51,
                               f'There are no {clicked_label} data to plot.',
                               horizontalalignment='center',
@@ -669,8 +669,8 @@ class PlotTasks(TaskDataFrame):
                               transform=self.ax1.transAxes)
 
     def plot_all(self):
-        self.ax1.plot(self.tasks_df.time_stamp,
-                      self.tasks_df.elapsed_t,
+        self.ax1.plot(self.jobs_df.time_stamp,
+                      self.jobs_df.elapsed_t,
                       mark.STYLE['point'],
                       markersize=mark.SIZE,
                       label='all',
@@ -678,8 +678,8 @@ class PlotTasks(TaskDataFrame):
                       alpha=0.2,
                       picker=True,
                       )
-        self.ax2.plot(self.tasks_df.time_stamp,
-                      self.tasks_df.all_Dcnt,
+        self.ax2.plot(self.jobs_df.time_stamp,
+                      self.jobs_df.all_Dcnt,
                       mark.STYLE['square'],
                       markersize=mark.DCNT_SIZE,
                       label='all',
@@ -689,8 +689,8 @@ class PlotTasks(TaskDataFrame):
         self.isplotted['all'] = True
 
     def plot_fgrp5(self):
-        self.ax1.plot(self.tasks_df.time_stamp,
-                      self.tasks_df.elapsed_t.where(self.tasks_df.is_fgrp5),
+        self.ax1.plot(self.jobs_df.time_stamp,
+                      self.jobs_df.elapsed_t.where(self.jobs_df.is_fgrp5),
                       mark.STYLE['tri_left'],
                       markersize=mark.SIZE,
                       label='fgrp5',
@@ -698,8 +698,8 @@ class PlotTasks(TaskDataFrame):
                       alpha=0.3,
                       picker=True,
                       )
-        self.ax2.plot(self.tasks_df.time_stamp,
-                      self.tasks_df.fgrp5_Dcnt,
+        self.ax2.plot(self.jobs_df.time_stamp,
+                      self.jobs_df.fgrp5_Dcnt,
                       mark.STYLE['square'],
                       markersize=mark.DCNT_SIZE,
                       label='fgrp5',
@@ -710,8 +710,8 @@ class PlotTasks(TaskDataFrame):
         self.isplotted['fgrp5'] = True
 
     def plot_fgrpBG1(self):
-        self.ax1.plot(self.tasks_df.time_stamp,
-                      self.tasks_df.elapsed_t.where(self.tasks_df.is_fgrpBG1),
+        self.ax1.plot(self.jobs_df.time_stamp,
+                      self.jobs_df.elapsed_t.where(self.jobs_df.is_fgrpBG1),
                       mark.STYLE['tri_right'],
                       markersize=mark.SIZE,
                       label='fgrpBG1',
@@ -719,8 +719,8 @@ class PlotTasks(TaskDataFrame):
                       alpha=0.5,
                       picker=True,
                       )
-        self.ax2.plot(self.tasks_df.time_stamp,
-                      self.tasks_df.fgrpBG1_Dcnt,
+        self.ax2.plot(self.jobs_df.time_stamp,
+                      self.jobs_df.fgrpBG1_Dcnt,
                       mark.STYLE['square'],
                       markersize=mark.DCNT_SIZE,
                       label='fgrpBG1',
@@ -737,8 +737,8 @@ class PlotTasks(TaskDataFrame):
 
         self.reset_plots()
 
-        self.ax1.plot(self.tasks_df.time_stamp,
-                      self.tasks_df.fgrp_freq,
+        self.ax1.plot(self.jobs_df.time_stamp,
+                      self.jobs_df.fgrp_freq,
                       mark.STYLE['tri_right'],
                       markersize=mark.SIZE,
                       label='fgrp_hz',
@@ -746,15 +746,15 @@ class PlotTasks(TaskDataFrame):
                       alpha=0.3,
                       picker=True,
                       )
-        self.ax2.plot(self.tasks_df.time_stamp,
-                      self.tasks_df.fgrp5_Dcnt,
+        self.ax2.plot(self.jobs_df.time_stamp,
+                      self.jobs_df.fgrp5_Dcnt,
                       mark.STYLE['square'],
                       markersize=mark.DCNT_SIZE,
                       label='fgrp5',
                       color=mark.CBLIND_COLOR['black'],
                       )
-        self.ax2.plot(self.tasks_df.time_stamp,
-                      self.tasks_df.fgrpBG1_Dcnt,
+        self.ax2.plot(self.jobs_df.time_stamp,
+                      self.jobs_df.fgrpBG1_Dcnt,
                       mark.STYLE['square'],
                       markersize=mark.DCNT_SIZE,
                       label='fgrpBG1',
@@ -769,8 +769,8 @@ class PlotTasks(TaskDataFrame):
         self.isplotted['fgrp_hz'] = True
 
     def plot_gw_O2MD(self):
-        self.ax1.plot(self.tasks_df.time_stamp,
-                      self.tasks_df.elapsed_t.where(self.tasks_df.is_gw_O2MD),
+        self.ax1.plot(self.jobs_df.time_stamp,
+                      self.jobs_df.elapsed_t.where(self.jobs_df.is_gw_O2MD),
                       mark.STYLE['triangle_down'],
                       markersize=mark.SIZE,
                       label='gw_O2MD',
@@ -778,8 +778,8 @@ class PlotTasks(TaskDataFrame):
                       alpha=0.4,
                       picker=True,
                       )
-        self.ax2.plot(self.tasks_df.time_stamp,
-                      self.tasks_df.gw_O2MD_Dcnt,
+        self.ax2.plot(self.jobs_df.time_stamp,
+                      self.jobs_df.gw_O2MD_Dcnt,
                       mark.STYLE['square'],
                       markersize=mark.DCNT_SIZE,
                       label='gw_O2MD',
@@ -789,8 +789,8 @@ class PlotTasks(TaskDataFrame):
         self.isplotted['gw_O2MD'] = True
 
     def plot_gw_O3AS(self):
-        self.ax1.plot(self.tasks_df.time_stamp,
-                      self.tasks_df.elapsed_t.where(self.tasks_df.is_gw_O3AS),
+        self.ax1.plot(self.jobs_df.time_stamp,
+                      self.jobs_df.elapsed_t.where(self.jobs_df.is_gw_O3AS),
                       mark.STYLE['thin_diamond'],
                       markersize=mark.SIZE,
                       label='gw_O3AS',
@@ -798,8 +798,8 @@ class PlotTasks(TaskDataFrame):
                       alpha=0.3,
                       picker=True,
                       )
-        self.ax2.plot(self.tasks_df.time_stamp,
-                      self.tasks_df.gw_O3AS_Dcnt,
+        self.ax2.plot(self.jobs_df.time_stamp,
+                      self.jobs_df.gw_O3AS_Dcnt,
                       mark.STYLE['square'],
                       markersize=mark.DCNT_SIZE,
                       label='gw_O3AS',
@@ -809,8 +809,8 @@ class PlotTasks(TaskDataFrame):
         self.isplotted['gw_O3AS'] = True
 
     def plot_brp4(self):
-        self.ax1.plot(self.tasks_df.time_stamp,
-                      self.tasks_df.elapsed_t.where(self.tasks_df.is_brp4),
+        self.ax1.plot(self.jobs_df.time_stamp,
+                      self.jobs_df.elapsed_t.where(self.jobs_df.is_brp4),
                       mark.STYLE['pentagon'],
                       markersize=mark.SIZE,
                       label='BRP4 & BRP4G',
@@ -818,8 +818,8 @@ class PlotTasks(TaskDataFrame):
                       alpha=0.3,
                       picker=True,
                       )
-        self.ax2.plot(self.tasks_df.time_stamp,
-                      self.tasks_df.brp4_Dcnt,
+        self.ax2.plot(self.jobs_df.time_stamp,
+                      self.jobs_df.brp4_Dcnt,
                       mark.STYLE['square'],
                       markersize=mark.DCNT_SIZE,
                       label='BRP4 & BRP4G',
@@ -829,8 +829,8 @@ class PlotTasks(TaskDataFrame):
         self.isplotted['brp4'] = True
 
     def plot_brp7(self):
-        self.ax1.plot(self.tasks_df.time_stamp,
-                      self.tasks_df.elapsed_t.where(self.tasks_df.is_brp7),
+        self.ax1.plot(self.jobs_df.time_stamp,
+                      self.jobs_df.elapsed_t.where(self.jobs_df.is_brp7),
                       mark.STYLE['diamond'],
                       markersize=mark.SIZE,
                       label='BRP7',
@@ -838,8 +838,8 @@ class PlotTasks(TaskDataFrame):
                       alpha=0.5,
                       picker=True,
                       )
-        self.ax2.plot(self.tasks_df.time_stamp,
-                      self.tasks_df.brp7_Dcnt,
+        self.ax2.plot(self.jobs_df.time_stamp,
+                      self.jobs_df.brp7_Dcnt,
                       mark.STYLE['square'],
                       markersize=mark.DCNT_SIZE,
                       label='BRP7',
@@ -849,13 +849,13 @@ class PlotTasks(TaskDataFrame):
         self.isplotted['brp7'] = True
 
     def plot_fgrpHz_X_t(self):
-        num_f = self.tasks_df.fgrp_freq.nunique()
-        min_f = self.tasks_df.fgrp_freq.min()
-        max_f = self.tasks_df.fgrp_freq.max()
-        min_t = self.tasks_df.elapsed_sec.where(
-            self.tasks_df.is_fgrp).min().astype('int64')
-        max_t = self.tasks_df.elapsed_sec.where(
-            self.tasks_df.is_fgrp).max().astype('int64')
+        num_f = self.jobs_df.fgrp_freq.nunique()
+        min_f = self.jobs_df.fgrp_freq.min()
+        max_f = self.jobs_df.fgrp_freq.max()
+        min_t = self.jobs_df.elapsed_sec.where(
+            self.jobs_df.is_fgrp).min().astype('int64')
+        max_t = self.jobs_df.elapsed_sec.where(
+            self.jobs_df.is_fgrp).max().astype('int64')
 
         # Add a 2% margin to time axis upper limit.
         self.setup_freq_axes((0, max_t * 1.02))
@@ -874,8 +874,8 @@ class PlotTasks(TaskDataFrame):
                       bbox=self.text_bbox,
                       )
 
-        self.ax1.plot(self.tasks_df.elapsed_sec.where(self.tasks_df.is_fgrp),
-                      self.tasks_df.fgrp_freq,
+        self.ax1.plot(self.jobs_df.elapsed_sec.where(self.jobs_df.is_fgrp),
+                      self.jobs_df.fgrp_freq,
                       mark.STYLE['tri_right'],
                       markersize=mark.SIZE,
                       color=mark.CBLIND_COLOR['vermilion'],
@@ -886,13 +886,13 @@ class PlotTasks(TaskDataFrame):
         self.isplotted['fgrpHz_X_t'] = True
 
     def plot_gwO3Hz_X_t(self):
-        num_f = self.tasks_df.gwO3AS_freq.nunique()
-        min_f = self.tasks_df.gwO3AS_freq.min()
-        max_f = self.tasks_df.gwO3AS_freq.max()
-        min_t = self.tasks_df.elapsed_sec.where(
-            self.tasks_df.is_gw_O3AS).min().astype('int64')
-        max_t = self.tasks_df.elapsed_sec.where(
-            self.tasks_df.is_gw_O3AS).max().astype('int64')
+        num_f = self.jobs_df.gwO3AS_freq.nunique()
+        min_f = self.jobs_df.gwO3AS_freq.min()
+        max_f = self.jobs_df.gwO3AS_freq.max()
+        min_t = self.jobs_df.elapsed_sec.where(
+            self.jobs_df.is_gw_O3AS).min().astype('int64')
+        max_t = self.jobs_df.elapsed_sec.where(
+            self.jobs_df.is_gw_O3AS).max().astype('int64')
 
         # Add a 2% margin to time axis upper limit.
         self.setup_freq_axes((0, max_t * 1.02))
@@ -911,8 +911,8 @@ class PlotTasks(TaskDataFrame):
                       bbox=self.text_bbox,
                       )
 
-        self.ax1.plot(self.tasks_df.elapsed_sec.where(self.tasks_df.is_gw_O3AS),
-                      self.tasks_df.gwO3AS_freq,
+        self.ax1.plot(self.jobs_df.elapsed_sec.where(self.jobs_df.is_gw_O3AS),
+                      self.jobs_df.gwO3AS_freq,
                       mark.STYLE['triangle_up'],
                       markersize=mark.SIZE,
                       color=mark.CBLIND_COLOR['sky blue'],

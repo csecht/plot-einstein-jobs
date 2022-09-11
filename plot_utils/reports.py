@@ -210,7 +210,7 @@ def on_pick_report(event, dataframe: pd) -> None:
 def number_since(dataframe: pd, proj: str, since_date: str) -> int:
     """
     Count how many tasks for a Project were run since a given date.
-    Example: n = reports.number_since(self.tasks_df, 'brp7', '8/25/2022')
+    Example: n = reports.number_since(self.jobs_df, 'brp7', '8/25/2022')
     Called from on_pick(), which passes this datetime string format:
     '2022-08-25 17:30:45'.
 
