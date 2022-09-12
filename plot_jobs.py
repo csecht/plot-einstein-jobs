@@ -189,7 +189,7 @@ class TaskDataFrame:
         GW task: 'h1_0681.20_O3aC01Cl1In0__O3AS1a_681.50Hz_19188_1'
         """
         regex_fgrp_freq = r'LATeah.*?_(\d+)'
-        # pattern_gw_freq = r'h1.*_(\d+\.\d{2})Hz_'  # Capture highest freq, not base freq.
+        # regex_gw_hifreq = r'h1.*_(\d+\.\d{2})Hz_'  # Capture highest freq, not base freq.
         regex_gwo3_freq = r'h1_(\d+\.\d+)_.+__O3AS'  # Capture the base/parent freq.
         self.jobs_df['fgrp_freq'] = (self.jobs_df.task_name
                                      .str.extract(regex_fgrp_freq)
@@ -207,8 +207,8 @@ class TaskDataFrame:
         #         https://stackoverflow.com/questions/17709270/
         #           create-column-of-value-counts-in-pandas-dataframe
 
-        # For clarity, PROJECTS names used here need to match those used
-        #   in isplotted (dict) and chkbox_labels (tuple).
+        # For clarity, grp.PROJECTS names used here need to match those
+        #   used in isplotted (dict) and grp.CHKBOX_LABELS (tuple).
         for proj in grp.PROJECTS:
             self.jobs_df[f'{proj}_Dcnt'] = (
                 self.jobs_df.time_stamp
@@ -327,14 +327,15 @@ class PlotTasks(TaskDataFrame):
 
         toolbar = backend.NavigationToolbar2Tk(canvas, canvas_window)
 
-        # Need to remove the subplots navigation button.
+        # Need to remove the useless subplots navigation button.
         # Source: https://stackoverflow.com/questions/59155873/
         #   how-to-remove-toolbar-button-from-navigationtoolbar2tk-figurecanvastkagg
+        # The button id '4' happens to work for all OS platforms. May change in future!
         toolbar.children['!button4'].pack_forget()
 
         # Now display all widgets.
-        # NOTE: toolbar must be gridded before canvas to prevent
-        #   FigureCanvasTkAgg from preempting window geometry with pack().
+        # NOTE: toolbar must be gridded BEFORE canvas to prevent
+        #   FigureCanvasTkAgg from preempting window geometry with its pack().
         toolbar.grid(row=1, column=0,
                      padx=5, pady=(0, 5),  # Put a border around toolbar.
                      sticky=tk.NSEW,
@@ -344,8 +345,8 @@ class PlotTasks(TaskDataFrame):
                                     padx=5, pady=5,  # Put a border around plot.
                                     sticky=tk.NSEW,
                                     )
-        # Because macOS tool icon images won't render properly,
-        #   need to provide text descriptions of tool button functions.
+        # Because macOS tool icon images won't/don't render properly,
+        #   need to provide text descriptions of toolbar button functions.
         if sys.platform == 'darwin':
             tool_lbl = tk.Label(canvas_window,
                                 text='Home Fwd Back | Pan  Zoom | Save',
@@ -413,7 +414,7 @@ class PlotTasks(TaskDataFrame):
         else:
             max_limit = max_f * 1.02
 
-        # RangeSlider Coord: (LEFT, BOTTOM, WIDTH, HEIGHT).
+        # RangeSlider relative Figure coord: (LEFT, BOTTOM, WIDTH, HEIGHT).
         self.ax_slider = plt.axes((0.05, 0.38, 0.01, 0.52))  # vert
 
         # Invert min/max values on vertical slider so max is on top.
@@ -466,7 +467,7 @@ class PlotTasks(TaskDataFrame):
         for proj in grp.CHKBOX_LABELS:
             self.isplotted[proj] = False
 
-        # Relative coordinates in Figure, 4-tuple (LEFT, BOTTOM, WIDTH, HEIGHT)
+        # Relative coordinates in Figure, 4-tuple (LEFT, BOTTOM, WIDTH, HEIGHT).
         ax_chkbox = plt.axes((0.86, 0.54, 0.13, 0.36), facecolor=mark.DARK_GRAY)
         ax_chkbox.set_xlabel('Project plots',
                              fontsize='medium',
@@ -575,7 +576,7 @@ class PlotTasks(TaskDataFrame):
         self.ax1.yaxis.set_pickradius(mark.PICK_RADIUS)
 
         # NOTE: autoscale methods have no visual effect when reset_plots() plots
-        #  the full range datetimes from a job lob, BUT enabling autoscale
+        #  the full range datetimes from a job log, BUT enabling autoscale()
         #  allows set_pickradius() to work properly.
         self.ax1.autoscale()
         self.ax2.autoscale()
@@ -595,7 +596,7 @@ class PlotTasks(TaskDataFrame):
         self.ax1.tick_params('x', labelbottom=True)
 
         # When data are not available for a plot, the t_limit tuple
-        #  will be (0, nan) and set_xlim() will raise
+        #  will be (0, nan) and so set_xlim() will raise
         #    ValueError: Axis limits cannot be NaN or Inf
         try:
             self.ax1.set_xlim(t_limits)
@@ -605,11 +606,10 @@ class PlotTasks(TaskDataFrame):
         # Need to FIX: the Home tool sets (remembers) axes range of the
         #  first selected freq vs time plot, instead of current
         #  freq vs time plot, but only when the Zoom tool has been used.
-        self.ax1.set_xlabel('Task completion time, sec',
-                            fontsize='medium', fontweight='bold')
+        kwargs = dict(fontsize='medium', fontweight='bold')
 
-        self.ax1.set_ylabel('Task base frequency, Hz',
-                            fontsize='medium', fontweight='bold')
+        self.ax1.set_xlabel('Task completion time, sec', **kwargs)
+        self.ax1.set_ylabel('Task base frequency, Hz', **kwargs)
 
         self.ax1.xaxis.set_major_formatter(ticker.FormatStrFormatter('%.0f'))
         self.ax1.yaxis.set_major_formatter(ticker.FormatStrFormatter('%.2f'))
