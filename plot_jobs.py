@@ -79,6 +79,9 @@ except (ImportError, ModuleNotFoundError) as import_err:
     sys.exit(1)
 
 
+# Suppress pylint warning where df columns are referenced by dot notation.
+# pylint: disable=no-member
+
 class TaskDataFrame:
     """
     Set up the DataFrame used for plotting.
@@ -86,8 +89,8 @@ class TaskDataFrame:
     Methods:
          setup_df - Set up main dataframe from an E@H job_log text file.
          manage_bad_times - Interpolate missing time data.
-         add_proj_id - Add columns of boolean flags for Project ID.
-         add_frequencies - Add task base (parent) search frequencies.
+         add_proj_tags - Add columns of boolean flags for Project ID.
+         add_hz_values - Add task base (parent) search frequencies.
          add_daily_counts - Add daily counts for each Project.
     """
 
@@ -95,8 +98,8 @@ class TaskDataFrame:
         self.jobs_df = pd.DataFrame()
 
         self.setup_df()
-        self.add_proj_id()
-        self.add_frequencies()
+        self.add_proj_tags()
+        self.add_hz_values()
         self.add_daily_counts()
 
     def setup_df(self):
@@ -141,7 +144,7 @@ class TaskDataFrame:
                                                unit='s',
                                                infer_datetime_format=True)
 
-        # Zero data columns are used to visually clear plots in reset_plots().
+        # Use zero-value data columns to visually clear plots in reset_plots().
         self.jobs_df['null_time'] = pd.to_datetime(0.0, unit='s')
         self.jobs_df['null_Dcnt'] = 0.0
 
@@ -168,7 +171,7 @@ class TaskDataFrame:
                       ' be read from the file and have been interpolated. ***\n'
                       f'Tasks with "bad" times in the file:\nrow #\n{list_nantasks}')
 
-    def add_proj_id(self):
+    def add_proj_tags(self):
         """
         Add columns that boolean flag each task's associated Project.
         """
@@ -178,7 +181,7 @@ class TaskDataFrame:
             self.jobs_df[f'is_{proj}'] = where(
                 self.jobs_df.task_name.str.contains(regex), True, False)
 
-    def add_frequencies(self):
+    def add_hz_values(self):
         """
         Add columns of search frequencies, parsed from the task name.
         Regex for base frequency will match these task name structures:

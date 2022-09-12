@@ -15,7 +15,7 @@ ALL_EXCLUDED = ('all', 'fgrp_hz', 'fgrpHz_X_t', 'gwO3Hz_X_t')
 
 ALL_INCLUSIVE = ('fgrp5', 'fgrpBG1', 'gw_O2MD', 'gw_O3AS', 'brp4', 'brp7')
 
-# Dict used in PlotTasks.add_proj_id to fill in is_<project> columns
+# Dict used in PlotTasks.add_proj_tags to fill in is_<project> columns
 #   in the main DataFrame.
 PROJ_NAME_REGEX = {
     'fgrp': 'LATeah',
