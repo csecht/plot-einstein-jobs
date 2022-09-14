@@ -50,7 +50,6 @@ try:
     import matplotlib.backends.backend_tkagg as backend
     import matplotlib.dates as mdates
     import matplotlib.pyplot as plt
-    import matplotlib.style as mplstyle
     import pandas as pd
     import tkinter as tk
 
@@ -144,7 +143,7 @@ class TaskDataFrame:
                                                unit='s',
                                                infer_datetime_format=True)
 
-        # Use zero-value data columns to visually clear plots in reset_plots().
+        # Add zero-value data columns: use to visually clear plots in reset_plots().
         self.jobs_df['null_time'] = pd.to_datetime(0.0, unit='s')
         self.jobs_df['null_Dcnt'] = 0.0
 
@@ -282,7 +281,10 @@ class PlotTasks(TaskDataFrame):
                              hspace=0.15),
         )
 
-        plt.style.use(('fast',))
+        # Style: from Baysean Methods for Hackers; looks nice for this data.
+        #  http://camdavidsonpilon.github.io/Probabilistic-Programming-and-Bayesian-Methods-for-Hackers/
+        #  'fast', see: https://matplotlib.org/stable/users/explain/performance.html
+        plt.style.use(('bmh', 'fast',))
 
         # Need to have mpl_connect statement before any autoscale statements AND
         #  need to have ax.autoscale() set for set_pickradius() to work.
