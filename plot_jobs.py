@@ -269,6 +269,12 @@ class PlotTasks(TaskDataFrame):
                               pad=0.7,
                               )
 
+        # 'bmh' style: from Baysean Methods for Hackers; looks nice for this data.
+        #  http://camdavidsonpilon.github.io/Probabilistic-Programming-and-Bayesian-Methods-for-Hackers/
+        #  'fast', see: https://matplotlib.org/stable/users/explain/performance.html
+        # Statement order relative to subplots assignment affects bg color & initial plot.
+        plt.style.use(('bmh', 'fast'))
+
         # Make the Figure and Axes objects; establish geometry of axes.
         self.fig, (self.ax1, self.ax2) = plt.subplots(
             2,
@@ -280,11 +286,6 @@ class PlotTasks(TaskDataFrame):
                              top=0.92,
                              hspace=0.15),
         )
-
-        # Style: from Baysean Methods for Hackers; looks nice for this data.
-        #  http://camdavidsonpilon.github.io/Probabilistic-Programming-and-Bayesian-Methods-for-Hackers/
-        #  'fast', see: https://matplotlib.org/stable/users/explain/performance.html
-        plt.style.use(('bmh', 'fast',))
 
         # Need to have mpl_connect statement before any autoscale statements AND
         #  need to have ax.autoscale() set for set_pickradius() to work.
@@ -839,8 +840,8 @@ class PlotTasks(TaskDataFrame):
                       mark.STYLE['diamond'],
                       markersize=mark.SIZE,
                       label='BRP7',
-                      color=mark.CBLIND_COLOR['yellow'],
-                      alpha=0.5,
+                      color=mark.CBLIND_COLOR['black'],
+                      alpha=0.3,
                       picker=True,
                       )
         self.ax2.plot(self.jobs_df.time_stamp,
@@ -848,7 +849,7 @@ class PlotTasks(TaskDataFrame):
                       mark.STYLE['square'],
                       markersize=mark.DCNT_SIZE,
                       label='BRP7',
-                      color=mark.CBLIND_COLOR['yellow'],
+                      color=mark.CBLIND_COLOR['black'],
                       )
         self.format_legends()
         self.isplotted['brp7'] = True
