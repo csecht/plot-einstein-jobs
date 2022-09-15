@@ -41,6 +41,8 @@ Developed in Python 3.8-3.9.
 import sys
 
 # Local application imports
+import numpy as np
+
 from plot_utils import (path_check, reports, utils,
                         markers as mark,
                         project_groups as grp)
@@ -139,9 +141,13 @@ class TaskDataFrame:
         #  Need to convert Epoch time and task time (int or float seconds)
         #    to dtype np.datetime64 for plot axis tick readability.
         for col in ('time_stamp', 'elapsed_t'):
-            self.jobs_df[col] = pd.to_datetime(self.jobs_df[col],
-                                               unit='s',
-                                               infer_datetime_format=True)
+            try:
+                self.jobs_df[col] = pd.to_datetime(self.jobs_df[col],
+                                                   unit='s',
+                                                   infer_datetime_format=True)
+            except ValueError:
+                print(f'Warning: A {col} value could not be converted'
+                      ' to a pd datetime object by setup_df().\n')
 
         # Add zero-value data columns: use to visually clear plots in reset_plots().
         self.jobs_df['null_time'] = pd.to_datetime(0.0, unit='s')
@@ -158,13 +164,13 @@ class TaskDataFrame:
         #   but if any NaN present, then column dtype is numpy.float64.
         ts_nan_sum = self.jobs_df.time_stamp.isna().sum()
         et_nan_sum = self.jobs_df.elapsed_t.isna().sum()
-        time_and_nansum = (('time_stamp', ts_nan_sum),
-                           ('elapsed_t', et_nan_sum))
+        nansums = (('time_stamp', ts_nan_sum),
+                   ('elapsed_t', et_nan_sum))
 
-        for tup in time_and_nansum:
+        for tup in nansums:
             if tup[1] > 0:
                 list_nantasks = self.jobs_df[self.jobs_df[tup[0]].isna()]
-                self.jobs_df.time_stamp.interpolate(
+                self.jobs_df[tup[0]].interpolate(
                     method='linear', inplace=True)
                 print(f'*** Heads up: {tup[1]} {tup[0]} values could not'
                       ' be read from the file and have been interpolated. ***\n'
@@ -209,12 +215,16 @@ class TaskDataFrame:
         # For clarity, grp.PROJECTS names used here need to match those
         #   used in isplotted (dict) and grp.CHKBOX_LABELS (tuple).
         for proj in grp.PROJECTS:
-            self.jobs_df[f'{proj}_Dcnt'] = (
-                self.jobs_df.time_stamp
-                .groupby(self.jobs_df.time_stamp.dt.floor('D')
-                         .where(self.jobs_df[f'is_{proj}']))
-                .transform('count')
-            )
+            try:
+                self.jobs_df[f'{proj}_Dcnt'] = (
+                    self.jobs_df.time_stamp
+                    .groupby(self.jobs_df.time_stamp.dt.floor('D')
+                             .where(self.jobs_df[f'is_{proj}']))
+                    .transform('count')
+                )
+            except AttributeError:
+                print(f'Warning: A timestamp in Project {proj} was not'
+                      ' recognized as a dt object by add_daily_counts().')
 
 
 class PlotTasks(TaskDataFrame):
