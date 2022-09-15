@@ -120,7 +120,7 @@ class TaskDataFrame:
         # time_names = ('time_stamp', 'est_sec', 'cpu_sec', 'elapsed_t')
 
         # Job log data of current interest:
-        joblog_col_index = 0, 8, 10
+        job_col_index = 0, 8, 10
         names = ('time_stamp', 'task_name', 'elapsed_t')
 
         # The datapath path is defined in if __name__ == "__main__".
@@ -128,7 +128,7 @@ class TaskDataFrame:
                                      engine='c',
                                      delim_whitespace=True,
                                      header=None,
-                                     usecols=joblog_col_index,
+                                     usecols=job_col_index,
                                      names=names,
                                      )
 
@@ -161,27 +161,29 @@ class TaskDataFrame:
         :return: None
         """
 
-        # Clean data: convert non-numeric time data to NaN.
-        for col in ('time_stamp', 'elapsed_t'):
-            self.jobs_df[col] = pd.to_numeric(self.jobs_df[col], errors='coerce')
+        # Clean up data: force non-numeric time values to NaN.
+        for ser in ('time_stamp', 'elapsed_t'):
+            self.jobs_df[ser] = pd.to_numeric(self.jobs_df[ser], errors='coerce')
 
-        # NOTE: If no times are NaN, then column dtype is numpy.int64,
-        #   but if any NaN present, then column dtype is numpy.float64.
+        # NOTE: If no times are NaN, then series dtype is numpy.int64,
+        #   but if any NaN present, then series dtype is numpy.float64.
         ts_nan_sum = self.jobs_df.time_stamp.isna().sum()
         et_nan_sum = self.jobs_df.elapsed_t.isna().sum()
-        nansums = (('time_stamp', ts_nan_sum),
-                   ('elapsed_t', et_nan_sum))
+        nansums = (
+            (ts_nan_sum, 'time_stamp'),
+            (et_nan_sum, 'elapsed_t'),
+        )
 
         for tup in nansums:
-            if tup[1] > 0:
-                list_nanjobs = self.jobs_df[self.jobs_df[tup[0]].isna()]
-                self.jobs_df[tup[0]].interpolate(
+            if tup[0] > 0:
+                all_nanjobs = self.jobs_df[self.jobs_df[tup[1]].isna()]
+                self.jobs_df[tup[1]].interpolate(
                     method='linear', inplace=True)
-                print(f'*** Heads up: {tup[1]} {tup[0]} values could not'
+                print(f'*** Heads up: {tup[0]} {tup[1]} values could not'
                       ' be read from the file and have been interpolated. ***\n'
                       f'Tasks with "bad" times:\n'
                       f'row # (starts at 0)\n'
-                      f'{list_nanjobs}')
+                      f'{all_nanjobs}')
 
     def add_proj_tags(self):
         """
