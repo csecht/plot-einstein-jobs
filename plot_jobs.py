@@ -156,10 +156,15 @@ class TaskDataFrame:
     def manage_bad_times(self) -> None:
         """
         Report and interpolate timestamp and elapsed time values that are
-        interpreted from file as NaN.
+        interpreted from file as NaN or are otherwise non-numeric.
 
         :return: None
         """
+
+        # Clean data: convert non-numeric time data to NaN.
+        for col in ('time_stamp', 'elapsed_t'):
+            self.jobs_df[col] = pd.to_numeric(self.jobs_df[col], errors='coerce')
+
         # NOTE: If no times are NaN, then column dtype is numpy.int64,
         #   but if any NaN present, then column dtype is numpy.float64.
         ts_nan_sum = self.jobs_df.time_stamp.isna().sum()
@@ -169,12 +174,14 @@ class TaskDataFrame:
 
         for tup in nansums:
             if tup[1] > 0:
-                list_nantasks = self.jobs_df[self.jobs_df[tup[0]].isna()]
+                list_nanjobs = self.jobs_df[self.jobs_df[tup[0]].isna()]
                 self.jobs_df[tup[0]].interpolate(
                     method='linear', inplace=True)
                 print(f'*** Heads up: {tup[1]} {tup[0]} values could not'
                       ' be read from the file and have been interpolated. ***\n'
-                      f'Tasks with "bad" times in the file:\nrow #\n{list_nantasks}')
+                      f'Tasks with "bad" times:\n'
+                      f'row # (starts at 0)\n'
+                      f'{list_nanjobs}')
 
     def add_proj_tags(self):
         """
