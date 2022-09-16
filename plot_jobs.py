@@ -486,6 +486,8 @@ class PlotTasks(TaskDataFrame):
         for i, proj in enumerate(grp.CHKBOX_LABELS):
             self.chkbox_labelid[proj] = i
 
+        # Need to populate the isplotted dictionary with Project label names and
+        #   their default checkbox boolean states.
         for proj in grp.CHKBOX_LABELS:
             self.isplotted[proj] = False
 
@@ -694,11 +696,12 @@ class PlotTasks(TaskDataFrame):
                               transform=self.ax1.transAxes)
 
     def plot_all(self):
+        p_label = 'all'
         self.ax1.plot(self.jobs_df.time_stamp,
                       self.jobs_df.elapsed_t,
                       mark.STYLE['point'],
                       markersize=mark.SIZE,
-                      label='all',
+                      label=p_label,
                       color=mark.CBLIND_COLOR['blue'],
                       alpha=0.2,
                       picker=True,
@@ -707,18 +710,19 @@ class PlotTasks(TaskDataFrame):
                       self.jobs_df.all_Dcnt,
                       mark.STYLE['square'],
                       markersize=mark.DCNT_SIZE,
-                      label='all',
+                      label=p_label,
                       color=mark.CBLIND_COLOR['blue'],
                       )
         self.format_legends()
-        self.isplotted['all'] = True
+        self.isplotted[p_label] = True
 
     def plot_fgrp5(self):
+        p_label = 'fgrp5'
         self.ax1.plot(self.jobs_df.time_stamp,
                       self.jobs_df.elapsed_t.where(self.jobs_df.is_fgrp5),
                       mark.STYLE['tri_left'],
                       markersize=mark.SIZE,
-                      label='fgrp5',
+                      label=p_label,
                       color=mark.CBLIND_COLOR['bluish green'],
                       alpha=0.3,
                       picker=True,
@@ -727,19 +731,20 @@ class PlotTasks(TaskDataFrame):
                       self.jobs_df.fgrp5_Dcnt,
                       mark.STYLE['square'],
                       markersize=mark.DCNT_SIZE,
-                      label='fgrp5',
+                      label=p_label,
                       color=mark.CBLIND_COLOR['bluish green'],
                       alpha=0.4,
                       )
         self.format_legends()
-        self.isplotted['fgrp5'] = True
+        self.isplotted[p_label] = True
 
     def plot_fgrpBG1(self):
+        p_label = 'fgrpBG1'
         self.ax1.plot(self.jobs_df.time_stamp,
                       self.jobs_df.elapsed_t.where(self.jobs_df.is_fgrpBG1),
                       mark.STYLE['tri_right'],
                       markersize=mark.SIZE,
-                      label='fgrpBG1',
+                      label=p_label,
                       color=mark.CBLIND_COLOR['vermilion'],
                       alpha=0.5,
                       picker=True,
@@ -748,12 +753,12 @@ class PlotTasks(TaskDataFrame):
                       self.jobs_df.fgrpBG1_Dcnt,
                       mark.STYLE['square'],
                       markersize=mark.DCNT_SIZE,
-                      label='fgrpBG1',
+                      label=p_label,
                       color=mark.CBLIND_COLOR['vermilion'],
                       )
 
         self.format_legends()
-        self.isplotted['fgrpBG1'] = True
+        self.isplotted[p_label] = True
 
     def plot_fgrp_hz(self):
         """
@@ -761,12 +766,13 @@ class PlotTasks(TaskDataFrame):
         """
 
         self.reset_plots()
+        p_label = 'fgrp_hz'
 
         self.ax1.plot(self.jobs_df.time_stamp,
                       self.jobs_df.fgrp_freq,
                       mark.STYLE['tri_right'],
                       markersize=mark.SIZE,
-                      label='fgrp_hz',
+                      label=p_label,
                       color=mark.CBLIND_COLOR['vermilion'],
                       alpha=0.3,
                       picker=True,
@@ -782,7 +788,7 @@ class PlotTasks(TaskDataFrame):
                       self.jobs_df.fgrpBG1_Dcnt,
                       mark.STYLE['square'],
                       markersize=mark.DCNT_SIZE,
-                      label='fgrpBG1',
+                      label=p_label,  # fgrpBG1 counts
                       color=mark.CBLIND_COLOR['vermilion'],
                       )
 
@@ -791,14 +797,15 @@ class PlotTasks(TaskDataFrame):
         self.ax1.yaxis.set_major_formatter(ticker.FormatStrFormatter('%.2f'))
 
         self.format_legends()
-        self.isplotted['fgrp_hz'] = True
+        self.isplotted[p_label] = True
 
     def plot_gw_O2MD(self):
+        p_label = 'gw_O2MD'
         self.ax1.plot(self.jobs_df.time_stamp,
                       self.jobs_df.elapsed_t.where(self.jobs_df.is_gw_O2MD),
                       mark.STYLE['triangle_down'],
                       markersize=mark.SIZE,
-                      label='gw_O2MD',
+                      label=p_label,
                       color=mark.CBLIND_COLOR['orange'],
                       alpha=0.4,
                       picker=True,
@@ -807,18 +814,19 @@ class PlotTasks(TaskDataFrame):
                       self.jobs_df.gw_O2MD_Dcnt,
                       mark.STYLE['square'],
                       markersize=mark.DCNT_SIZE,
-                      label='gw_O2MD',
+                      label=p_label,
                       color=mark.CBLIND_COLOR['orange'],
                       )
         self.format_legends()
-        self.isplotted['gw_O2MD'] = True
+        self.isplotted[p_label] = True
 
     def plot_gw_O3AS(self):
+        p_label = 'gw_O3AS'
         self.ax1.plot(self.jobs_df.time_stamp,
                       self.jobs_df.elapsed_t.where(self.jobs_df.is_gw_O3AS),
                       mark.STYLE['thin_diamond'],
                       markersize=mark.SIZE,
-                      label='gw_O3AS',
+                      label=p_label,
                       color=mark.CBLIND_COLOR['sky blue'],
                       alpha=0.3,
                       picker=True,
@@ -827,18 +835,19 @@ class PlotTasks(TaskDataFrame):
                       self.jobs_df.gw_O3AS_Dcnt,
                       mark.STYLE['square'],
                       markersize=mark.DCNT_SIZE,
-                      label='gw_O3AS',
+                      label=p_label,
                       color=mark.CBLIND_COLOR['sky blue'],
                       )
         self.format_legends()
-        self.isplotted['gw_O3AS'] = True
+        self.isplotted[p_label] = True
 
     def plot_brp4(self):
+        p_label = 'brp4'
         self.ax1.plot(self.jobs_df.time_stamp,
                       self.jobs_df.elapsed_t.where(self.jobs_df.is_brp4),
                       mark.STYLE['pentagon'],
                       markersize=mark.SIZE,
-                      label='BRP4 & BRP4G',
+                      label=p_label,  # 'BRP4 & BRP4G',
                       color=mark.CBLIND_COLOR['reddish purple'],
                       alpha=0.3,
                       picker=True,
@@ -847,18 +856,19 @@ class PlotTasks(TaskDataFrame):
                       self.jobs_df.brp4_Dcnt,
                       mark.STYLE['square'],
                       markersize=mark.DCNT_SIZE,
-                      label='BRP4 & BRP4G',
+                      label=p_label,  # 'BRP4 & BRP4G',
                       color=mark.CBLIND_COLOR['reddish purple'],
                       )
         self.format_legends()
-        self.isplotted['brp4'] = True
+        self.isplotted[p_label] = True
 
     def plot_brp7(self):
+        p_label = 'brp7'
         self.ax1.plot(self.jobs_df.time_stamp,
                       self.jobs_df.elapsed_t.where(self.jobs_df.is_brp7),
                       mark.STYLE['diamond'],
                       markersize=mark.SIZE,
-                      label='BRP7',
+                      label=p_label,
                       color=mark.CBLIND_COLOR['black'],
                       alpha=0.3,
                       picker=True,
@@ -867,11 +877,11 @@ class PlotTasks(TaskDataFrame):
                       self.jobs_df.brp7_Dcnt,
                       mark.STYLE['square'],
                       markersize=mark.DCNT_SIZE,
-                      label='BRP7',
+                      label=p_label,
                       color=mark.CBLIND_COLOR['black'],
                       )
         self.format_legends()
-        self.isplotted['brp7'] = True
+        self.isplotted[p_label] = True
 
     def plot_fgrpHz_X_t(self):
         num_f = self.jobs_df.fgrp_freq.nunique()
