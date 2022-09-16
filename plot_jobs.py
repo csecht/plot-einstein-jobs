@@ -207,10 +207,10 @@ class TaskDataFrame:
         regex_gwo3_freq = r'h1_(\d+\.\d+)_.+__O3AS'  # Capture the base/parent freq.
         self.jobs_df['fgrp_freq'] = (self.jobs_df.task_name
                                      .str.extract(regex_fgrp_freq)
-                                     .astype('float64'))
+                                     .astype(np.float64))
         self.jobs_df['gwO3AS_freq'] = (self.jobs_df.task_name
                                        .str.extract(regex_gwo3_freq)
-                                       .astype('float64'))
+                                       .astype(np.float64))
 
     def add_daily_counts(self):
         """
@@ -878,9 +878,9 @@ class PlotTasks(TaskDataFrame):
         min_f = self.jobs_df.fgrp_freq.min()
         max_f = self.jobs_df.fgrp_freq.max()
         min_t = self.jobs_df.elapsed_sec.where(
-            self.jobs_df.is_fgrp).min().astype('int64')
+            self.jobs_df.is_fgrp).min().astype(np.int64)
         max_t = self.jobs_df.elapsed_sec.where(
-            self.jobs_df.is_fgrp).max().astype('int64')
+            self.jobs_df.is_fgrp).max().astype(np.int64)
 
         # Add a 2% margin to time axis upper limit.
         self.setup_freq_axes((0, max_t * 1.02))
@@ -915,9 +915,9 @@ class PlotTasks(TaskDataFrame):
         min_f = self.jobs_df.gwO3AS_freq.min()
         max_f = self.jobs_df.gwO3AS_freq.max()
         min_t = self.jobs_df.elapsed_sec.where(
-            self.jobs_df.is_gw_O3AS).min().astype('int64')
+            self.jobs_df.is_gw_O3AS).min().astype(np.int64)
         max_t = self.jobs_df.elapsed_sec.where(
-            self.jobs_df.is_gw_O3AS).max().astype('int64')
+            self.jobs_df.is_gw_O3AS).max().astype(np.int64)
 
         # Add a 2% margin to time axis upper limit.
         self.setup_freq_axes((0, max_t * 1.02))
