@@ -150,8 +150,8 @@ class TaskDataFrame:
                       ' to a pd datetime object by setup_df().\n')
 
         # Add zero-value data columns: use to visually clear plots in reset_plots().
-        self.jobs_df['null_time'] = pd.to_datetime(0.0, unit='s')
-        self.jobs_df['null_Dcnt'] = 0.0
+        self.jobs_df['null_time'] = np.zeros(self.jobs_df.shape[0])
+        self.jobs_df['null_Dcnt'] = np.zeros(self.jobs_df.shape[0])
 
     def manage_bad_times(self) -> None:
         """
