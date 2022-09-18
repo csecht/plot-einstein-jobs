@@ -14,12 +14,16 @@ import sys
 import matplotlib.pyplot as plt
 
 # Local application imports
-import __main__
+# Used with the --about option to access __doc__ in main and
+#  plot_utils __init__.py constants and dunders.
+from __main__ import __doc__
 import plot_utils
 
 
 def manage_args() -> bool:
-    """Allow handling of command line arguments.
+    """
+    Allow handling of command line arguments. The --about information
+    can also be accessed from the GUI as a pop-up window.
 
     :return: True if --test argument used (default: False).
     """
@@ -38,13 +42,16 @@ def manage_args() -> bool:
     args = parser.parse_args()
 
     if args.about:
-        print(__main__.__doc__)
+        print('====================== ABOUT START ====================')
+        print(__doc__)
         print(f'{"Author:".ljust(13)}', plot_utils.__author__)
         print(f'{"Version:".ljust(13)}', plot_utils.__version__)
         print(f'{"Status:".ljust(13)}', plot_utils.__dev_status__)
         print(f'{"URL:".ljust(13)}', plot_utils.URL)
         print(plot_utils.__copyright__)
         print(plot_utils.LICENSE)
+        print('====================== ABOUT END ====================')
+
         sys.exit(0)
 
     return args.test

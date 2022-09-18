@@ -42,7 +42,9 @@ except (ImportError, ModuleNotFoundError) as import_err:
     exit(1)
 
 # Local application imports
-import __main__
+# __main__ and plot_utils are used with the --about option to access
+#   __doc__ and __init__.py constants and dunders.
+from __main__ import __doc__
 import plot_utils
 from plot_utils import (path_check, utils,
                         markers as mark,
@@ -58,7 +60,7 @@ def about_report(event) -> None:
     :return: None
     """
 
-    _report = (f'{__main__.__doc__}\n'
+    _report = (f'{__doc__}\n'
                f'{"Version:".ljust(9)} {plot_utils.__version__}\n'
                f'{"Author:".ljust(9)} {plot_utils.__author__}\n'
                f'{"URL:".ljust(9)} {plot_utils.URL}\n'
