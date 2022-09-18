@@ -175,15 +175,16 @@ class TaskDataFrame:
         )
 
         for tup in nansums:
-            if tup[0] > 0:
-                all_nanjobs = self.jobs_df[self.jobs_df[tup[1]].isna()]
-                self.jobs_df[tup[1]].interpolate(
+            nan_sum, col_name = tup
+            if nan_sum > 0:
+                nanjobs_df = self.jobs_df[self.jobs_df[col_name].isna()]
+                self.jobs_df[col_name].interpolate(
                     method='linear', inplace=True)
-                print(f'*** Heads up: {tup[0]} {tup[1]} values could not'
+                print(f'*** Heads up: {nan_sum} {col_name} values could not'
                       ' be read from the file and have been interpolated. ***\n'
                       f'Tasks with "bad" times:\n'
                       f'row # (starts at 0)\n'
-                      f'{all_nanjobs}')
+                      f'{nanjobs_df}')
 
     def add_proj_tags(self):
         """
