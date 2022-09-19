@@ -51,6 +51,20 @@ from plot_utils import (path_check, utils,
                         project_groups as grp)
 
 
+def about_text() -> str:
+    """
+    Informational text for --about execution argument and GUI About cmd.
+    """
+
+    return (f'{__doc__}\n'
+            f'{"Author:".ljust(13)}{plot_utils.__author__}\n'
+            f'{"Version:".ljust(13)}{plot_utils.__version__}\n'
+            f'{"Status:".ljust(13)}{plot_utils.__status__}\n'
+            f'{"URL:".ljust(13)}{plot_utils.URL}\n'
+            f'{plot_utils.__copyright__}'
+            f'{plot_utils.LICENSE}\n')
+
+
 def about_report(event) -> None:
     """
     Display program and Project information.
@@ -60,16 +74,11 @@ def about_report(event) -> None:
     :return: None
     """
 
-    _report = (f'{__doc__}\n'
-               f'{"Version:".ljust(9)} {plot_utils.__version__}\n'
-               f'{"Author:".ljust(9)} {plot_utils.__author__}\n'
-               f'{"URL:".ljust(9)} {plot_utils.URL}\n'
-               f'{plot_utils.__copyright__}\n'
-               f'{plot_utils.LICENSE}\n'
-               )
-
     view_report(title=f'About {Path(__file__).name}',
-                text=_report, minsize=(400, 220), scroll=True)
+                text=about_text(),
+                minsize=(400, 220),
+                scroll=True)
+
     return event
 
 

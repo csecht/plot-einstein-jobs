@@ -14,10 +14,8 @@ import sys
 import matplotlib.pyplot as plt
 
 # Local application imports
-# Used with the --about option to access __doc__ in main and
-#  plot_utils __init__.py constants and dunders.
-from __main__ import __doc__
 import plot_utils
+from plot_utils import reports
 
 
 def manage_args() -> bool:
@@ -43,13 +41,7 @@ def manage_args() -> bool:
 
     if args.about:
         print('====================== ABOUT START ====================')
-        print(__doc__)
-        print(f'{"Author:".ljust(13)}', plot_utils.__author__)
-        print(f'{"Version:".ljust(13)}', plot_utils.__version__)
-        print(f'{"Status:".ljust(13)}', plot_utils.__dev_status__)
-        print(f'{"URL:".ljust(13)}', plot_utils.URL)
-        print(plot_utils.__copyright__)
-        print(plot_utils.LICENSE)
+        print(reports.about_text())
         print('====================== ABOUT END ====================')
 
         sys.exit(0)
