@@ -2,11 +2,16 @@
 These constants are used with the --about command line argument or button.
 Program will exit here if any check fails when called.
 """
-from . import platform_check, vcheck
+
+# Standard library import:
+from datetime import datetime
+
+# Local module imports:
+from plot_utils import platform_check, vcheck
 
 # Development status standards: https://pypi.org/classifiers/
 __author__ = 'Craig S. Echt'
-__version__: str = '0.1.29'
+__version__: str = '0.1.30'
 __status__ = 'Development Status :: 4 - Beta'
 __copyright__ = 'Copyright (C) 2022 C.S. Echt, under GNU General Public License'
 
@@ -26,6 +31,8 @@ LICENSE = """
     You should have received a copy of the GNU General Public License
     along with this program (the LICENCE.txt file). If not, see
     https://www.gnu.org/licenses/."""
+
+LOCAL_TZ = datetime.now().astimezone().tzinfo
 
 platform_check.check_platform()
 vcheck.minversion('3.7')

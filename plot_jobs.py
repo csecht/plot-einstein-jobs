@@ -43,6 +43,7 @@ import sys
 # Local application imports
 import numpy as np
 
+import plot_utils
 from plot_utils import (path_check, reports, utils,
                         markers as mark,
                         project_groups as grp)
@@ -144,7 +145,8 @@ class TaskDataFrame:
             try:
                 self.jobs_df[col] = pd.to_datetime(self.jobs_df[col],
                                                    unit='s',
-                                                   infer_datetime_format=True)
+                                                   # infer_datetime_format=True,
+                                                   )
             except ValueError:
                 print(f'Warning: A {col} value could not be converted'
                       ' to a pd datetime object by setup_df().\n')
@@ -152,6 +154,9 @@ class TaskDataFrame:
         # Add zero-value data columns: use to visually clear plots in reset_plots().
         self.jobs_df['null_time'] = np.zeros(self.jobs_df.shape[0])
         self.jobs_df['null_Dcnt'] = np.zeros(self.jobs_df.shape[0])
+
+        # df['time_local'] = df['time'].dt.tz_localize('GMT').dt.tz_convert('America/New_York')
+        # or with to_datetime(utc=True), df['time_local'] = df['time'].dt.tz_convert('America/New_York')
 
     def manage_bad_times(self) -> None:
         """
@@ -592,6 +597,20 @@ class PlotTasks(TaskDataFrame):
                            minor_locator=ticker.AutoMinorLocator())
 
         self.ax2.yaxis.set_major_locator(ticker.MaxNLocator(nbins=6, integer=True))
+
+        # Prefer to plot UTC timestamp as local time to match BOINC Manager and
+        #  E@H Account tasks' completion dates.
+        local_tz = plot_utils.LOCAL_TZ
+        locator = mdates.AutoDateLocator(tz=local_tz)
+        self.ax1.xaxis.set(major_locator=locator,
+                           major_formatter=mdates.AutoDateFormatter(
+                               locator=locator,
+                               tz=local_tz),
+                           minor_locator=locator,
+                           minor_formatter=mdates.AutoDateFormatter(
+                               locator=locator,
+                               tz=local_tz),
+                           )
 
         self.ax1.grid(True)
         self.ax2.grid(True)
