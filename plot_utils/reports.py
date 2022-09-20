@@ -46,7 +46,9 @@ except (ImportError, ModuleNotFoundError) as import_err:
 #   __doc__ and __init__.py constants and dunders.
 from __main__ import __doc__
 import plot_utils
-from plot_utils import (path_check, utils,
+from plot_utils import (LOCAL_TZ,
+                        path_check,
+                        utils,
                         markers as mark,
                         project_groups as grp)
 
@@ -171,7 +173,7 @@ def on_pick_report(event, dataframe: pd) -> None:
     """
 
     _header = ('Tasks nearest the selected point\n'
-               '    Date time (UTC) | name | completion time')
+               'Date time (w/ UTC offset) | name | completion time')
     task_info_list = [_header]
 
     # VertexSelector(line), in lines.py; list of df indices included in
@@ -187,7 +189,10 @@ def on_pick_report(event, dataframe: pd) -> None:
     for dataidx in event.ind:
         if report_limit > 0:
             task_info_list.append(
-                f'{dataframe.loc[dataidx].time_stamp} | '
+                # THIS gives local time with +/- hr used to adjust from UTC.
+                f'{dataframe.loc[dataidx].time_stamp.tz_localize("utc").tz_convert(LOCAL_TZ)} | '
+                # THIS gives UTC time with +/- hr needed to get local time.
+                # f'{dataframe.loc[dataidx].time_stamp.tz_localize(LOCAL_TZ)} | '
                 f'{dataframe.loc[dataidx].task_name} | '
                 f'{dataframe.loc[dataidx].elapsed_t.time()}')
         report_limit -= 1
@@ -203,8 +208,8 @@ def on_pick_report(event, dataframe: pd) -> None:
 
     num_since = number_since(dataframe, project, dt_since)
     task_info_list.append(
-        f"The first task's Project is {project.upper()}.\n"
-        f'Since {dt_since}, {num_since} tasks have been reported for that Project.\n'
+        f"The first selected task's Project is {project.upper()}.\n"
+        f'Since {dt_since} (UTC), {num_since} tasks have been reported for that Project.\n'
     )
 
     _report = '\n\n'.join(map(str, task_info_list))
