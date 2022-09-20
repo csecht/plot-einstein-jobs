@@ -143,10 +143,7 @@ class TaskDataFrame:
         #    to dtype np.datetime64 for plot axis tick readability.
         for col in ('time_stamp', 'elapsed_t'):
             try:
-                self.jobs_df[col] = pd.to_datetime(self.jobs_df[col],
-                                                   unit='s',
-                                                   # infer_datetime_format=True,
-                                                   )
+                self.jobs_df[col] = pd.to_datetime(self.jobs_df[col], unit='s')
             except ValueError:
                 print(f'Warning: A {col} value could not be converted'
                       ' to a pd datetime object by setup_df().\n')
@@ -154,9 +151,6 @@ class TaskDataFrame:
         # Add zero-value data columns: use to visually clear plots in reset_plots().
         self.jobs_df['null_time'] = np.zeros(self.jobs_df.shape[0])
         self.jobs_df['null_Dcnt'] = np.zeros(self.jobs_df.shape[0])
-
-        # df['time_local'] = df['time'].dt.tz_localize('GMT').dt.tz_convert('America/New_York')
-        # or with to_datetime(utc=True), df['time_local'] = df['time'].dt.tz_convert('America/New_York')
 
     def manage_bad_times(self) -> None:
         """

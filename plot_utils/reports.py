@@ -173,7 +173,7 @@ def on_pick_report(event, dataframe: pd) -> None:
     """
 
     _header = ('Tasks nearest the selected point\n'
-               'Date time (w/ UTC offset) | name | completion time')
+               'Local time and UTC offset | task name | completion time (μs)')
     task_info_list = [_header]
 
     # VertexSelector(line), in lines.py; list of df indices included in
