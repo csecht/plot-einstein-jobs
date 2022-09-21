@@ -11,7 +11,7 @@ from plot_utils import platform_check, vcheck
 
 # Development status standards: https://pypi.org/classifiers/
 __author__ = 'Craig S. Echt'
-__version__: str = '0.1.30'
+__version__: str = '0.1.31'
 __status__ = 'Development Status :: 4 - Beta'
 __copyright__ = 'Copyright (C) 2022 C.S. Echt, under GNU General Public License'
 

@@ -39,12 +39,12 @@ Developed in Python 3.8-3.9.
 
 # Standard library imports
 import sys
-
-# Local application imports
 import numpy as np
 
-import plot_utils
-from plot_utils import (path_check, reports, utils,
+
+# Local application imports
+from plot_utils import (LOCAL_TZ,
+                        path_check, reports, utils,
                         markers as mark,
                         project_groups as grp)
 
@@ -223,11 +223,15 @@ class TaskDataFrame:
 
         # For clarity, grp.PROJECTS names used here need to match those
         #   used in isplotted (dict) and grp.CHKBOX_LABELS (tuple).
+        # Need to shift daily count floor from UTC to local timezone.
         for proj in grp.PROJECTS:
             try:
                 self.jobs_df[f'{proj}_Dcnt'] = (
                     self.jobs_df.time_stamp
-                    .groupby(self.jobs_df.time_stamp.dt.floor('D')
+                    .groupby(self.jobs_df.time_stamp
+                             .dt.tz_localize("utc")
+                             .dt.tz_convert(LOCAL_TZ)
+                             .dt.floor('D')
                              .where(self.jobs_df[f'is_{proj}']))
                     .transform('count')
                 )
@@ -594,16 +598,15 @@ class PlotTasks(TaskDataFrame):
 
         # Prefer to plot UTC timestamp as local time to match BOINC Manager and
         #  E@H Account tasks' completion dates.
-        local_tz = plot_utils.LOCAL_TZ
-        locator = mdates.AutoDateLocator(tz=local_tz)
+        locator = mdates.AutoDateLocator(tz=LOCAL_TZ)
         self.ax1.xaxis.set(major_locator=locator,
                            major_formatter=mdates.AutoDateFormatter(
                                locator=locator,
-                               tz=local_tz),
+                               tz=LOCAL_TZ),
                            minor_locator=locator,
                            minor_formatter=mdates.AutoDateFormatter(
                                locator=locator,
-                               tz=local_tz),
+                               tz=LOCAL_TZ),
                            )
 
         self.ax1.grid(True)
