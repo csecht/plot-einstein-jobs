@@ -29,10 +29,10 @@ Information: `python3 -m plot_jobs --about`
 
 Plot sample data: `python3 -m plot_jobs --test`
 
-NOTE: Depending on your system, there may be a slight lag when switching
-      between plots, so be patient and avoid the urge to start clicking
-      around to speed things up. For the typical job log, hundreds of
-      thousands to millions of data points can be plotted.
+Plot with UTC (GMT) datetimes: `python3 -m plot_jobs --utc`
+(Local datetimes are plotted by default.)
+
+NOTE: Depending on your system, there may be a slight lag when first opening or switching between plots, so be patient and avoid the urge to start clicking around to speed things up. For the typical job log, hundreds of thousands to millions of data points can be plotted.
 
 
 The default configuration reads the job_log_einstein.phys.uwm.edu.txt
@@ -64,7 +64,7 @@ Alternative commands (system dependent):
     py -m pip install -r requirements.txt
 
 ### Known Issues:
-Navigation bar icons images are not showing up in MacOS. They are functional, but may have reduced responsiveness. 
+Navigation bar icons images are not showing up in MacOS. They are functional, but may have reduced responsiveness' text descriptions of button functions are below the stub icons.
 
 ### Screenshots:
 ![plot all sample data](images/test_start.png)
