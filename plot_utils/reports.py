@@ -43,14 +43,24 @@ except (ImportError, ModuleNotFoundError) as import_err:
 
 # Local application imports
 # __main__ and plot_utils are used with the --about option to access
-#   __doc__ and __init__.py constants and dunders.
+#   __doc__ and __init__.py constants and custom dunders.
 from __main__ import __doc__
 import plot_utils
-from plot_utils import (LOCAL_TZ,
-                        path_check,
+from plot_utils import (path_check,
                         utils,
                         markers as mark,
                         project_groups as grp)
+
+# This exception handler is to avoid an AttributeError when reports.py
+#   is, on an off-chance, run as "__main__", and ensures that Python
+#   returns the usual, "Process finished with exit code 0".
+# The timestamp column name strings here must match those set for
+#   self.time_stamp in PlotTasks __init__.
+# manage_args() returns a 2-tuple of booleans.
+try:
+    TIME_STAMP = 'utc_tstamp' if utils.manage_args()[1] else 'local_tstamp'
+except AttributeError:
+    pass
 
 
 def about_text() -> str:
@@ -64,7 +74,7 @@ def about_text() -> str:
             f'{"Status:".ljust(13)}{plot_utils.__status__}\n'
             f'{"URL:".ljust(13)}{plot_utils.URL}\n'
             f'{plot_utils.__copyright__}'
-            f'{plot_utils.LICENSE}\n')
+            f'{plot_utils.__license__}\n')
 
 
 def about_report(event) -> None:
@@ -105,9 +115,7 @@ def joblog_report(dataframe: pd) -> None:
         p_dcnt = f'{_p}_Dcnt'
 
         proj_days.append(len((dataframe[p_dcnt]
-                              .groupby(dataframe.time_stamp
-                                       .dt.tz_localize("utc")
-                                       .dt.tz_convert(LOCAL_TZ)
+                              .groupby(dataframe[TIME_STAMP]
                                        .dt.date
                                        .where(dataframe[p_dcnt].notnull()))
                               .unique())))
@@ -118,41 +126,40 @@ def joblog_report(dataframe: pd) -> None:
         else:  # There is no Project _p in the job log.
             proj_daily_means.append(0)
 
-    # Note: utils.manage_args() returns the --test command line option as boolean.
-    data_file = path_check.set_datapath(use_test_file=utils.manage_args())
+    # Note: utils.manage_args()[0] returns the --test command line option as boolean.
+    data_file = path_check.set_datapath(use_test_file=utils.manage_args()[0])
 
     _results = tuple(zip(
         grp.PROJECTS, proj_totals, proj_daily_means, proj_days))
 
-    num_days = (len(pd.to_datetime(dataframe.time_stamp
-                                   .dt.tz_localize("utc")
-                                   .dt.tz_convert(LOCAL_TZ)
-                                   ).dt.date.unique()))
+    num_days = (len(pd.to_datetime(dataframe[TIME_STAMP])
+                    .dt.date
+                    .unique()))
 
-    # Example report layout: note that 'all' and Projects total differ.
+    # Example report layout: note that 'all' and Projects total may differ.
     # /var/lib/boinc/job_log_einstein.phys.uwm.edu.txt
     #
-    # Counts for 1194 days:
+    # Counts for 1242 days:
     #
-    # Project      Total   per Day     Days
-    # all        366887     307.3     1194
-    # fgrpG1     152501     168.3      906
-    # fgrp5         131       7.7       17
-    # gw_O3      126263     350.7      360
-    # gw_O2       87989     197.7      445
-    # brp4            0         0        0
-    # brp7          236      78.7        3
-    # Listed Projects total: 366884
+    # Project       Total    per Day      Days
+    # all          382561      308.0      1242
+    # fgrp5           131        7.7        17
+    # fgrpBG1      166155      174.2       954
+    # gw_O2MD       86173      221.0       390
+    # gw_O3AS      126263      350.7       360
+    # brp4              0          0         0
+    # brp7           2022       77.8        26
+    # Listed Projects total: 380744
     _report = (f'{data_file}\n\n'
                f'Counts for {num_days} days:\n\n'
-               f'{"Project".ljust(6)} {"Total".rjust(10)}'
-               f' {"per Day".rjust(9)} {"Days".rjust(8)}\n'
+               f'{"Project".ljust(7)} {"Total".rjust(11)}'
+               f' {"per Day".rjust(10)} {"Days".rjust(9)}\n'
                )
 
     for proj_tup in _results:
         proj, p_total, p_dmean, p_days = proj_tup
-        _report = _report + (f'{proj.ljust(6)} {str(p_total).rjust(10)}'
-                             f' {str(p_dmean).rjust(9)} {str(p_days).rjust(8)}\n'
+        _report = _report + (f'{proj.ljust(7)} {str(p_total).rjust(11)}'
+                             f' {str(p_dmean).rjust(10)} {str(p_days).rjust(9)}\n'
                              )
         p_tally.append(p_total)
 
@@ -178,34 +185,38 @@ def on_pick_report(event, dataframe: pd) -> None:
     :return: None
     """
 
-    _header = ('Tasks nearest the selected point\n'
-               'Local time and UTC offset | task name | completion time (μs)')
+    use_utc = True if TIME_STAMP == 'utc_tstamp' else False
+
+    if use_utc:
+        _header = ('Tasks nearest the selected point\n'
+                   'UTC date   time     | task name | completion time (μs)')
+    else:
+        _header = ('Tasks nearest the selected point\n'
+                   'Local date time     | task name | completion time (μs)')
+
     task_info_list = [_header]
 
-    # VertexSelector(line), in lines.py; list of df indices included in
+    # VertexSelector(line), in matplotlib.lines; list of df indices included in
     #   set_pickradius().
     _n = len(event.ind)
     if not _n:
         print('event.ind is undefined')
         return event
 
-    # Need to limit tasks from total included in set_pickradius(pick_radius)
-    #   defined as PlotTasks() attribute.
+    # Need to limit tasks from total included in set_pickradius(mark.PICK_RADIUS)
+    #   from PlotTasks.setup_count_axes().
     report_limit = 6
     for dataidx in event.ind:
         if report_limit > 0:
             task_info_list.append(
-                # THIS gives local time with +/- hr used to adjust from UTC.
-                f'{dataframe.loc[dataidx].time_stamp.tz_localize("utc").tz_convert(LOCAL_TZ)} | '
-                # THIS gives UTC time with +/- hr needed to get local time.
-                # f'{dataframe.loc[dataidx].time_stamp.tz_localize(LOCAL_TZ)} | '
+                f'{dataframe.loc[dataidx][TIME_STAMP]} | '
                 f'{dataframe.loc[dataidx].task_name} | '
                 f'{dataframe.loc[dataidx].elapsed_t.time()}')
         report_limit -= 1
 
     # Add something special; count the number of tasks reported for
     #   a Project since the datetime timestamp of the nearest task.
-    dt_since = dataframe.loc[event.ind[0]].time_stamp
+    dt_since = dataframe.loc[event.ind[0]][TIME_STAMP]
     _name = dataframe.loc[event.ind[0]].task_name
     project = ''
     for proj, regex in grp.PROJ_NAME_REGEX.items():
@@ -215,7 +226,7 @@ def on_pick_report(event, dataframe: pd) -> None:
     num_since = number_since(dataframe, project, dt_since)
     task_info_list.append(
         f"The first selected task's Project is {project.upper()}.\n"
-        f'Since {dt_since} (UTC), {num_since} tasks have been reported for that Project.\n'
+        f'Since {dt_since}, {num_since} tasks have been reported for that Project.\n'
     )
 
     _report = '\n\n'.join(map(str, task_info_list))
@@ -249,7 +260,7 @@ def number_since(dataframe: pd, proj: str, since_date: str) -> int:
     """
     since_dt = pd.to_datetime(since_date, infer_datetime_format=True)
     count_since = (dataframe[f'is_{proj}']
-                   .where(dataframe.time_stamp >= since_dt)
+                   .where(dataframe[TIME_STAMP] >= since_dt)
                    ).sum()
     return count_since
 
@@ -289,4 +300,3 @@ def view_report(title: str, text: str, minsize: tuple, scroll=False) -> None:
 
     report_txt.insert(tk.INSERT, text)
     report_txt.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)
-

@@ -7,17 +7,14 @@ Program will exit here if any check fails when called.
 from datetime import datetime
 
 # Local module imports:
-from plot_utils import platform_check, vcheck
+from plot_utils import platform_check, utils, vcheck
 
 # Development status standards: https://pypi.org/classifiers/
 __author__ = 'Craig S. Echt'
-__version__: str = '0.1.31'
+__version__: str = '0.2.00'
 __status__ = 'Development Status :: 4 - Beta'
 __copyright__ = 'Copyright (C) 2022 C.S. Echt, under GNU General Public License'
-
-URL = 'https://github.com/csecht/plot-einstein-jobs'
-
-LICENSE = """
+__license__ = """
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
@@ -32,7 +29,12 @@ LICENSE = """
     along with this program (the LICENCE.txt file). If not, see
     https://www.gnu.org/licenses/."""
 
-LOCAL_TZ = datetime.now().astimezone().tzinfo
+URL = 'https://github.com/csecht/plot-einstein-jobs'
+
+local_tz = datetime.now().astimezone().tzinfo
+UTC_OFFSET = (datetime.now(local_tz)
+              .utcoffset()
+              .total_seconds())
 
 platform_check.check_platform()
 vcheck.minversion('3.7')

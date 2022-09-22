@@ -2,6 +2,9 @@
 """plot_jobs.py uses Matplotlib to draw plots from data in Einstein@Home
 BOINC client job log files.
 
+For execution options, see the README file or use the --help command
+line option.
+
 Plot types are:
     Task elapsed times vs reported datetime
     Task counts/day vs. reported datetime
@@ -43,7 +46,7 @@ import numpy as np
 
 
 # Local application imports
-from plot_utils import (LOCAL_TZ,
+from plot_utils import (UTC_OFFSET,
                         path_check, reports, utils,
                         markers as mark,
                         project_groups as grp)
@@ -117,12 +120,12 @@ class TaskDataFrame:
 
         # To include all numerical data in space-delimited job_log, use this:
         # joblog_col_index = 0, 2, 4, 6, 8, 10  # All reported data
-        # names = ('time_stamp', 'est_sec', 'cpu_sec', 'est_flops', 'task_name', 'elapsed_t')
-        # time_names = ('time_stamp', 'est_sec', 'cpu_sec', 'elapsed_t')
+        # names = ('utc_tstamp', 'est_sec', 'cpu_sec', 'est_flops', 'task_name', 'elapsed_t')
+        # Note that utc_tstamp is UTC Epoch time.
 
         # Job log data of current interest:
         job_col_index = 0, 8, 10
-        names = ('time_stamp', 'task_name', 'elapsed_t')
+        names = ('utc_tstamp', 'task_name', 'elapsed_t')
 
         # The datapath path is defined in if __name__ == "__main__".
         self.jobs_df = pd.read_table(data_path,
@@ -133,15 +136,20 @@ class TaskDataFrame:
                                      names=names,
                                      )
 
-        # Need to replace NaN time data with interpolated time values.
+        # Need to replace any NaN times from file with interpolated time values.
         self.manage_bad_times()
 
-        # Need to retain original elapsed time as seconds to plot Hz x task time:
+        # Need to retain original elapsed time as seconds to plot Hz x task time.
         self.jobs_df['elapsed_sec'] = self.jobs_df.elapsed_t
 
-        #  Need to convert Epoch time and task time (int or float seconds)
+        # Need to convert UTC timestamp to local timestamp.
+        self.jobs_df['local_tstamp'] = self.jobs_df.utc_tstamp + UTC_OFFSET
+
+        #  Need to convert Epoch timestamps and task time (int or float seconds)
         #    to dtype np.datetime64 for plot axis tick readability.
-        for col in ('time_stamp', 'elapsed_t'):
+        #  Converting to datetime dtypes after timestamp conversion
+        #    launches the plot much faster.
+        for col in ('utc_tstamp', 'local_tstamp', 'elapsed_t'):
             try:
                 self.jobs_df[col] = pd.to_datetime(self.jobs_df[col], unit='s')
             except ValueError:
@@ -160,16 +168,16 @@ class TaskDataFrame:
         :return: None
         """
 
-        # Clean up data: force non-numeric time values to NaN.
-        for ser in ('time_stamp', 'elapsed_t'):
+        # Clean up data: force to NaN any non-numeric time values read from file.
+        for ser in ('utc_tstamp', 'elapsed_t'):
             self.jobs_df[ser] = pd.to_numeric(self.jobs_df[ser], errors='coerce')
 
         # NOTE: If no times are NaN, then series dtype is numpy.int64,
         #   but if any NaN present, then series dtype is numpy.float64.
-        ts_nan_sum = self.jobs_df.time_stamp.isna().sum()
+        ts_nan_sum = self.jobs_df.utc_tstamp.isna().sum()
         et_nan_sum = self.jobs_df.elapsed_t.isna().sum()
         nansums = (
-            (ts_nan_sum, 'time_stamp'),
+            (ts_nan_sum, 'utc_tstamp'),
             (et_nan_sum, 'elapsed_t'),
         )
 
@@ -224,13 +232,16 @@ class TaskDataFrame:
         # For clarity, grp.PROJECTS names used here need to match those
         #   used in isplotted (dict) and grp.CHKBOX_LABELS (tuple).
         # Need to shift daily count floor from UTC to local timezone.
+        if utc_arg:
+            tz2use = 'utc_tstamp'
+        else:
+            tz2use = 'local_tstamp'
+
         for proj in grp.PROJECTS:
             try:
                 self.jobs_df[f'{proj}_Dcnt'] = (
-                    self.jobs_df.time_stamp
-                    .groupby(self.jobs_df.time_stamp
-                             .dt.tz_localize("utc")
-                             .dt.tz_convert(LOCAL_TZ)
+                    self.jobs_df[tz2use]
+                    .groupby(self.jobs_df[tz2use]
                              .dt.floor('D')
                              .where(self.jobs_df[f'is_{proj}']))
                     .transform('count')
@@ -258,7 +269,7 @@ class PlotTasks(TaskDataFrame):
     # https://towardsdatascience.com/understand-slots-in-python-e3081ef5196d
     __slots__ = (
         'fig', 'ax1', 'ax2',
-        'checkbox', 'do_replot', 'legend_btn_on', 'plot_proj',
+        'checkbox', 'do_replot', 'legend_btn_on', 'time_stamp', 'plot_proj',
         'chkbox_labelid', 'isplotted', 'text_bbox', 'ax_slider',
     )
 
@@ -268,6 +279,7 @@ class PlotTasks(TaskDataFrame):
         self.checkbox = None
         self.do_replot = False
         self.legend_btn_on = True
+        self.time_stamp = 'utc_tstamp' if utc_arg else 'local_tstamp'
 
         # These keys must match plot names in project_groups.CHKBOX_LABELS.
         # Dictionary pairs plot name to plot method.
@@ -574,7 +586,12 @@ class PlotTasks(TaskDataFrame):
         kwargs = dict(fontsize='medium', fontweight='bold')
 
         self.ax1.set_ylabel('Task completion time', **kwargs)
-        self.ax2.set_xlabel('Task reporting datetime', **kwargs)
+
+        if utc_arg:
+            self.ax2.set_xlabel('Task reporting datetime (UTC)', **kwargs)
+        else:
+            self.ax2.set_xlabel('Task reporting datetime', **kwargs)
+
         self.ax2.set_ylabel('Tasks/day', **kwargs)
 
         # Need to set the Tasks/day axis label in a static position.
@@ -595,19 +612,6 @@ class PlotTasks(TaskDataFrame):
                            minor_locator=ticker.AutoMinorLocator())
 
         self.ax2.yaxis.set_major_locator(ticker.MaxNLocator(nbins=6, integer=True))
-
-        # Prefer to plot UTC timestamp as local time to match BOINC Manager and
-        #  E@H Account tasks' completion dates.
-        locator = mdates.AutoDateLocator(tz=LOCAL_TZ)
-        self.ax1.xaxis.set(major_locator=locator,
-                           major_formatter=mdates.AutoDateFormatter(
-                               locator=locator,
-                               tz=LOCAL_TZ),
-                           minor_locator=locator,
-                           minor_formatter=mdates.AutoDateFormatter(
-                               locator=locator,
-                               tz=LOCAL_TZ),
-                           )
 
         self.ax1.grid(True)
         self.ax2.grid(True)
@@ -673,11 +677,11 @@ class PlotTasks(TaskDataFrame):
 
         kwargs = dict(visible=False, label='_leave blank')
 
-        self.ax1.plot(self.jobs_df.time_stamp,
+        self.ax1.plot(self.jobs_df[self.time_stamp],
                       self.jobs_df.null_time,
                       **kwargs,
                       )
-        self.ax2.plot(self.jobs_df.time_stamp,
+        self.ax2.plot(self.jobs_df[self.time_stamp],
                       self.jobs_df.null_Dcnt,
                       **kwargs,
                       )
@@ -714,7 +718,7 @@ class PlotTasks(TaskDataFrame):
 
     def plot_all(self):
         p_label = 'all'
-        self.ax1.plot(self.jobs_df.time_stamp,
+        self.ax1.plot(self.jobs_df[self.time_stamp],
                       self.jobs_df.elapsed_t,
                       mark.STYLE['point'],
                       markersize=mark.SIZE,
@@ -723,7 +727,7 @@ class PlotTasks(TaskDataFrame):
                       alpha=0.2,
                       picker=True,
                       )
-        self.ax2.plot(self.jobs_df.time_stamp,
+        self.ax2.plot(self.jobs_df[self.time_stamp],
                       self.jobs_df.all_Dcnt,
                       mark.STYLE['square'],
                       markersize=mark.DCNT_SIZE,
@@ -735,7 +739,7 @@ class PlotTasks(TaskDataFrame):
 
     def plot_fgrp5(self):
         p_label = 'fgrp5'
-        self.ax1.plot(self.jobs_df.time_stamp,
+        self.ax1.plot(self.jobs_df[self.time_stamp],
                       self.jobs_df.elapsed_t.where(self.jobs_df.is_fgrp5),
                       mark.STYLE['tri_left'],
                       markersize=mark.SIZE,
@@ -744,7 +748,7 @@ class PlotTasks(TaskDataFrame):
                       alpha=0.3,
                       picker=True,
                       )
-        self.ax2.plot(self.jobs_df.time_stamp,
+        self.ax2.plot(self.jobs_df[self.time_stamp],
                       self.jobs_df.fgrp5_Dcnt,
                       mark.STYLE['square'],
                       markersize=mark.DCNT_SIZE,
@@ -757,7 +761,7 @@ class PlotTasks(TaskDataFrame):
 
     def plot_fgrpBG1(self):
         p_label = 'fgrpBG1'
-        self.ax1.plot(self.jobs_df.time_stamp,
+        self.ax1.plot(self.jobs_df[self.time_stamp],
                       self.jobs_df.elapsed_t.where(self.jobs_df.is_fgrpBG1),
                       mark.STYLE['tri_right'],
                       markersize=mark.SIZE,
@@ -766,7 +770,7 @@ class PlotTasks(TaskDataFrame):
                       alpha=0.5,
                       picker=True,
                       )
-        self.ax2.plot(self.jobs_df.time_stamp,
+        self.ax2.plot(self.jobs_df[self.time_stamp],
                       self.jobs_df.fgrpBG1_Dcnt,
                       mark.STYLE['square'],
                       markersize=mark.DCNT_SIZE,
@@ -785,7 +789,7 @@ class PlotTasks(TaskDataFrame):
         self.reset_plots()
         p_label = 'fgrp_hz'
 
-        self.ax1.plot(self.jobs_df.time_stamp,
+        self.ax1.plot(self.jobs_df[self.time_stamp],
                       self.jobs_df.fgrp_freq,
                       mark.STYLE['tri_right'],
                       markersize=mark.SIZE,
@@ -794,14 +798,14 @@ class PlotTasks(TaskDataFrame):
                       alpha=0.3,
                       picker=True,
                       )
-        self.ax2.plot(self.jobs_df.time_stamp,
+        self.ax2.plot(self.jobs_df[self.time_stamp],
                       self.jobs_df.fgrp5_Dcnt,
                       mark.STYLE['square'],
                       markersize=mark.DCNT_SIZE,
                       label='fgrp5',
                       color=mark.CBLIND_COLOR['black'],
                       )
-        self.ax2.plot(self.jobs_df.time_stamp,
+        self.ax2.plot(self.jobs_df[self.time_stamp],
                       self.jobs_df.fgrpBG1_Dcnt,
                       mark.STYLE['square'],
                       markersize=mark.DCNT_SIZE,
@@ -818,7 +822,7 @@ class PlotTasks(TaskDataFrame):
 
     def plot_gw_O2MD(self):
         p_label = 'gw_O2MD'
-        self.ax1.plot(self.jobs_df.time_stamp,
+        self.ax1.plot(self.jobs_df[self.time_stamp],
                       self.jobs_df.elapsed_t.where(self.jobs_df.is_gw_O2MD),
                       mark.STYLE['triangle_down'],
                       markersize=mark.SIZE,
@@ -827,7 +831,7 @@ class PlotTasks(TaskDataFrame):
                       alpha=0.4,
                       picker=True,
                       )
-        self.ax2.plot(self.jobs_df.time_stamp,
+        self.ax2.plot(self.jobs_df[self.time_stamp],
                       self.jobs_df.gw_O2MD_Dcnt,
                       mark.STYLE['square'],
                       markersize=mark.DCNT_SIZE,
@@ -839,7 +843,7 @@ class PlotTasks(TaskDataFrame):
 
     def plot_gw_O3AS(self):
         p_label = 'gw_O3AS'
-        self.ax1.plot(self.jobs_df.time_stamp,
+        self.ax1.plot(self.jobs_df[self.time_stamp],
                       self.jobs_df.elapsed_t.where(self.jobs_df.is_gw_O3AS),
                       mark.STYLE['thin_diamond'],
                       markersize=mark.SIZE,
@@ -848,7 +852,7 @@ class PlotTasks(TaskDataFrame):
                       alpha=0.3,
                       picker=True,
                       )
-        self.ax2.plot(self.jobs_df.time_stamp,
+        self.ax2.plot(self.jobs_df[self.time_stamp],
                       self.jobs_df.gw_O3AS_Dcnt,
                       mark.STYLE['square'],
                       markersize=mark.DCNT_SIZE,
@@ -860,7 +864,7 @@ class PlotTasks(TaskDataFrame):
 
     def plot_brp4(self):
         p_label = 'brp4'
-        self.ax1.plot(self.jobs_df.time_stamp,
+        self.ax1.plot(self.jobs_df[self.time_stamp],
                       self.jobs_df.elapsed_t.where(self.jobs_df.is_brp4),
                       mark.STYLE['pentagon'],
                       markersize=mark.SIZE,
@@ -869,7 +873,7 @@ class PlotTasks(TaskDataFrame):
                       alpha=0.3,
                       picker=True,
                       )
-        self.ax2.plot(self.jobs_df.time_stamp,
+        self.ax2.plot(self.jobs_df[self.time_stamp],
                       self.jobs_df.brp4_Dcnt,
                       mark.STYLE['square'],
                       markersize=mark.DCNT_SIZE,
@@ -881,7 +885,7 @@ class PlotTasks(TaskDataFrame):
 
     def plot_brp7(self):
         p_label = 'brp7'
-        self.ax1.plot(self.jobs_df.time_stamp,
+        self.ax1.plot(self.jobs_df[self.time_stamp],
                       self.jobs_df.elapsed_t.where(self.jobs_df.is_brp7),
                       mark.STYLE['diamond'],
                       markersize=mark.SIZE,
@@ -890,7 +894,7 @@ class PlotTasks(TaskDataFrame):
                       alpha=0.3,
                       picker=True,
                       )
-        self.ax2.plot(self.jobs_df.time_stamp,
+        self.ax2.plot(self.jobs_df[self.time_stamp],
                       self.jobs_df.brp7_Dcnt,
                       mark.STYLE['square'],
                       markersize=mark.DCNT_SIZE,
@@ -1044,7 +1048,9 @@ if __name__ == "__main__":
     # System platform and version checks are run in plot_utils __init__.py
     #   Program exits if checks fail.
 
-    test_arg = utils.manage_args()  # Module returns a boolean.
+    # manage_args() returns a 2-tuple of booleans.
+    test_arg = utils.manage_args()[0]
+    utc_arg = utils.manage_args()[1]
 
     if not test_arg:
         data_path = path_check.set_datapath()

@@ -15,15 +15,14 @@ import matplotlib.pyplot as plt
 
 # Local application imports
 import plot_utils
-from plot_utils import reports
 
 
-def manage_args() -> bool:
+def manage_args() -> tuple:
     """
     Allow handling of command line arguments. The --about information
     can also be accessed from the GUI as a pop-up window.
 
-    :return: True if --test argument used (default: False).
+    :return: Tuple of booleans for --test and --utc options (default: False).
     """
 
     parser = argparse.ArgumentParser()
@@ -32,7 +31,12 @@ def manage_args() -> bool:
                         action='store_true',
                         default=False)
     parser.add_argument('--test',
-                        help='Plot test_arg data instead of your job_log data.',
+                        help='Plot sample test data instead of your job_log data.',
+                        action='store_true',
+                        default=False,
+                        )
+    parser.add_argument('--utc',
+                        help='Plot UTC datetime instead of local datetime.',
                         action='store_true',
                         default=False,
                         )
@@ -41,12 +45,12 @@ def manage_args() -> bool:
 
     if args.about:
         print('====================== ABOUT START ====================')
-        print(reports.about_text())
+        print(plot_utils.reports.about_text())
         print('====================== ABOUT END ====================')
 
         sys.exit(0)
 
-    return args.test
+    return args.test, args.utc
 
 
 def quit_gui(mainloop, keybind=None) -> None:
