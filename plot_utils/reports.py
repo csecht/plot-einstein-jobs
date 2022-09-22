@@ -105,7 +105,10 @@ def joblog_report(dataframe: pd) -> None:
         p_dcnt = f'{_p}_Dcnt'
 
         proj_days.append(len((dataframe[p_dcnt]
-                              .groupby(dataframe.time_stamp.dt.date
+                              .groupby(dataframe.time_stamp
+                                       .dt.tz_localize("utc")
+                                       .dt.tz_convert(LOCAL_TZ)
+                                       .dt.date
                                        .where(dataframe[p_dcnt].notnull()))
                               .unique())))
 
@@ -121,7 +124,10 @@ def joblog_report(dataframe: pd) -> None:
     _results = tuple(zip(
         grp.PROJECTS, proj_totals, proj_daily_means, proj_days))
 
-    num_days = len(pd.to_datetime(dataframe.time_stamp).dt.date.unique())
+    num_days = (len(pd.to_datetime(dataframe.time_stamp
+                                   .dt.tz_localize("utc")
+                                   .dt.tz_convert(LOCAL_TZ)
+                                   ).dt.date.unique()))
 
     # Example report layout: note that 'all' and Projects total differ.
     # /var/lib/boinc/job_log_einstein.phys.uwm.edu.txt
