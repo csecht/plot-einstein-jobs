@@ -27,7 +27,7 @@ PROJ_NAME_REGEX = {
     'brp7': r'^M22',
 }
 
-# Dict used in PlotTasks.clicked_plot() to match checkbox CHKBOX_LABELS to
+# Dict used in PlotTasks.clicked_plot_msg() to match checkbox CHKBOX_LABELS to
 #  is_<project> columns in the main DataFrame. Provides naming flexibility.
 CLICKED_PLOT = {
     'all': 'all',

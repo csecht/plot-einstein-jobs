@@ -684,7 +684,7 @@ class PlotTasks(TaskDataFrame):
         for plot, _ in self.isplotted.items():
             self.isplotted[plot] = False
 
-    def clicked_plot(self, clicked_label: str) -> None:
+    def clicked_plot_msg(self, clicked_label: str) -> None:
         """
         When there are no data to plot for a clicked plot label, post a
         message in the plot area. Called from manage_plots().
@@ -1007,7 +1007,7 @@ class PlotTasks(TaskDataFrame):
 
                 self.plot_proj[clicked_label]()
 
-        # Inclusive plots can be plotted with each another.
+        # Inclusive plots can be plotted with (on top of) each another.
         if clicked_label in grp.ALL_INCLUSIVE and ischecked[clicked_label]:
             for plot in grp.ALL_EXCLUDED:
                 if self.isplotted[plot] or ischecked[plot]:
@@ -1033,7 +1033,7 @@ class PlotTasks(TaskDataFrame):
                     self.plot_proj[proj]()
 
         # Need to post notice if selected plot data are not available.
-        self.clicked_plot(clicked_label)
+        self.clicked_plot_msg(clicked_label)
 
         self.fig.canvas.draw_idle()
 
@@ -1043,19 +1043,20 @@ if __name__ == "__main__":
     # System platform and version checks are run in plot_utils __init__.py
     #   Program exits if checks fail.
 
-    # manage_args() returns a 2-tuple of booleans.
+    # manage_args() returns a 2-tuple of booleans, as set on command line;
+    #   default: False
     test_arg = utils.manage_args()[0]
     utc_arg = utils.manage_args()[1]
 
-    if not test_arg:
-        data_path = path_check.set_datapath()
-    else:
+    if test_arg:
         data_path = path_check.set_datapath(use_test_file=True)
+    else:
+        data_path = path_check.set_datapath()
 
     print(f'Data from {data_path} are loading. This may take a few seconds...')
 
-    # Need to use a tkinter window for the plot canvas so that the
-    #   CheckButton actions for plot management are more responsive.
+    # Need to use a tkinter window for the plot canvas so that CheckButton
+    #   actions for plotting are more responsive.
     canvas_window = tk.Tk()
 
     # This call will set up an inherited pd dataframe in TaskDataFrame,
