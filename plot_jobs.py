@@ -44,7 +44,6 @@ Developed in Python 3.8-3.9.
 import sys
 import numpy as np
 
-
 # Local application imports
 from plot_utils import (UTC_OFFSET,
                         path_check, reports, utils,
@@ -115,13 +114,13 @@ class TaskDataFrame:
         :return: None
         """
 
-        # job_log_einstein.phys.uwm.edu.txt, structure of records:
+        # The record structure in job_log_einstein.phys.uwm.edu.txt:
         # 1654865994 ue 916.720025 ct 340.770200 fe 144000000000000 nm h1_0681.20_O3aC01Cl1In0__O3AS1a_681.50Hz_19188_1 et 1283.553196 es 0
 
-        # To include all numerical data in space-delimited job_log, use this:
+        # To include all numerical data in job_log, use this:
         # joblog_col_index = 0, 2, 4, 6, 8, 10  # All reported data
         # names = ('utc_tstamp', 'est_sec', 'cpu_sec', 'est_flops', 'task_name', 'elapsed_t')
-        # Note that utc_tstamp is UTC Epoch time.
+        # Note that utc_tstamp is UTC Epoch time in seconds.
 
         # Job log data of current interest:
         job_col_index = 0, 8, 10
@@ -142,13 +141,13 @@ class TaskDataFrame:
         # Need to retain original elapsed time as seconds to plot Hz x task time.
         self.jobs_df['elapsed_sec'] = self.jobs_df.elapsed_t
 
-        # Need to convert UTC timestamp to local timestamp.
+        # Need to create local timestamp from UTC timestamp (float, int, or NaN).
         self.jobs_df['local_tstamp'] = self.jobs_df.utc_tstamp + UTC_OFFSET
 
-        #  Need to convert Epoch timestamps and task time (int or float seconds)
-        #    to dtype np.datetime64 for plot axis tick readability.
-        #  Converting to datetime dtypes after timestamp conversion
-        #    launches the plot much faster.
+        # For plot axis tick readability, convert Epoch timestamps and
+        #   task times (int, float, NaN) to np.datetime64 dtype.
+        # Doing this dtype conversion AFTER the UTC-to-local adjustment
+        #   results in a much faster launch of the plot window.
         for col in ('utc_tstamp', 'local_tstamp', 'elapsed_t'):
             try:
                 self.jobs_df[col] = pd.to_datetime(self.jobs_df[col], unit='s')
@@ -156,7 +155,8 @@ class TaskDataFrame:
                 print(f'Warning: A {col} value could not be converted'
                       ' to a pd datetime object by setup_df().\n')
 
-        # Add zero-value data columns: use to visually clear plots in reset_plots().
+        # Add zero-value data columns: use to visually clear plots in
+        #   reset_plots(). Needed when use mpl_connect event picker.
         self.jobs_df['null_time'] = np.zeros(self.jobs_df.shape[0])
         self.jobs_df['null_Dcnt'] = np.zeros(self.jobs_df.shape[0])
 
@@ -225,23 +225,20 @@ class TaskDataFrame:
         Add columns of daily reported task counts for each E@H Project.
         """
 
-        #  Idea to tally using groupby and transform, source:
-        #         https://stackoverflow.com/questions/17709270/
-        #           create-column-of-value-counts-in-pandas-dataframe
+        # Use UTC or local timestamp column option for daily task counts;
+        #   --utc is a command line argument option.
+        ts2use = 'utc_tstamp' if utc_arg else 'local_tstamp'
 
-        # For clarity, grp.PROJECTS names used here need to match those
-        #   used in isplotted (dict) and grp.CHKBOX_LABELS (tuple).
-        # Need to shift daily count floor from UTC to local timezone.
-        if utc_arg:
-            tz2use = 'utc_tstamp'
-        else:
-            tz2use = 'local_tstamp'
-
+        # For clarity, grp.PROJECTS names used here need to match those used in
+        #   isplotted (dict), ischecked (dict), and grp.CHKBOX_LABELS (tuple).
+        # Idea to tally using groupby and transform, source:
+        #   https://stackoverflow.com/questions/17709270/
+        #      create-column-of-value-counts-in-pandas-dataframe
         for proj in grp.PROJECTS:
             try:
                 self.jobs_df[f'{proj}_Dcnt'] = (
-                    self.jobs_df[tz2use]
-                    .groupby(self.jobs_df[tz2use]
+                    self.jobs_df[ts2use]
+                    .groupby(self.jobs_df[ts2use]
                              .dt.floor('D')
                              .where(self.jobs_df[f'is_{proj}']))
                     .transform('count')
@@ -283,26 +280,27 @@ class PlotTasks(TaskDataFrame):
 
         # These keys must match plot names in project_groups.CHKBOX_LABELS.
         # Dictionary pairs plot name to plot method.
-        self.plot_proj = dict(all=self.plot_all,
-                              fgrp5=self.plot_fgrp5,
-                              fgrpBG1=self.plot_fgrpBG1,
-                              fgrp_hz=self.plot_fgrp_hz,
-                              gw_O2MD=self.plot_gw_O2MD,
-                              gw_O3AS=self.plot_gw_O3AS,
-                              brp4=self.plot_brp4,
-                              brp7=self.plot_brp7,
-                              gwO3Hz_X_t=self.plot_gwO3Hz_X_t,
-                              fgrpHz_X_t=self.plot_fgrpHz_X_t
-                              )
+        self.plot_proj = {'all': self.plot_all,
+                          'fgrp5': self.plot_fgrp5,
+                          'fgrpBG1': self.plot_fgrpBG1,
+                          'fgrp_hz': self.plot_fgrp_hz,
+                          'gw_O2MD': self.plot_gw_O2MD,
+                          'gw_O3AS': self.plot_gw_O3AS,
+                          'brp4': self.plot_brp4,
+                          'brp7': self.plot_brp7,
+                          'gwO3Hz_X_t': self.plot_gwO3Hz_X_t,
+                          'fgrpHz_X_t': self.plot_fgrpHz_X_t
+                          }
+
         self.chkbox_labelid = {}
         self.isplotted = {}
 
         # Establish the style for text fancy boxes.
-        self.text_bbox = dict(facecolor='white',
-                              edgecolor='grey',
-                              boxstyle='round4',
-                              pad=0.7,
-                              )
+        self.text_bbox = {'facecolor': 'white',
+                          'edgecolor': 'grey',
+                          'boxstyle': 'round4',
+                          'pad': 0.7,
+                          }
 
         # 'bmh' style: from Baysean Methods for Hackers; looks nice for this data.
         #  http://camdavidsonpilon.github.io/Probabilistic-Programming-and-Bayesian-Methods-for-Hackers/
@@ -314,12 +312,13 @@ class PlotTasks(TaskDataFrame):
         self.fig, (self.ax1, self.ax2) = plt.subplots(
             2,
             sharex='all',
-            gridspec_kw=dict(height_ratios=[3, 1.2],
-                             left=0.15,
-                             right=0.85,
-                             bottom=0.16,
-                             top=0.92,
-                             hspace=0.15),
+            gridspec_kw={'height_ratios': [3, 1.2],
+                         'left': 0.15,
+                         'right': 0.85,
+                         'bottom': 0.16,
+                         'top': 0.92,
+                         'hspace': 0.15,
+                         },
         )
 
         # Need to have mpl_connect statement before any autoscale statements AND
@@ -344,10 +343,7 @@ class PlotTasks(TaskDataFrame):
 
         # test_arg is boolean, defined in if __name__ == "__main__" from
         #   the --test invocation argument (default: False).
-        if test_arg:
-            _title = 'Sample data'
-        else:
-            _title = 'E@H job_log data'
+        _title = 'Sample data' if test_arg else 'E@H job_log data'
 
         # canvas_window is the Tk object defined in if __name__ == "__main__".
         canvas_window.title(_title)
@@ -445,12 +441,11 @@ class PlotTasks(TaskDataFrame):
 
         # Add a 2% margin to the slider upper limit when frequency data are available.
         # When there are no plot data, max_f will be NaN, so use some NaN magic
-        #   to test that and avoid a ValueError for RangeSlider max range.
-        # https://towardsdatascience.com/5-methods-to-check-for-nan-values-in-in-python-3f21ddd17eed
-        if max_f != max_f:  # Will be True if max_f is NaN.
-            max_limit = 1
-        else:
-            max_limit = max_f * 1.02
+        #   to test that and avoid a ValueError for RangeSlider max range by
+        #   assigning it a limit of 1.
+        # https://towardsdatascience.com/
+        #   5-methods-to-check-for-nan-values-in-in-python-3f21ddd17eed
+        max_limit = 1 if max_f != max_f else max_f * 1.02
 
         # RangeSlider relative Figure coord: (LEFT, BOTTOM, WIDTH, HEIGHT).
         self.ax_slider = plt.axes((0.05, 0.38, 0.01, 0.52))  # vert
@@ -533,13 +528,13 @@ class PlotTasks(TaskDataFrame):
         self.checkbox.set_active(self.chkbox_labelid['all'])
 
     def format_legends(self):
-        kwargs = dict(ncol=1,
-                      fontsize='x-small',
-                      loc='upper right',
-                      markerscale=mark.SCALE,
-                      edgecolor='black',
-                      framealpha=0.4,
-                      )
+        kwargs = {'ncol': 1,
+                  'fontsize': 'x-small',
+                  'loc': 'upper right',
+                  'markerscale': mark.SCALE,
+                  'edgecolor': 'black',
+                  'framealpha': 0.4,
+                  }
         self.ax1.legend(**kwargs)
         self.ax2.legend(**kwargs)
 
@@ -583,7 +578,7 @@ class PlotTasks(TaskDataFrame):
         self.ax1.margins(0.02, 0.02)
         self.ax2.margins(0.02, 0.05)
 
-        kwargs = dict(fontsize='medium', fontweight='bold')
+        kwargs = {'fontsize': 'medium', 'fontweight': 'bold'}
 
         self.ax1.set_ylabel('Task completion time', **kwargs)
 
@@ -651,7 +646,7 @@ class PlotTasks(TaskDataFrame):
         # Need to FIX: the Home tool sets (remembers) axes range of the
         #  first selected freq vs time plot, instead of current
         #  freq vs time plot, but only when the Zoom tool has been used.
-        kwargs = dict(fontsize='medium', fontweight='bold')
+        kwargs = {'fontsize': 'medium', 'fontweight': 'bold'}
 
         self.ax1.set_xlabel('Task completion time, sec', **kwargs)
         self.ax1.set_ylabel('Task base frequency, Hz', **kwargs)
@@ -675,7 +670,7 @@ class PlotTasks(TaskDataFrame):
 
         self.setup_count_axes()
 
-        kwargs = dict(visible=False, label='_leave blank')
+        kwargs = {'visible': False, 'label': '_leave blank'}
 
         self.ax1.plot(self.jobs_df[self.time_stamp],
                       self.jobs_df.null_time,
@@ -706,8 +701,9 @@ class PlotTasks(TaskDataFrame):
         #   The CLICKED_PLOT dict pairs grp.CHKBOX_LABELS with grp.PROJECTS strings.
         # The 'no data' msg is removed when the no-data plot is unchecked or a
         #   valid data plot is checked.
-        # Note: ischecked dictionary values are boolean.
+        # ischecked key is Project name, value is current check status (boolean).
         ischecked = dict(zip(grp.CHKBOX_LABELS, self.checkbox.get_status()))
+
         if ischecked[clicked_label]:
             if not sum(self.jobs_df[f'is_{grp.CLICKED_PLOT[clicked_label]}']):
                 self.fig.text(0.5, 0.51,
@@ -996,8 +992,7 @@ class PlotTasks(TaskDataFrame):
         #   any proj button clicks trigger this manage_plots() callback,
         #   so all conditions here are evaluated with every click.
 
-        # ischecked key is project label, value is check status.
-        # Note: ischecked and self.isplotted dictionary values are boolean.
+        # ischecked key is Project name, value is current check status (boolean).
         ischecked = dict(zip(grp.CHKBOX_LABELS, self.checkbox.get_status()))
 
         # Exclusive plots can only be plotted by themselves.
