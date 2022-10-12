@@ -24,7 +24,7 @@ PROJ_NAME_REGEX = {
     'gw_O2MD': '_O2MD',
     'gw_O3AS': '_O3AS',
     'brp4': r'^p',
-    'brp7': r'^M22',
+    'brp7': r'^M',
 }
 
 # Dict used in PlotTasks.clicked_plot_msg() to match checkbox CHKBOX_LABELS to
