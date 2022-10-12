@@ -95,8 +95,24 @@ The Hz range slider can be used as an alternative way to zoom in on frequency ra
 
 Pop-up window of task information for tasks nearest a clicked plot coordinate. The cursor arrow to click on plot points appears when no navigation bar tools (pan or zoom) are active (highlighted).
 
-### Keyboard shortcuts for navigation bar buttons and actions
+### How Projects are identified
 
+Projects listed under Plots are identified from their task names in the job_log file. Names are matched using regular expressions listed in the PROJ_NAME_REGEX dictionary in  plot_utils/project_groups.py. The general match patterns in task names are as follows.
+
+E@H Project:&emsp;&emsp;&emsp;matching characters in name (0000 is any four digits)
+- FGRP5:&emsp;&emsp;&emsp;&nbsp;'LATeah0000F'
+- FGRPBG1:&emsp;&emsp;'LATeah0000L' or 'LATeah1049'
+- O2MD series:&emsp;'_O2MD'
+- O3AS1a:&emsp;&emsp;&emsp;'_O3AS'
+- BRP4:&emsp;&emsp;&emsp;&emsp;name begins with 'p'
+- BRP7:&emsp;&emsp;&emsp;&emsp;name begins with 'M'
+
+### Keyboard shortcuts for navigation bar buttons and actions
+<style>
+td {
+  font-size: 10px
+}
+</style>
 | Action     | Key                      | Description                                                                |
 |------------|--------------------------|----------------------------------------------------------------------------|
 | fullscreen | f, ctrl+f                | toggle full screen display of plot window                                  |
