@@ -14,7 +14,7 @@ import sys
 import matplotlib.pyplot as plt
 
 # Local application imports
-import plot_utils
+from plot_utils import reports
 
 
 def manage_args() -> tuple:
@@ -45,7 +45,7 @@ def manage_args() -> tuple:
 
     if args.about:
         print('====================== ABOUT START ====================')
-        print(plot_utils.reports.about_text())
+        print(reports.about_text())
         print('====================== ABOUT END ====================')
 
         sys.exit(0)
