@@ -126,7 +126,7 @@ class TaskDataFrame:
         job_col_index = 0, 8, 10
         names = ('utc_tstamp', 'task_name', 'elapsed_t')
 
-        # The datapath path is defined in if __name__ == "__main__".
+        # The data file path is defined in if __name__ == "__main__".
         self.jobs_df = pd.read_table(data_path,
                                      engine='c',
                                      delim_whitespace=True,
@@ -185,8 +185,8 @@ class TaskDataFrame:
             nan_sum, col_name = tup
             if nan_sum > 0:
                 nanjobs_df = self.jobs_df[self.jobs_df[col_name].isna()]
-                self.jobs_df[col_name].interpolate(
-                    method='linear', inplace=True)
+                self.jobs_df[col_name].interpolate(method='linear',
+                                                   inplace=True)
                 print(f'*** Heads up: {nan_sum} {col_name} values could not'
                       ' be read from the file and have been interpolated. ***\n'
                       f'Tasks with "bad" times:\n'
@@ -226,7 +226,8 @@ class TaskDataFrame:
         """
 
         # Use UTC or local timestamp column option for daily task counts;
-        #   --utc is a command line argument option.
+        #   --utc is an optional command line argument; utc_arg is defined
+        #   in if __name__ == "__main__"
         ts2use = 'utc_tstamp' if utc_arg else 'local_tstamp'
 
         # For clarity, grp.PROJECTS names used here need to match those used in
