@@ -108,11 +108,7 @@ E@H Project:&emsp;&emsp;&emsp;matching characters in name (0000 is any four digi
 - BRP7:&emsp;&emsp;&emsp;&emsp;name begins with 'M'
 
 ### Keyboard shortcuts for navigation bar buttons and actions
-<style>
-td {
-  font-size: 10px
-}
-</style>
+
 | Action     | Key                      | Description                                                                |
 |------------|--------------------------|----------------------------------------------------------------------------|
 | fullscreen | f, ctrl+f                | toggle full screen display of plot window                                  |
