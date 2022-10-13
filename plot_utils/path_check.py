@@ -18,10 +18,14 @@ from pathlib import Path
 from re import match
 
 # Local application imports
-from plot_utils import URL, platform_check as chk
+# from plot_utils import URL
+from plot_utils import platform_check as chk
 
 CFGFILE = Path('plot_cfg.txt').resolve()
 TESTFILE = Path('plot_utils/testdata.txt')
+URL = 'https://github.com/csecht/plot-einstein-jobs'
+# ^^ Keep in sync with plot_utils/__init__.py URL.
+#    Is literal here b/c of circular import issues (and poor structure).
 
 
 def set_datapath(use_test_file=False) -> Path:
