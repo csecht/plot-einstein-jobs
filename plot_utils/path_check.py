@@ -7,8 +7,6 @@ validate_datafile - Check that file starts with timestamp; exit if not.
 Constants:
 CFGFILE - the configuration file for setting a custom data file path.
 TESTFILE - Path to the sample data file to test the program's functions.
-chk.MY_OS - the system platform in use.
-
 """
 # Copyright (C) 2021-2022 C. Echt under GNU General Public License'
 
@@ -18,14 +16,11 @@ from pathlib import Path
 from re import match
 
 # Local application imports
-# from plot_utils import URL
+import plot_utils  # Need URL from __init__.py
 from plot_utils import platform_check as chk
 
 CFGFILE = Path('plot_cfg.txt').resolve()
 TESTFILE = Path('plot_utils/testdata.txt')
-URL = 'https://github.com/csecht/plot-einstein-jobs'
-# ^^ Keep in sync with plot_utils/__init__.py URL.
-#    Is literal here b/c of circular import issues (and poor structure).
 
 
 def set_datapath(use_test_file=False) -> Path:
@@ -49,11 +44,11 @@ def set_datapath(use_test_file=False) -> Path:
         if Path.is_file(TESTFILE):
             validate_datafile(TESTFILE)
             return TESTFILE
-        else:
-            notest = (f'The sample data file, {TESTFILE} was not found.'
-                      ' Was it moved or renamed?\n'
-                      f'It can be downloaded from {URL}')
-            sys.exit(notest)
+
+        notest = (f'The sample data file, {TESTFILE} was not found.'
+                  ' Was it moved or renamed?\n'
+                  f'It can be downloaded from {plot_utils.URL}')
+        sys.exit(notest)
 
     elif Path.is_file(CFGFILE):
         cfg_text = Path(CFGFILE).read_text()
@@ -65,9 +60,9 @@ def set_datapath(use_test_file=False) -> Path:
                 custom_path = " ".join(parts)
                 if Path.is_file(Path(custom_path)):
                     return Path(custom_path)
-                else:
-                    errmsg = f"The custom path, {custom_path}, is not working.\n"
-                    sys.exit(errmsg)
+
+                errmsg = f"The custom path, {custom_path}, is not working.\n"
+                sys.exit(errmsg)
 
     # Supported system platforms have already been verified in plot_utils __init__.py.
     elif not Path.is_file(default_datapath[chk.MY_OS]):
