@@ -14,7 +14,8 @@ import sys
 import matplotlib.pyplot as plt
 
 # Local application imports
-from plot_utils import reports
+import plot_utils
+from __main__ import __doc__
 
 
 def manage_args() -> tuple:
@@ -43,9 +44,17 @@ def manage_args() -> tuple:
 
     args = parser.parse_args()
 
+    about_text = (f'{__doc__}\n'
+                  f'{"Author:".ljust(13)}{plot_utils.__author__}\n'
+                  f'{"Version:".ljust(13)}{plot_utils.__version__}\n'
+                  f'{"Status:".ljust(13)}{plot_utils.__status__}\n'
+                  f'{"URL:".ljust(13)}{plot_utils.URL}\n'
+                  f'{plot_utils.__copyright__}'
+                  f'{plot_utils.__license__}\n')
+
     if args.about:
         print('====================== ABOUT START ====================')
-        print(reports.about_text())
+        print(about_text)
         print('====================== ABOUT END ====================')
 
         sys.exit(0)
