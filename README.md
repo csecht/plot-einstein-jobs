@@ -95,6 +95,10 @@ The Hz range slider can be used as an alternative way to zoom in on frequency ra
 
 Pop-up window of task information for tasks nearest a clicked plot coordinate. The cursor arrow to click on plot points appears when no navigation bar tools (pan or zoom) are active (highlighted).
 
+![project_summary_counts](images/project_counts.png)
+
+The "Jop log counts" button gives a pop-up window of reported task totals for each Project.
+
 ### How Projects are identified
 
 Projects listed under Plots are identified from their task names in the job_log file. Names are matched using regular expressions listed in the PROJ_NAME_REGEX dictionary in  plot_utils/project_groups.py. The general match patterns in task names are as follows.
