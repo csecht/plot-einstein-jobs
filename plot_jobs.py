@@ -347,7 +347,7 @@ class PlotTasks(TaskDataFrame):
         #   the --test invocation argument (default: False).
         _title = 'Sample data' if test_arg else 'E@H job_log data'
 
-        # canvas_window is the Tk object defined in if __name__ == "__main__".
+        # canvas_window is the Tk mainloop defined in if __name__ == "__main__".
         canvas_window.title(_title)
         canvas_window.minsize(850, 550)
 
@@ -1042,13 +1042,12 @@ class PlotTasks(TaskDataFrame):
 
 if __name__ == "__main__":
 
-    # System platform and version checks are run in plot_utils __init__.py
-    #   Program exits if checks fail.
+    # Program exits here if system platform or Python version check fails.
     utils.check_platform()
     vcheck.minversion('3.7')
 
     # manage_args() returns a 2-tuple of booleans, as set on command line;
-    #   default: False
+    #   agruments default: False
     test_arg = utils.manage_args()[0]
     utc_arg = utils.manage_args()[1]
 
