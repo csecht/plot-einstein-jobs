@@ -8,14 +8,34 @@ quit_gui -  Error-free and informative exit from the program.
 
 # Standard library imports
 import argparse
+import platform
 import sys
+from __main__ import __doc__
+from datetime import datetime
 
 # Third party imports.
 import matplotlib.pyplot as plt
 
 # Local application imports
 import plot_utils
-from __main__ import __doc__
+
+MY_OS = sys.platform[:3]
+
+
+def check_platform():
+    if MY_OS not in 'lin, win, dar':
+        print(f'Platform <{sys.platform}> is not supported.\n'
+              'Windows, Linux, and MacOS (darwin) are supported.')
+        sys.exit(1)
+
+    # Need to account for scaling in Windows10 and earlier releases.
+    if MY_OS == 'win':
+        from ctypes import windll
+
+        if platform.release() < '10':
+            windll.user32.SetProcessDPIAware()
+        else:
+            windll.shcore.SetProcessDpiAwareness(1)
 
 
 def manage_args() -> tuple:
@@ -88,3 +108,12 @@ def quit_gui(mainloop, keybind=None) -> None:
         sys.exit('Program exit with unexpected condition.')
 
     return keybind
+
+
+def utc_offset() -> float:
+    """Return seconds offset of UTC time from local time."""
+    local_tz = datetime.now().astimezone().tzinfo
+    offset_sec = (datetime.now(local_tz)
+                  .utcoffset()
+                  .total_seconds())
+    return offset_sec

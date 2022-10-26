@@ -45,10 +45,11 @@ import sys
 import numpy as np
 
 # Local application imports
-from plot_utils import (UTC_OFFSET,
-                        path_check, reports, utils,
+from plot_utils import (path_check, vcheck,
+                        reports, utils,
                         markers as mark,
                         project_groups as grp)
+
 
 # Third party imports (tk may not be included with some Python installations).
 try:
@@ -142,7 +143,7 @@ class TaskDataFrame:
         self.jobs_df['elapsed_sec'] = self.jobs_df.elapsed_t
 
         # Need to create local timestamp from UTC timestamp (float, int, or NaN).
-        self.jobs_df['local_tstamp'] = self.jobs_df.utc_tstamp + UTC_OFFSET
+        self.jobs_df['local_tstamp'] = self.jobs_df.utc_tstamp + utils.utc_offset()
 
         # For plot axis tick readability, convert Epoch timestamps and
         #   task times (int, float, NaN) to np.datetime64 dtype.
@@ -1043,6 +1044,8 @@ if __name__ == "__main__":
 
     # System platform and version checks are run in plot_utils __init__.py
     #   Program exits if checks fail.
+    utils.check_platform()
+    vcheck.minversion('3.7')
 
     # manage_args() returns a 2-tuple of booleans, as set on command line;
     #   default: False

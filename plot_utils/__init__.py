@@ -3,15 +3,9 @@ These constants are used with the --about command line argument or button.
 Program will exit here if any check fails when called.
 """
 
-# Standard library import:
-from datetime import datetime
-
-# Local module imports:
-from plot_utils import platform_check, utils, vcheck
-
 # Development status standards: https://pypi.org/classifiers/
 __author__ = 'Craig S. Echt'
-__version__: str = '0.2.3'
+__version__: str = '0.2.4'
 __status__ = 'Development Status :: 4 - Beta'
 __copyright__ = 'Copyright (C) 2022 C.S. Echt, under GNU General Public License'
 __license__ = """
@@ -31,10 +25,3 @@ __license__ = """
 
 URL = 'https://github.com/csecht/plot-einstein-jobs'
 
-local_tz = datetime.now().astimezone().tzinfo
-UTC_OFFSET = (datetime.now(local_tz)
-              .utcoffset()
-              .total_seconds())
-
-platform_check.check_platform()
-vcheck.minversion('3.7')

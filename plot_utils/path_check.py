@@ -17,7 +17,7 @@ from re import match
 
 # Local application imports
 import plot_utils  # Need URL from __init__.py
-from plot_utils import platform_check as chk
+from plot_utils.utils import MY_OS
 
 CFGFILE = Path('plot_cfg.txt').resolve()
 TESTFILE = Path('plot_utils/testdata.txt')
@@ -65,16 +65,16 @@ def set_datapath(use_test_file=False) -> Path:
                 sys.exit(errmsg)
 
     # Supported system platforms have already been verified in plot_utils __init__.py.
-    elif not Path.is_file(default_datapath[chk.MY_OS]):
+    elif not Path.is_file(default_datapath[MY_OS]):
         badpath_msg = (
             '\nThe job_log data file is not in its expected default path:\n'
-            f'     {default_datapath[chk.MY_OS]}\n'
+            f'     {default_datapath[MY_OS]}\n'
             'You can enter a custom path for your job_log file in'
             f" the configuration file: {CFGFILE}.")
         sys.exit(badpath_msg)
 
-    validate_datafile(default_datapath[chk.MY_OS])
-    return default_datapath[chk.MY_OS]
+    validate_datafile(default_datapath[MY_OS])
+    return default_datapath[MY_OS]
 
 
 def validate_datafile(filepath: Path) -> None:
