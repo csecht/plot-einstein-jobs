@@ -42,10 +42,13 @@ except (ImportError, ModuleNotFoundError) as import_err:
     exit(1)
 
 # Local application imports
-# __main__ and plot_utils are used with the --about option to access
-#   __doc__ and __init__.py constants and custom dunders.
 from __main__ import __doc__
-import plot_utils
+from plot_utils import (__author__,
+                        __copyright__,
+                        __license__,
+                        __status__,
+                        __version__,
+                        URL)
 from plot_utils import (path_check,
                         utils,
                         markers as mark,
@@ -73,12 +76,12 @@ def about_report(event) -> None:
     """
 
     about_text = (f'{__doc__}\n'
-                  f'{"Author:".ljust(13)}{plot_utils.__author__}\n'
-                  f'{"Version:".ljust(13)}{plot_utils.__version__}\n'
-                  f'{"Status:".ljust(13)}{plot_utils.__status__}\n'
-                  f'{"URL:".ljust(13)}{plot_utils.URL}\n'
-                  f'{plot_utils.__copyright__}'
-                  f'{plot_utils.__license__}\n')
+                  f'{"Author:".ljust(13)}{__author__}\n'
+                  f'{"Version:".ljust(13)}{__version__}\n'
+                  f'{"Status:".ljust(13)}{__status__}\n'
+                  f'{"URL:".ljust(13)}{URL}\n'
+                  f'{__copyright__}'
+                  f'{__license__}\n')
 
     view_report(title=f'About {Path(__file__).name}',
                 text=about_text,

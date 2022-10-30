@@ -16,7 +16,7 @@ from pathlib import Path
 from re import match
 
 # Local application imports
-import plot_utils  # Need URL from __init__.py
+from plot_utils import URL
 from plot_utils.utils import MY_OS
 
 CFGFILE = Path('plot_cfg.txt').resolve()
@@ -47,7 +47,7 @@ def set_datapath(use_test_file=False) -> Path:
 
         notest = (f'The sample data file, {TESTFILE} was not found.'
                   ' Was it moved or renamed?\n'
-                  f'It can be downloaded from {plot_utils.URL}')
+                  f'It can be downloaded from {URL}')
         sys.exit(notest)
 
     elif Path.is_file(CFGFILE):

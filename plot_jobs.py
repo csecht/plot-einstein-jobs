@@ -143,7 +143,7 @@ class TaskDataFrame:
         self.jobs_df['elapsed_sec'] = self.jobs_df.elapsed_t
 
         # Need to create local timestamp from UTC timestamp (float, int, or NaN).
-        self.jobs_df['local_tstamp'] = self.jobs_df.utc_tstamp + utils.utc_offset()
+        self.jobs_df['local_tstamp'] = self.jobs_df.utc_tstamp + utils.utc_offset_sec()
 
         # For plot axis tick readability, convert Epoch timestamps and
         #   task times (int, float, NaN) to np.datetime64 dtype.
@@ -156,7 +156,7 @@ class TaskDataFrame:
                 print(f'Warning: A {col} value could not be converted'
                       ' to a pd datetime object by setup_df().\n')
 
-        # Add zero-value data columns: use to visually clear plots in
+        # Use zero-value data columns to visually clear plots in
         #   reset_plots(). Needed when use mpl_connect event picker.
         self.jobs_df['null_time'] = np.zeros(self.jobs_df.shape[0])
         self.jobs_df['null_Dcnt'] = np.zeros(self.jobs_df.shape[0])

@@ -10,8 +10,8 @@ quit_gui -  Error-free and informative exit from the program.
 import argparse
 import platform
 import sys
-from __main__ import __doc__
 from datetime import datetime
+from __main__ import __doc__
 
 # Third party imports.
 import matplotlib.pyplot as plt
@@ -110,8 +110,8 @@ def quit_gui(mainloop, keybind=None) -> None:
     return keybind
 
 
-def utc_offset() -> float:
-    """Return seconds offset of UTC time from local time."""
+def utc_offset_sec() -> float:
+    """Return offset of UTC time from local time, as float seconds."""
     local_tz = datetime.now().astimezone().tzinfo
     offset_sec = (datetime.now(local_tz)
                   .utcoffset()
