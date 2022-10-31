@@ -182,12 +182,10 @@ def on_pick_report(event, dataframe: pd) -> None:
     :return: None
     """
 
-    use_utc = True if TIME_STAMP == 'utc_tstamp' else False
-
-    if use_utc:
+    if TIME_STAMP == 'utc_tstamp':
         _header = ('Tasks nearest the selected point\n'
                    'UTC date   time     | task name | completion time (μs)')
-    else:
+    else:  # is 'local_tstamp'
         _header = ('Tasks nearest the selected point\n'
                    'Local date time     | task name | completion time (μs)')
 
