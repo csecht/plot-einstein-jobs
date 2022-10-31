@@ -11,8 +11,8 @@ view_report - Create the toplevel window to display report text.
 
 # Standard library imports
 import re
+import sys
 from pathlib import Path
-from sys import exit
 
 # Third party imports.
 #   tkinter may not be installed in all Python distributions,
@@ -39,7 +39,7 @@ except (ImportError, ModuleNotFoundError) as import_err:
           '   sudo apt-get install python3-tk\n'
           '   See also: https://tkdocs.com/tutorial/install.html \n\n'
           f'Error message:\n{import_err}')
-    exit(1)
+    sys.exit(1)
 
 # Local application imports
 from __main__ import __doc__
