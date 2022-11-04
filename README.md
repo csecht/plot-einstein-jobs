@@ -59,9 +59,8 @@ from the downloaded GitHub repository folder, run this command
     pip install -r requirements.txt
 Alternative commands (system dependent):
 
-    python -m pip install -r requirements.txt
-    python3 -m pip install -r requirements.txt
-    py -m pip install -r requirements.txt
+    python3 -m pip install -r requirements.txt (recommended for all systems)
+    py -m pip install -r requirements.txt (Windows)
 
 ### Known Issues:
 Navigation bar icons images are not showing up in MacOS. They are functional, but may have reduced responsiveness' text descriptions of button functions are below the stub icons.
