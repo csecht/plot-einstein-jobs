@@ -1076,8 +1076,8 @@ if __name__ == "__main__":
         icon = tk.PhotoImage(file=icon_path)
         canvas_window.iconphoto(True, icon)
     except tk.TclError as msg:
-        print('Cannot display a desktop icon, so it will be left blank.')
-        print(f'error message: {msg}')
+        print('Cannot display program icon, so it will be left blank or tk default.')
+        print(f'tk error message: {msg}')
 
     try:
         canvas_window.mainloop()

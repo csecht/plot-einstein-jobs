@@ -103,8 +103,4 @@ def images_path(image_file: str) -> Path:
     :param image_file: The file name of the target image.
     :return: Path object to the program's images directory.
     """
-    image_path = Path(Path(sys.modules['__main__'].__file__).parent,
-                      'images', image_file)
-    if Path.exists(image_path):
-        return image_path
-    print(f'{image_path} was not found. {image_file} or images directory does not exist.')
+    return Path(Path.cwd().absolute(), 'images', image_file)
