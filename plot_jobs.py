@@ -1075,7 +1075,7 @@ if __name__ == "__main__":
         icon_path = path_check.images_path('desktop_icon.png')
         icon = tk.PhotoImage(file=icon_path)
         canvas_window.iconphoto(True, icon)
-    except Exception as msg:
+    except tk.TclError as msg:
         print('Cannot display a desktop icon, so it will be left blank.')
         print(f'error message: {msg}')
 
