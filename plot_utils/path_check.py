@@ -94,3 +94,17 @@ def validate_datafile(filepath: Path) -> None:
                      '    does not contain usable data. ***\n'
                      '    The first line should start with a'
                      ' BOINC reporting timestamp of 10 digits (Epoch seconds).')
+
+
+def images_path(image_file: str) -> Path:
+    """
+    Extract the path to the program's 'images' directory and image file.
+
+    :param image_file: The file name of the target image.
+    :return: Path object to the program's images directory.
+    """
+    image_path = Path(Path(sys.modules['__main__'].__file__).parent,
+                      'images', image_file)
+    if Path.exists(image_path):
+        return image_path
+    print(f'{image_path} was not found. {image_file} or images directory does not exist.')

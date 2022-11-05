@@ -1070,9 +1070,14 @@ if __name__ == "__main__":
     print('The plot window is ready.')
 
     # Need an image to replace blank tk desktop icon.
-    img = tk.PhotoImage(
-        file='images/desktop_icon.png')
-    canvas_window.iconphoto(True, img)
+    #   Set a path to the local 'images' directory and icon file
+    try:
+        icon_path = path_check.images_path('desktop_icon.png')
+        icon = tk.PhotoImage(file=icon_path)
+        canvas_window.iconphoto(True, icon)
+    except Exception as msg:
+        print('Cannot display a desktop icon, so it will be left blank.')
+        print(f'error message: {msg}')
 
     try:
         canvas_window.mainloop()
