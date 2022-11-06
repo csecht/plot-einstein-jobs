@@ -96,11 +96,23 @@ def validate_datafile(filepath: Path) -> None:
                      ' BOINC reporting timestamp of 10 digits (Epoch seconds).')
 
 
-def images_path(image_file: str) -> Path:
+def valid_path_to(relative_path: str) -> Path:
     """
-    Extract the path to the program's 'images' directory and image file.
+    Get correct path to program's directory/file structure
+    depending on whether program invocation is a standalone app or
+    the command line. Works with symlinks. Allows command line
+    using any path; does not need to be from parent directory.
+    _MEIPASS var is used by distribution programs from
+    PyInstaller --onefile; e.g. for images dir.
 
-    :param image_file: The file name of the target image.
-    :return: Path object to the program's images directory.
+    :param relative_path: Program's local dir/file name, as string.
+    :return: Absolute path as pathlib Path object.
     """
-    return Path(Path.cwd().absolute(), 'images', image_file)
+    # Modified from: https://stackoverflow.com/questions/7674790/
+    #    bundling-data-files-with-pyinstaller-onefile and PyInstaller manual.
+    if getattr(sys, 'frozen', False):  # hasattr(sys, '_MEIPASS'):
+        base_path = getattr(sys, '_MEIPASS', Path(Path(__file__).resolve()).parent)
+        valid_path = Path(base_path) / relative_path
+    else:
+        valid_path = Path(Path(__file__).parent, f'../{relative_path}').resolve()
+    return valid_path

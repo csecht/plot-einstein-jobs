@@ -5,7 +5,7 @@ Program will exit here if any check fails when called.
 
 # Development status standards: https://pypi.org/classifiers/
 __author__ = 'Craig S. Echt'
-__version__: str = '0.2.5'
+__version__: str = '0.2.6'
 __status__ = 'Development Status :: 4 - Beta'
 __copyright__ = 'Copyright (C) 2022 C.S. Echt, under GNU General Public License'
 __license__ = """
