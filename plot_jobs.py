@@ -127,7 +127,7 @@ class TaskDataFrame:
         job_col_index = 0, 8, 10
         names = ('utc_tstamp', 'task_name', 'elapsed_t')
 
-        # The data file path is defined in if __name__ == "__main__".
+        # The data_path text file path is defined in if __name__ == "__main__".
         self.jobs_df = pd.read_table(data_path,
                                      engine='c',
                                      delim_whitespace=True,
@@ -1062,12 +1062,14 @@ if __name__ == "__main__":
     #   actions for plotting are more responsive.
     canvas_window = tk.Tk()
 
+    # Run custom handlers for unhandled system and tkinter exceptions.
+    sys.excepthook = utils.handle_exception
+    canvas_window.report_callback_exception = utils.handle_exception
+
     # This call will set up an inherited pd dataframe in TaskDataFrame,
     #  then plot 'all' tasks as specified in setup_plot_manager().
     #  After that, plots are managed by CheckButton states in manage_plots().
     PlotTasks().setup_plot_manager()
-
-    print('The plot window is ready.')
 
     # Need an image to replace blank tk desktop icon.
     #   Set correct path to the local 'images' directory and icon file.
@@ -1079,10 +1081,9 @@ if __name__ == "__main__":
         print('Cannot display program icon, so it will be left blank or tk default.')
         print(f'tk error message: {msg}')
 
+    print('The plot window is ready.')
+
     try:
         canvas_window.mainloop()
     except KeyboardInterrupt:
-        print('\n*** User quit the program ***\n')
-    except Exception as unk:
-        print(f'An error occurred: {unk}')
-        sys.exit('Program exit with unexpected condition.')
+        print("\n*** User quit the program from Terminal/Console ***\n")

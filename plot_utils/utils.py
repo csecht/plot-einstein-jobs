@@ -8,6 +8,7 @@ quit_gui -  Error-free and informative exit from the program.
 
 # Standard library imports
 import argparse
+import logging
 import platform
 import sys
 from datetime import datetime
@@ -20,6 +21,37 @@ import matplotlib.pyplot as plt
 import plot_utils
 
 MY_OS = sys.platform[:3]
+logger = logging.getLogger(__name__)
+handler = logging.StreamHandler(stream=sys.stdout)
+logger.addHandler(handler)
+
+
+def handle_exception(exc_type, exc_value, exc_traceback):
+    """
+    Changes an unhandled exception to go to stdout rather than
+    stderr. Ignores KeyboardInterrupt so a console program can exit
+    with Ctrl + C. Relies entirely on python's logging module for
+    formatting the exception. Source:
+    https://stackoverflow.com/questions/6234405/
+    logging-uncaught-exceptions-in-python/16993115#16993115
+    https://stackoverflow.com/questions/43941276/
+    python-tkinter-and-imported-classes-logging-uncaught-exceptions/
+    44004413#44004413
+
+    Usage: in mainloop,
+     - sys.excepthook = utils.handle_exception
+     - app.report_callback_exception = utils.handle_exception
+
+    :param exc_type:
+    :param exc_value:
+    :param exc_traceback:
+    :return: None
+    """
+    if issubclass(exc_type, KeyboardInterrupt):
+        sys.__excepthook__(exc_type, exc_value, exc_traceback)
+        return
+
+    logger.error("Uncaught exception", exc_info=(exc_type, exc_value, exc_traceback))
 
 
 def check_platform():
@@ -93,19 +125,15 @@ def quit_gui(mainloop, keybind=None) -> None:
 
     :param mainloop: The main tk.Tk() window running in the mainloop.
     :param keybind: Implicit keyboard event passed from bind().
+    :return: None
     """
 
     print('\n*** User quit the program. ***\n')
 
-    # pylint: disable=broad-except
-    try:
-        plt.close('all')
-        mainloop.update_idletasks()
-        mainloop.after(200)
-        mainloop.destroy()
-    except Exception as err:
-        print(f'An error occurred: {err}')
-        sys.exit('Program exit with unexpected condition.')
+    plt.close('all')
+    mainloop.update_idletasks()
+    mainloop.after(200)
+    mainloop.destroy()
 
     return keybind
 
