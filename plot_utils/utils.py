@@ -58,7 +58,7 @@ def handle_exception(exc_type, exc_value, exc_traceback) -> None:
                  exc_info=(exc_type, exc_value, exc_traceback))
 
 
-def check_platform():
+def check_platform() -> None:
     if MY_OS not in 'lin, win, dar':
         print(f'Platform <{sys.platform}> is not supported.\n'
               'Windows, Linux, and MacOS (darwin) are supported.')

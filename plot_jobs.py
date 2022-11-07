@@ -542,10 +542,12 @@ class PlotTasks(TaskDataFrame):
 
     def toggle_legends(self, event) -> None:
         """
-        Show/hide plot legends. If plot has no legend, do nothing.
+        Show and hide plot legends. If plot has no legend, do nothing.
 
-        :param event: Implicit mouse click event.
-        :return:  None
+        Args:
+            event: Implicit mouse click event.
+
+        Returns: None
         """
 
         if self.ax1.get_legend():
@@ -1048,8 +1050,7 @@ if __name__ == "__main__":
 
     # manage_args() returns a 2-tuple of booleans, as set on command line;
     #   agruments default: False
-    test_arg = utils.manage_args()[0]
-    utc_arg = utils.manage_args()[1]
+    test_arg, utc_arg = utils.manage_args()
 
     if test_arg:
         data_path = path_check.set_datapath(use_test_file=True)
@@ -1078,7 +1079,8 @@ if __name__ == "__main__":
         icon = tk.PhotoImage(file=icon_path)
         canvas_window.iconphoto(True, icon)
     except tk.TclError as msg:
-        print('Cannot display program icon, so it will be left blank or tk default.')
+        print('Cannot display program icon,'
+              ' so it will be left blank or tk default.')
         print(f'tk error message: {msg}')
 
     print('The plot window is ready.')
