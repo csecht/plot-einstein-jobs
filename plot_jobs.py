@@ -1063,9 +1063,9 @@ if __name__ == "__main__":
     #   actions for plotting are more responsive.
     canvas_window = tk.Tk()
 
-    # Run custom handlers for unhandled system and tkinter exceptions.
-    sys.excepthook = utils.handle_exception
-    canvas_window.report_callback_exception = utils.handle_exception
+    # Developer: Custom handlers for unexpected system and tkinter exceptions.
+    # sys.excepthook = utils.handle_exception
+    # canvas_window.report_callback_exception = utils.handle_exception
 
     # This call will set up an inherited pd dataframe in TaskDataFrame,
     #  then plot 'all' tasks as specified in setup_plot_manager().

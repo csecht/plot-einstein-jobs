@@ -38,7 +38,7 @@ def handle_exception(exc_type, exc_value, exc_traceback) -> None:
     python-tkinter-and-imported-classes-logging-uncaught-exceptions/
     44004413#44004413
 
-    Usage: in mainloop,
+    Usage: For developers; use in mainloop,
      - sys.excepthook = utils.handle_exception
      - app.report_callback_exception = utils.handle_exception
 
