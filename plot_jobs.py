@@ -202,12 +202,6 @@ class TaskDataFrame:
         for proj, regex in grp.PROJ_NAME_REGEX.items():
             self.jobs_df[f'is_{proj}'] = where(
                 self.jobs_df.task_name.str.contains(regex), True, False)
-        # https://stackoverflow.com/questions/45493948/error-the-truth-value-of-a-series-is-ambiguous-python-pandas
-        # for proj, _ in grp.PROJ_NAME_REGEX.items():
-        #     self.jobs_df[f'is_unknown'] = where(
-        #         self.jobs_df[f'is_{proj}'], True, False)
-        # print(self.jobs_df.task_name.where(self.jobs_df.is_unknown))
-        # print(self.jobs_df.is_unknown.sum())
 
     def add_hz_values(self):
         """
