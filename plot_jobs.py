@@ -50,7 +50,6 @@ from plot_utils import (path_check, vcheck,
                         markers as mark,
                         project_groups as grp)
 
-
 # Third party imports (tk may not be included with some Python installations).
 try:
     import matplotlib.backends.backend_tkagg as backend
@@ -269,7 +268,7 @@ class PlotTasks(TaskDataFrame):
     __slots__ = (
         'fig', 'ax1', 'ax2',
         'checkbox', 'do_replot', 'legend_btn_on', 'time_stamp', 'plot_proj',
-        'chkbox_labelid', 'isplotted', 'text_bbox', 'ax_slider',
+        'chkbox_labelid', 'isplotted', 'has_data', 'text_bbox', 'ax_slider',
     )
 
     def __init__(self):
@@ -278,6 +277,7 @@ class PlotTasks(TaskDataFrame):
         self.checkbox = None
         self.do_replot = False
         self.legend_btn_on = True
+        self.has_data = True
         self.time_stamp = 'utc_tstamp' if utc_arg else 'local_tstamp'
 
         # These keys must match plot names in project_groups.CHKBOX_LABELS.
@@ -688,12 +688,16 @@ class PlotTasks(TaskDataFrame):
         for plot, _ in self.isplotted.items():
             self.isplotted[plot] = False
 
-    def clicked_plot_msg(self, clicked_label: str) -> None:
+    def clicked_plot_msg(self, is_checked: dict, clicked_label: str) -> None:
         """
         When there are no data to plot for a clicked plot label, post a
-        message in the plot area. Called from manage_plots().
+        message in the plot area.
+        Set boolean flag for whether clicked Project has data to plot.
+        Called from manage_plots().
 
-        :param clicked_label: The checked checkbox Project plot label.
+        Args:
+            is_checked: Dictionary with value True when Project has a check.
+            clicked_label: The checked checkbox Project plot label.
         """
 
         # Need to first clear any prior no-data text message.
@@ -706,15 +710,17 @@ class PlotTasks(TaskDataFrame):
         # The 'no data' msg is removed when the no-data plot is unchecked or a
         #   valid data plot is checked.
         # ischecked key is Project name, value is current check status (boolean).
-        ischecked = dict(zip(grp.CHKBOX_LABELS, self.checkbox.get_status()))
 
-        if ischecked[clicked_label]:
-            if not sum(self.jobs_df[f'is_{grp.CLICKED_PLOT[clicked_label]}']):
+        if is_checked[clicked_label]:
+            if sum(self.jobs_df[f'is_{grp.CLICKED_PLOT[clicked_label]}']) == 0:
                 self.fig.text(0.5, 0.51,
                               f'There are no {clicked_label} data to plot.',
                               horizontalalignment='center',
                               verticalalignment='center',
                               transform=self.ax1.transAxes)
+                self.has_data = False
+            else:
+                self.has_data = True
 
     def plot_all(self):
         p_label = 'all'
@@ -999,6 +1005,14 @@ class PlotTasks(TaskDataFrame):
         # ischecked key is Project name, value is current check status (boolean).
         ischecked = dict(zip(grp.CHKBOX_LABELS, self.checkbox.get_status()))
 
+        # Need to post notice if selected plot data are not available and
+        #    toggle off (deactivate) that Project's check box.
+        self.clicked_plot_msg(ischecked, clicked_label)
+        if not self.has_data:
+            if ischecked[clicked_label]:
+                self.checkbox.set_active(self.chkbox_labelid[clicked_label])
+            return
+
         # Exclusive plots can only be plotted by themselves.
         for plot in grp.EXCLUSIVE_PLOTS:
             if clicked_label == plot and ischecked[clicked_label]:
@@ -1024,7 +1038,9 @@ class PlotTasks(TaskDataFrame):
                 self.do_replot = False
 
             for proj, status in ischecked.items():
-                if status and (proj in grp.ALL_INCLUSIVE) and not self.isplotted[proj]:
+                if (status
+                        and proj in grp.ALL_INCLUSIVE
+                        and not self.isplotted[proj]):
                     self.plot_proj[proj]()
 
         elif not ischecked[clicked_label]:
@@ -1035,9 +1051,6 @@ class PlotTasks(TaskDataFrame):
             for proj, status in ischecked.items():
                 if proj in grp.ALL_INCLUSIVE and status:
                     self.plot_proj[proj]()
-
-        # Need to post notice if selected plot data are not available.
-        self.clicked_plot_msg(clicked_label)
 
         self.fig.canvas.draw_idle()
 
