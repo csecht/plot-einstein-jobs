@@ -22,9 +22,9 @@ PROJ_NAME_REGEX = {
     'fgrp5': r'LATeah\d{4}F',
     'fgrpBG1': r'LATeah\d{4}L|LATeah1049',
     'gw_O2MD': '_O2MD',
-    'gw_O3AS': '_O3AS',
+    'gw_O3AS': '_O3AS|_O2AS20-500',
     'brp4': r'^p',
-    'brp7': r'^M|^Ter',
+    'brp7': r'^M|Ter',
 }
 
 # Dict used in PlotTasks.clicked_plot_msg() to match checkbox CHKBOX_LABELS to

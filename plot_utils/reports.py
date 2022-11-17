@@ -106,15 +106,15 @@ def joblog_report(dataframe: pd) -> None:
     p_tally = []
 
     for _p in grp.PROJECTS:
-        is_p = f'is_{_p}'
-        proj_totals.append(dataframe[is_p].sum())
+        is_proj = f'is_{_p}'
+        proj_totals.append(dataframe[is_proj].sum())
 
-        p_dcnt = f'{_p}_Dcnt'
+        proj_dcnt = f'{_p}_Dcnt'
 
-        proj_days.append(len((dataframe[p_dcnt]
+        proj_days.append(len((dataframe[proj_dcnt]
                               .groupby(dataframe[TIME_STAMP]
                                        .dt.date
-                                       .where(dataframe[p_dcnt].notnull()))
+                                       .where(dataframe[proj_dcnt].notnull()))
                               .unique())))
 
         if proj_totals[-1] != 0:
@@ -162,10 +162,13 @@ def joblog_report(dataframe: pd) -> None:
 
     # Report sum of known Projects; comparison to 'all' total tasks will show
     #   whether any Projects are missing from grp.PROJ_TO_REPORT.
-    _report = _report + f'Listed Projects total: {sum(p_tally) - p_tally[0]}\n'
+    _report = _report + f'\nListed Projects total: {sum(p_tally) - p_tally[0]}\n'
+    _report = _report + ('    If less than "all", then have\n'
+                         '    some unrecognized task names.\n')
+    _report = _report + '\nNote: gw_O3AS Total includes O2AS20 tasks.\n'
 
     view_report(title='Summary of tasks counts in...',
-                text=_report, minsize=(400, 260))
+                text=_report, minsize=(400, 270))
 
 
 def on_pick_report(event, dataframe: pd) -> None:
