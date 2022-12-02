@@ -165,7 +165,6 @@ def joblog_report(dataframe: pd) -> None:
     _report = _report + f'\nListed Projects total: {sum(p_tally) - p_tally[0]}\n'
     _report = _report + ('    If less than "all", then have\n'
                          '    some unrecognized task names.\n')
-    _report = _report + '\nNote: gw_O3AS Total includes O2AS20 tasks.\n'
 
     view_report(title='Summary of tasks counts in...',
                 text=_report, minsize=(400, 270))

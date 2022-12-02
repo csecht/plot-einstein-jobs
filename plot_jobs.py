@@ -258,7 +258,7 @@ class PlotTasks(TaskDataFrame):
     Methods: setup_window, setup_title, setup_buttons, setup_slider,
         setup_plot_manager, format_legends, toggle_legends, on_pick_report,
         joblog_report, about_report, setup_count_axes, setup_freq_axes,
-        reset_plots, plot_all, plot_gw_O2MD, plot_gw_O3AS, plot_fgrp5,
+        reset_plots, plot_all, plot_gw_O2, plot_gw_O3, plot_fgrp5,
         plot_fgrpBG1, plot_brp4, plot_gw_series, plot_fgrpHz_X_t,
         plot_gwO3Hz_X_t, manage_plots.
     """
@@ -286,8 +286,8 @@ class PlotTasks(TaskDataFrame):
                           'fgrp5': self.plot_fgrp5,
                           'fgrpBG1': self.plot_fgrpBG1,
                           'fgrp_hz': self.plot_fgrp_hz,
-                          'gw_O2MD': self.plot_gw_O2MD,
-                          'gw_O3AS': self.plot_gw_O3AS,
+                          'gw_O2': self.plot_gw_O2,
+                          'gw_O3': self.plot_gw_O3,
                           'brp4': self.plot_brp4,
                           'brp7': self.plot_brp7,
                           'gwO3Hz_X_t': self.plot_gwO3Hz_X_t,
@@ -826,10 +826,10 @@ class PlotTasks(TaskDataFrame):
         self.format_legends()
         self.isplotted[p_label] = True
 
-    def plot_gw_O2MD(self):
-        p_label = 'gw_O2MD'
+    def plot_gw_O2(self):
+        p_label = 'gw_O2'
         self.ax1.plot(self.jobs_df[self.time_stamp],
-                      self.jobs_df.elapsed_t.where(self.jobs_df.is_gw_O2MD),
+                      self.jobs_df.elapsed_t.where(self.jobs_df.is_gw_O2),
                       mark.STYLE['triangle_down'],
                       markersize=mark.SIZE,
                       label=p_label,
@@ -838,7 +838,7 @@ class PlotTasks(TaskDataFrame):
                       picker=True,
                       )
         self.ax2.plot(self.jobs_df[self.time_stamp],
-                      self.jobs_df.gw_O2MD_Dcnt,
+                      self.jobs_df.gw_O2_Dcnt,
                       mark.STYLE['square'],
                       markersize=mark.DCNT_SIZE,
                       label=p_label,
@@ -847,10 +847,10 @@ class PlotTasks(TaskDataFrame):
         self.format_legends()
         self.isplotted[p_label] = True
 
-    def plot_gw_O3AS(self):
-        p_label = 'gw_O3AS'
+    def plot_gw_O3(self):
+        p_label = 'gw_O3'
         self.ax1.plot(self.jobs_df[self.time_stamp],
-                      self.jobs_df.elapsed_t.where(self.jobs_df.is_gw_O3AS),
+                      self.jobs_df.elapsed_t.where(self.jobs_df.is_gw_O3),
                       mark.STYLE['thin_diamond'],
                       markersize=mark.SIZE,
                       label=p_label,
@@ -859,7 +859,7 @@ class PlotTasks(TaskDataFrame):
                       picker=True,
                       )
         self.ax2.plot(self.jobs_df[self.time_stamp],
-                      self.jobs_df.gw_O3AS_Dcnt,
+                      self.jobs_df.gw_O3_Dcnt,
                       mark.STYLE['square'],
                       markersize=mark.DCNT_SIZE,
                       label=p_label,
@@ -952,9 +952,9 @@ class PlotTasks(TaskDataFrame):
         min_f = self.jobs_df.gwO3AS_freq.min()
         max_f = self.jobs_df.gwO3AS_freq.max()
         min_t = self.jobs_df.elapsed_sec.where(
-            self.jobs_df.is_gw_O3AS).min().astype(np.int64)
+            self.jobs_df.is_gw_O3).min().astype(np.int64)
         max_t = self.jobs_df.elapsed_sec.where(
-            self.jobs_df.is_gw_O3AS).max().astype(np.int64)
+            self.jobs_df.is_gw_O3).max().astype(np.int64)
 
         # Add a 2% margin to time axis upper limit.
         self.setup_freq_axes((0, max_t * 1.02))
@@ -973,7 +973,7 @@ class PlotTasks(TaskDataFrame):
                       bbox=self.text_bbox,
                       )
 
-        self.ax1.plot(self.jobs_df.elapsed_sec.where(self.jobs_df.is_gw_O3AS),
+        self.ax1.plot(self.jobs_df.elapsed_sec.where(self.jobs_df.is_gw_O3),
                       self.jobs_df.gwO3AS_freq,
                       mark.STYLE['triangle_up'],
                       markersize=mark.SIZE,
@@ -982,7 +982,7 @@ class PlotTasks(TaskDataFrame):
                       picker=True,
                       )
 
-        self.isplotted['gw_O3AS_freq'] = True
+        self.isplotted['gw_O3_freq'] = True
 
     def manage_plots(self, clicked_label: str) -> None:
         """
