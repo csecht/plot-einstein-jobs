@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
-"""plot_jobs.py uses Matplotlib to draw plots from data in Einstein@Home
+"""
+plot_jobs.py uses Matplotlib to draw plots from data in Einstein@Home
 BOINC client job log files.
 
+USAGE: python3 -m plot_jobs
 For execution options, see the README file or use the --help command
-line option.
+line option: python3 -m plot_jobs --help
 
 Plot types are:
     Task elapsed times vs reported datetime
@@ -212,7 +214,7 @@ class TaskDataFrame:
         """
         regex_fgrp_freq = r'LATeah.*?_(\d+)'
         # regex_gw_hifreq = r'h1.*_(\d+\.\d{2})Hz_'  # Capture highest freq, not base freq.
-        regex_gwo3_freq = r'h1_(\d+\.\d+)_.+__O3AS'  # Capture the base/parent freq.
+        regex_gwo3_freq = r'h1_(\d+\.\d+)_.+__O3'  # Capture the base/parent freq.
         self.jobs_df['fgrp_freq'] = (self.jobs_df.task_name
                                      .str.extract(regex_fgrp_freq)
                                      .astype(np.float64))
