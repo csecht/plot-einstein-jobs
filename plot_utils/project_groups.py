@@ -23,7 +23,7 @@ PROJ_NAME_REGEX = {
     'fgrpBG1': r'LATeah\d{4}L|LATeah1049',
     'gw_O2': '_O2MD|_O2AS20-500',
     'gw_O3': '_O3AS|_O3MD',
-    'brp4': r'^p',
+    'brp4': r'^p|guppi',
     'brp7': r'^M|Ter',
 }
 
