@@ -532,15 +532,14 @@ class PlotTasks(TaskDataFrame):
         self.checkbox.set_active(self.chkbox_labelid['all'])
 
     def format_legends(self):
-        kwargs = {'ncol': 1,
-                  'fontsize': 'x-small',
-                  'loc': 'upper right',
-                  'markerscale': mark.SCALE,
-                  'edgecolor': 'black',
-                  'framealpha': 0.4,
-                  }
-        self.ax1.legend(**kwargs)
-        self.ax2.legend(**kwargs)
+        legend_params = dict(ncol=1,
+                             fontsize='x-small',
+                             loc='upper right',
+                             markerscale=mark.SCALE,
+                             edgecolor='black',
+                             framealpha=0.4)
+        self.ax1.legend(**legend_params)
+        self.ax2.legend(**legend_params)
 
     def toggle_legends(self, event) -> None:
         """
@@ -584,16 +583,16 @@ class PlotTasks(TaskDataFrame):
         self.ax1.margins(0.02, 0.02)
         self.ax2.margins(0.02, 0.05)
 
-        kwargs = {'fontsize': 'medium', 'fontweight': 'bold'}
+        lbl_params = dict(fontsize='medium', fontweight='bold')
 
-        self.ax1.set_ylabel('Task completion time', **kwargs)
+        self.ax1.set_ylabel('Task completion time', **lbl_params)
 
         if utc_arg:
-            self.ax2.set_xlabel('Task reporting datetime (UTC)', **kwargs)
+            self.ax2.set_xlabel('Task reporting datetime (UTC)', **lbl_params)
         else:
-            self.ax2.set_xlabel('Task reporting datetime', **kwargs)
+            self.ax2.set_xlabel('Task reporting datetime', **lbl_params)
 
-        self.ax2.set_ylabel('Tasks/day', **kwargs)
+        self.ax2.set_ylabel('Tasks/day', **lbl_params)
 
         # Need to set the Tasks/day axis label in a static position.
         self.ax2.yaxis.set_label_coords(-0.1, 0.55)
@@ -652,10 +651,10 @@ class PlotTasks(TaskDataFrame):
         # Need to FIX: the Home tool sets (remembers) axes range of the
         #  first selected freq vs time plot, instead of current
         #  freq vs time plot, but only when the Zoom tool has been used.
-        kwargs = {'fontsize': 'medium', 'fontweight': 'bold'}
+        lbl_params = dict(fontsize='medium', fontweight='bold')
 
-        self.ax1.set_xlabel('Task completion time, sec', **kwargs)
-        self.ax1.set_ylabel('Task base frequency, Hz', **kwargs)
+        self.ax1.set_xlabel('Task completion time, sec', **lbl_params)
+        self.ax1.set_ylabel('Task base frequency, Hz', **lbl_params)
 
         self.ax1.xaxis.set_major_formatter(ticker.FormatStrFormatter('%.0f'))
         self.ax1.yaxis.set_major_formatter(ticker.FormatStrFormatter('%.2f'))
@@ -676,15 +675,15 @@ class PlotTasks(TaskDataFrame):
 
         self.setup_count_axes()
 
-        kwargs = {'visible': False, 'label': '_leave blank'}
+        plot_params = dict(visible=False, label='_leave blank')
 
         self.ax1.plot(self.jobs_df[self.time_stamp],
                       self.jobs_df.null_time,
-                      **kwargs,
+                      **plot_params,
                       )
         self.ax2.plot(self.jobs_df[self.time_stamp],
                       self.jobs_df.null_Dcnt,
-                      **kwargs,
+                      **plot_params,
                       )
 
         for plot, _ in self.isplotted.items():
