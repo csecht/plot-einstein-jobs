@@ -270,7 +270,7 @@ class PlotTasks(TaskDataFrame):
     __slots__ = (
         'fig', 'ax1', 'ax2',
         'checkbox', 'do_replot', 'legend_btn_on', 'time_stamp', 'plot_proj',
-        'chkbox_labelid', 'isplotted', 'has_data', 'text_bbox', 'ax_slider',
+        'chkbox_labelid', 'isplotted', 'has_data', 'text_bbox', 'hz_slider',
     )
 
     def __init__(self):
@@ -333,7 +333,7 @@ class PlotTasks(TaskDataFrame):
         # Slider used in *_Hz plots to set Hz ranges; attribute here
         #  so that it can be removed/redrawn with each *_Hz plot call
         #  and hidden for all other plots.
-        self.ax_slider = plt.axes()
+        self.hz_slider = plt.axes()
 
         self.setup_window()
         self.setup_buttons()
@@ -441,7 +441,7 @@ class PlotTasks(TaskDataFrame):
 
         # Need to replace any prior slider bar with a new one to prevent
         #   stacking of bars.
-        self.ax_slider.remove()
+        self.hz_slider.remove()
 
         # Add a 2% margin to the slider upper limit when frequency data are available.
         # When there are no plot data, max_f will be NaN, so use some NaN magic
@@ -452,12 +452,12 @@ class PlotTasks(TaskDataFrame):
         max_limit = 1 if max_f != max_f else max_f * 1.02
 
         # RangeSlider relative Figure coord: (LEFT, BOTTOM, WIDTH, HEIGHT).
-        self.ax_slider = plt.axes((0.05, 0.38, 0.01, 0.52))  # vert
+        self.hz_slider = plt.axes((0.05, 0.38, 0.01, 0.52))  # vert
 
         # Invert min/max values on vertical slider so max is on top.
         plt.gca().invert_yaxis()
 
-        hz_slider = RangeSlider(self.ax_slider, "Hz range",
+        hz_slider = RangeSlider(self.hz_slider, "Hz range",
                                 0, max_limit,
                                 (0, max_limit),
                                 valstep=2,
@@ -476,7 +476,7 @@ class PlotTasks(TaskDataFrame):
                       transform=self.ax1.transAxes,
                       bbox=self.text_bbox,
                       )
-        self.ax_slider._slider = hz_slider  # Prevent garbage collection.
+        self.hz_slider._slider = hz_slider  # Prevent garbage collection.
 
         def _update(val):
             """
@@ -576,7 +576,7 @@ class PlotTasks(TaskDataFrame):
         """
 
         # Need to reset plot axes in case setup_freq_axes() was called.
-        self.ax_slider.set_visible(False)
+        self.hz_slider.set_visible(False)
         self.ax2.set_visible(True)
         self.ax1.tick_params('x', labelbottom=False)
 
