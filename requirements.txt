@@ -1,6 +1,13 @@
-matplotlib==3.6.3
-pandas==1.5.1
-pillow==9.4.0
-numpy==1.24.2
+matplotlib
+pandas
+pillow
+numpy
+packaging
+
+
+#matplotlib==3.6.3
+#pandas==1.5.1
+#pillow==9.4.0
+#numpy==1.24.2
 
 # ^^ Development versions as of Feb 2023, Python 3.8:
