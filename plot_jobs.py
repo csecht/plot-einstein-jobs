@@ -351,7 +351,8 @@ class PlotTasks(TaskDataFrame):
 
         # canvas_window is the Tk mainloop defined in if __name__ == "__main__".
         canvas_window.title(_title)
-        canvas_window.minsize(850, 550)
+        canvas_window.minsize(1000, 550)
+
 
         # Allow full resizing of plot, but only horizontally for toolbar.
         canvas_window.rowconfigure(0, weight=1)
@@ -507,7 +508,7 @@ class PlotTasks(TaskDataFrame):
             self.isplotted[proj] = False
 
         # Relative coordinates in Figure, 4-tuple (LEFT, BOTTOM, WIDTH, HEIGHT).
-        ax_chkbox = plt.axes((0.86, 0.54, 0.13, 0.36), facecolor=mark.DARK_GRAY)
+        ax_chkbox = plt.axes((0.86, 0.54, 0.13, 0.36), facecolor=mark.LIGHT_GRAY)
         ax_chkbox.set_xlabel('Project plots',
                              fontsize='medium',
                              fontweight='bold')
@@ -516,18 +517,7 @@ class PlotTasks(TaskDataFrame):
         # Need check boxes to control which data series to plot.
         # At startup, activate checkbox label 'all' so that all tasks
         #  are plotted by default via manage_plots().
-        self.checkbox = CheckButtons(ax_chkbox, grp.CHKBOX_LABELS)
-        for label in self.checkbox.labels:
-            label.set(color='white',
-                      size=8, )
-        for _r in self.checkbox.rectangles:
-            _r.set(width=0.08,
-                   edgecolor=mark.LIGHT_GRAY, )
-        for line in self.checkbox.lines:
-            for artist in line:
-                artist.set(linewidth=4,
-                           color='yellow', )
-
+        self.checkbox = CheckButtons(ax=ax_chkbox, labels=grp.CHKBOX_LABELS)
         self.checkbox.on_clicked(self.manage_plots)
         self.checkbox.set_active(self.chkbox_labelid['all'])
 
@@ -1063,7 +1053,7 @@ if __name__ == "__main__":
     vcheck.minversion('3.7')
 
     # manage_args() returns a 2-tuple of booleans, as set on command line;
-    #   agruments default: False
+    #   arguments default: False
     test_arg, utc_arg = utils.manage_args()
 
     if test_arg:
