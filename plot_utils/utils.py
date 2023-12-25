@@ -19,6 +19,7 @@ import matplotlib.pyplot as plt
 
 # Local application imports
 import plot_utils
+from plot_utils import path_check
 
 MY_OS = sys.platform[:3]
 logger = logging.getLogger(__name__)
@@ -115,7 +116,12 @@ def manage_args() -> tuple:
 
         sys.exit(0)
 
-    return args.test, args.utc
+    if args.test:
+        data_path = path_check.set_datapath(use_test_file=True)
+    else:
+        data_path = path_check.set_datapath()
+
+    return args.test, args.utc, data_path
 
 
 def quit_gui(mainloop, keybind=None) -> None:

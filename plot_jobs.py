@@ -125,11 +125,11 @@ class TaskDataFrame:
         # Note that utc_tstamp is UTC Epoch time in seconds.
 
         # Job log data of current interest:
-        job_col_index = 0, 8, 10
+        job_col_index = [0, 8, 10]
         names = ('utc_tstamp', 'task_name', 'elapsed_t')
 
-        # The data_path text file path is defined in if __name__ == "__main__".
-        self.jobs_df = pd.read_table(data_path,
+        # The DATA_PATH text file path is from if __name__ == "__main__".
+        self.jobs_df = pd.read_table(filepath_or_buffer=DATA_PATH,
                                      engine='c',
                                      delim_whitespace=True,
                                      header=None,
@@ -203,7 +203,7 @@ class TaskDataFrame:
         self.jobs_df['is_all'] = True
         for proj, regex in grp.PROJ_NAME_REGEX.items():
             self.jobs_df[f'is_{proj}'] = where(
-                self.jobs_df.task_name.str.contains(regex), True, False)
+                self.jobs_df.task_name.str.contains(regex), 1, 0)
 
     def add_hz_values(self):
         """
@@ -228,9 +228,9 @@ class TaskDataFrame:
         """
 
         # Use UTC or local timestamp column option for daily task counts;
-        #   --utc is an optional command line argument; utc_arg is defined
+        #   --utc is an optional command line argument; UTC_ARG is defined
         #   in if __name__ == "__main__"
-        ts2use = 'utc_tstamp' if utc_arg else 'local_tstamp'
+        ts2use = 'utc_tstamp' if UTC_ARG else 'local_tstamp'
 
         # For clarity, grp.PROJECTS names used here need to match those used in
         #   isplotted (dict), ischecked (dict), and grp.CHKBOX_LABELS (tuple).
@@ -280,7 +280,7 @@ class PlotTasks(TaskDataFrame):
         self.do_replot = False
         self.legend_btn_on = True
         self.has_data = True
-        self.time_stamp = 'utc_tstamp' if utc_arg else 'local_tstamp'
+        self.time_stamp = 'utc_tstamp' if UTC_ARG else 'local_tstamp'
 
         # These keys must match plot names in project_groups.CHKBOX_LABELS.
         # Dictionary pairs plot name to plot method.
@@ -345,9 +345,9 @@ class PlotTasks(TaskDataFrame):
         actions for drawing plots more responsive.
         """
 
-        # test_arg is boolean, defined in if __name__ == "__main__" from
+        # TEST_ARG is boolean, defined in if __name__ == "__main__" from
         #   the --test invocation argument (default: False).
-        _title = 'Sample data' if test_arg else 'E@H job_log data'
+        _title = 'Sample data' if TEST_ARG else 'E@H job_log data'
 
         # canvas_window is the Tk mainloop defined in if __name__ == "__main__".
         canvas_window.title(_title)
@@ -458,9 +458,10 @@ class PlotTasks(TaskDataFrame):
         # Invert min/max values on vertical slider so max is on top.
         plt.gca().invert_yaxis()
 
-        hz_slider = RangeSlider(self.hz_slider, "Hz range",
-                                0, max_limit,
-                                (0, max_limit),
+        hz_slider = RangeSlider(ax=self.hz_slider,
+                                label="Hz range",
+                                valmin=0,
+                                valmax=max_limit,
                                 valstep=2,
                                 orientation='vertical',
                                 color=mark.CBLIND_COLOR['blue'],
@@ -577,7 +578,7 @@ class PlotTasks(TaskDataFrame):
 
         self.ax1.set_ylabel('Task completion time', **lbl_params)
 
-        if utc_arg:
+        if UTC_ARG:
             self.ax2.set_xlabel('Task reporting datetime (UTC)', **lbl_params)
         else:
             self.ax2.set_xlabel('Task reporting datetime', **lbl_params)
@@ -759,7 +760,7 @@ class PlotTasks(TaskDataFrame):
     def plot_fgrpBG1(self):
         p_label = 'fgrpBG1'
         self.ax1.plot(self.jobs_df[self.time_stamp],
-                      self.jobs_df.elapsed_t.where(self.jobs_df.is_fgrpBG1),
+                      self.jobs_df.elapsed_t.where(self.jobs_df[f'is_{p_label}']),
                       mark.STYLE['tri_right'],
                       markersize=mark.SIZE,
                       label=p_label,
@@ -820,7 +821,7 @@ class PlotTasks(TaskDataFrame):
     def plot_gw_O2(self):
         p_label = 'gw_O2'
         self.ax1.plot(self.jobs_df[self.time_stamp],
-                      self.jobs_df.elapsed_t.where(self.jobs_df.is_gw_O2),
+                      self.jobs_df.elapsed_t.where(self.jobs_df[f'is_{p_label}']),
                       mark.STYLE['triangle_down'],
                       markersize=mark.SIZE,
                       label=p_label,
@@ -841,7 +842,7 @@ class PlotTasks(TaskDataFrame):
     def plot_gw_O3(self):
         p_label = 'gw_O3'
         self.ax1.plot(self.jobs_df[self.time_stamp],
-                      self.jobs_df.elapsed_t.where(self.jobs_df.is_gw_O3),
+                      self.jobs_df.elapsed_t.where(self.jobs_df[f'is_{p_label}']),
                       mark.STYLE['thin_diamond'],
                       markersize=mark.SIZE,
                       label=p_label,
@@ -862,7 +863,7 @@ class PlotTasks(TaskDataFrame):
     def plot_brp4(self):
         p_label = 'brp4'
         self.ax1.plot(self.jobs_df[self.time_stamp],
-                      self.jobs_df.elapsed_t.where(self.jobs_df.is_brp4),
+                      self.jobs_df.elapsed_t.where(self.jobs_df[f'is_{p_label}']),
                       mark.STYLE['pentagon'],
                       markersize=mark.SIZE,
                       label=p_label,  # 'BRP4 & BRP4G',
@@ -883,7 +884,7 @@ class PlotTasks(TaskDataFrame):
     def plot_brp7(self):
         p_label = 'brp7'
         self.ax1.plot(self.jobs_df[self.time_stamp],
-                      self.jobs_df.elapsed_t.where(self.jobs_df.is_brp7),
+                      self.jobs_df.elapsed_t.where(self.jobs_df[f'is_{p_label}']),
                       mark.STYLE['diamond'],
                       markersize=mark.SIZE,
                       label=p_label,
@@ -1052,16 +1053,8 @@ if __name__ == "__main__":
     utils.check_platform()
     vcheck.minversion('3.7')
 
-    # manage_args() returns a 2-tuple of booleans, as set on command line;
-    #   arguments default: False
-    test_arg, utc_arg = utils.manage_args()
-
-    if test_arg:
-        data_path = path_check.set_datapath(use_test_file=True)
-    else:
-        data_path = path_check.set_datapath()
-
-    print(f'Data from {data_path} are loading. This may take a few seconds...')
+    # manage_args() returns a 3-tuple (bool, bool, path), as set on command line.
+    TEST_ARG, UTC_ARG, DATA_PATH = utils.manage_args()
 
     # Need to use a tkinter window for the plot canvas so that CheckButton
     #   actions for plotting are more responsive.
@@ -1070,11 +1063,6 @@ if __name__ == "__main__":
     # Developer: Custom handlers for unexpected system and tkinter exceptions.
     # sys.excepthook = utils.handle_exception
     # canvas_window.report_callback_exception = utils.handle_exception
-
-    # This call will set up an inherited pd dataframe in TaskDataFrame,
-    #  then plot 'all' tasks as specified in setup_plot_manager().
-    #  After that, plots are managed by CheckButton states in manage_plots().
-    PlotTasks().setup_plot_manager()
 
     # Need an image to replace blank tk desktop icon.
     #   Set correct path to the local 'images' directory and icon file.
@@ -1085,11 +1073,17 @@ if __name__ == "__main__":
     except tk.TclError as msg:
         print('Cannot display program icon,'
               ' so it will be left blank or tk default.')
-        print(f'tk error message: {msg}')
-
-    print('The plot window is ready.')
+        print(f'tk error message: {msg}\n')
 
     try:
+        print(f'Data from {DATA_PATH} are loading. This may take a few seconds...\n')
+
+        # This call will set up an inherited pd dataframe in TaskDataFrame,
+        #  then plot 'all' tasks as specified in setup_plot_manager().
+        #  After that, plots are managed by CheckButton states in manage_plots().
+        PlotTasks().setup_plot_manager()
+        print('The plot window is ready.')
+
         canvas_window.mainloop()
     except KeyboardInterrupt:
         print("\n*** User quit the program from Terminal/Console ***\n")
