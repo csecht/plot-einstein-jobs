@@ -203,7 +203,7 @@ class TaskDataFrame:
         self.jobs_df['is_all'] = True
         for proj, regex in grp.PROJ_NAME_REGEX.items():
             self.jobs_df[f'is_{proj}'] = where(
-                self.jobs_df.task_name.str.contains(regex), 1, 0)
+                self.jobs_df.task_name.str.contains(regex), True, False)
 
     def add_hz_values(self):
         """
