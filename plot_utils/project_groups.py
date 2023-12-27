@@ -11,8 +11,6 @@ CHKBOX_LABELS = ('all', 'fgrp5', 'fgrpBG1', 'fgrp_hz', 'gw_O3', 'gw_O2',
 
 EXCLUSIVE_PLOTS = ('all', 'fgrp_hz', 'fgrpHz_X_t', 'gwO3Hz_X_t')
 
-ALL_EXCLUDED = ('all', 'fgrp_hz', 'fgrpHz_X_t', 'gwO3Hz_X_t')
-
 ALL_INCLUSIVE = ('fgrp5', 'fgrpBG1', 'gw_O2', 'gw_O3', 'brp4', 'brp7')
 
 # Dict used in PlotTasks.add_proj_tags to fill in is_<project> columns

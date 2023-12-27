@@ -257,11 +257,10 @@ class PlotTasks(TaskDataFrame):
     data.
     The plotted Pandas dataframe is inherited from TaskDataFrame.
     Called only from if __name__ == "__main__".
-    Methods: setup_window, setup_title, setup_buttons, setup_slider,
-        setup_plot_manager, format_legends, toggle_legends, on_pick_report,
-        joblog_report, about_report, setup_count_axes, setup_freq_axes,
-        reset_plots, plot_all, plot_gw_O2, plot_gw_O3, plot_fgrp5,
-        plot_fgrpBG1, plot_brp4, plot_gw_series, plot_fgrpHz_X_t,
+    Methods: setup_window, setup_buttons, setup_slider, setup_plot_manager,
+     format_legends, toggle_legends, setup_count_axes, setup_freq_axes,
+      reset_plots, plot_all, plot_fgrp5, plot_fgrpBG1, plot_fgrp_hz,
+       plot_gw_O2, plot_gw_O3, plot_brp4, plot_brp7, plot_fgrpHz_X_t,
         plot_gwO3Hz_X_t, manage_plots.
     """
 
@@ -270,7 +269,7 @@ class PlotTasks(TaskDataFrame):
     __slots__ = (
         'fig', 'ax1', 'ax2',
         'checkbox', 'do_replot', 'legend_btn_on', 'time_stamp', 'plot_proj',
-        'chkbox_labelid', 'isplotted', 'has_data', 'text_bbox', 'hz_slider',
+        'chkbox_label_index', 'isplotted', 'text_bbox', 'hz_slider',
     )
 
     def __init__(self):
@@ -279,7 +278,6 @@ class PlotTasks(TaskDataFrame):
         self.checkbox = None
         self.do_replot = False
         self.legend_btn_on = True
-        self.has_data = True
         self.time_stamp = 'utc_tstamp' if UTC_ARG else 'local_tstamp'
 
         # These keys must match plot names in project_groups.CHKBOX_LABELS.
@@ -296,8 +294,8 @@ class PlotTasks(TaskDataFrame):
                           'fgrpHz_X_t': self.plot_fgrpHz_X_t
                           }
 
-        self.chkbox_labelid = {}
-        self.isplotted = {}
+        self.chkbox_label_index: dict = {}
+        self.isplotted: dict = {}
 
         # Establish the style for text fancy boxes.
         self.text_bbox = {'facecolor': 'white',
@@ -314,7 +312,7 @@ class PlotTasks(TaskDataFrame):
 
         # Make the Figure and Axes objects; establish geometry of axes.
         self.fig, (self.ax1, self.ax2) = plt.subplots(
-            2,
+            nrows=2,
             sharex='all',
             gridspec_kw={'height_ratios': [3, 1.2],
                          'left': 0.15,
@@ -501,7 +499,7 @@ class PlotTasks(TaskDataFrame):
         Plot 'all' as startup default.
         """
         for i, proj in enumerate(grp.CHKBOX_LABELS):
-            self.chkbox_labelid[proj] = i
+            self.chkbox_label_index[proj] = i
 
         # Need to populate the isplotted dictionary with Project label names and
         #   their default checkbox boolean states.
@@ -520,7 +518,7 @@ class PlotTasks(TaskDataFrame):
         #  are plotted by default via manage_plots().
         self.checkbox = CheckButtons(ax=ax_chkbox, labels=grp.CHKBOX_LABELS)
         self.checkbox.on_clicked(self.manage_plots)
-        self.checkbox.set_active(self.chkbox_labelid['all'])
+        self.checkbox.set_active(self.chkbox_label_index['all'])
 
     def format_legends(self):
         legend_params = dict(ncol=1,
@@ -544,10 +542,10 @@ class PlotTasks(TaskDataFrame):
 
         if self.ax1.get_legend():
             if self.legend_btn_on:
-                self.ax1.get_legend().set_visible(False)
+                self.ax1.get_legend().remove()
                 # In case viewing frequency plots where self.ax2 is hidden:
                 if self.ax2.get_legend():
-                    self.ax2.get_legend().set_visible(False)
+                    self.ax1.get_legend().remove()
                 self.legend_btn_on = False
             else:
                 self.ax1.get_legend().set_visible(True)
@@ -680,40 +678,6 @@ class PlotTasks(TaskDataFrame):
         for plot, _ in self.isplotted.items():
             self.isplotted[plot] = False
 
-    def clicked_plot_msg(self, is_checked: dict, clicked_label: str) -> None:
-        """
-        When there are no data to plot for a clicked plot label, post a
-        message in the plot area.
-        Set boolean flag for whether clicked Project has data to plot.
-        Called from manage_plots().
-
-        Args:
-            is_checked: Dictionary with value True when Project has a check.
-            clicked_label: The checked checkbox Project plot label.
-        """
-
-        # Need to first clear any prior no-data text message.
-        for txt in self.fig.texts:
-            txt.set_visible(False)
-
-        # When a project series has no data, its is_<project> df column
-        #   has no True values and therefore sums to zero (False).
-        #   The CLICKED_PLOT dict pairs grp.CHKBOX_LABELS with grp.PROJECTS strings.
-        # The 'no data' msg is removed when the no-data plot is unchecked or a
-        #   valid data plot is checked.
-        # ischecked key is Project name, value is current check status (boolean).
-
-        if is_checked[clicked_label]:
-            if sum(self.jobs_df[f'is_{grp.CLICKED_PLOT[clicked_label]}']) == 0:
-                self.fig.text(0.5, 0.51,
-                              f'There are no {clicked_label} data to plot.',
-                              horizontalalignment='center',
-                              verticalalignment='center',
-                              transform=self.ax1.transAxes)
-                self.has_data = False
-            else:
-                self.has_data = True
-
     def plot_all(self):
         p_label = 'all'
         self.ax1.plot(self.jobs_df[self.time_stamp],
@@ -738,7 +702,7 @@ class PlotTasks(TaskDataFrame):
     def plot_fgrp5(self):
         p_label = 'fgrp5'
         self.ax1.plot(self.jobs_df[self.time_stamp],
-                      self.jobs_df.elapsed_t.where(self.jobs_df.is_fgrp5),
+                      self.jobs_df.elapsed_t.where(self.jobs_df[f'is_{p_label}']),
                       mark.STYLE['tri_left'],
                       markersize=mark.SIZE,
                       label=p_label,
@@ -987,60 +951,91 @@ class PlotTasks(TaskDataFrame):
         :return: None
         """
 
-        #  NOTE: CANNOT have same plot points overlaid; that creates
-        #    multiple on_pick_report() calls for the same task info.
+        # NOTE: CANNOT have same plot points overlaid; that creates
+        #  multiple on_pick_report() calls for the same task info.
 
-        # NOTE: with checkbox.eventson = True (default),
-        #   any proj button clicks trigger this manage_plots() callback,
-        #   so all conditions here are evaluated with every click.
+        # NOTE: with checkbox.eventson = True (default), so any checkbox
+        #  click triggers this manage_plots() callback.
 
-        # ischecked key is Project name, value is current check status (boolean).
-        ischecked = dict(zip(grp.CHKBOX_LABELS, self.checkbox.get_status()))
+        # labels_status key is Project name, value is current check status.
+        labels_status = dict(zip(grp.CHKBOX_LABELS, self.checkbox.get_status()))
+        label_is_checked: bool = labels_status[clicked_label]
+        num_tasks = sum(self.jobs_df[f'is_{grp.CLICKED_PLOT[clicked_label]}'])
 
-        # Need to post notice if selected plot data are not available and
-        #    toggle off (deactivate) that Project's check box.
-        self.clicked_plot_msg(ischecked, clicked_label)
-        if not self.has_data:
-            if ischecked[clicked_label]:
-                self.checkbox.set_active(self.chkbox_labelid[clicked_label])
-            return
+        def post_nodata_msg():
+            """
+            Post a notice if the selected Project data are not available.
+            Toggle off (deactivate) the selected label's check box.
+            """
+            self.fig.text(0.5, 0.51,
+                          f'There are no {clicked_label} data to plot.',
+                          horizontalalignment='center',
+                          verticalalignment='center',
+                          transform=self.ax1.transAxes,
+                          visible=True,
+                          zorder=1)
+            self.checkbox.set_active(self.chkbox_label_index[clicked_label])
 
-        # Exclusive plots can only be plotted by themselves.
+            # Re-plot (retain) any "exclusive" data that may have been
+            #  plotted when a no-data Project label was selected
+            #  A weak hack, but it works. This entire method needs work.
+            for _l, _s in labels_status.items():
+                if _l in grp.EXCLUSIVE_PLOTS and _s:
+                    self.plot_proj[_l]()
+
+            self.fig.canvas.draw_idle()
+
+        # Remove any prior text box from post_nodata_msg().
+        if label_is_checked and self.fig.texts:
+            self.fig.texts.clear()
+
+        # Exclusive plots can be plotted only by themselves.
         for plot in grp.EXCLUSIVE_PLOTS:
-            if clicked_label == plot and ischecked[clicked_label]:
+            if clicked_label == plot and label_is_checked:
+                if num_tasks == 0:
+                    post_nodata_msg()
+                    return
 
-                # Was toggled on...
-                # Need to uncheck other checked project labels.
+                # Label was toggled on...
+                # Need to uncheck other label_is_checked project labels.
                 for lbl in grp.CHKBOX_LABELS:
-                    if lbl != clicked_label and (self.isplotted[lbl] or ischecked[lbl]):
-                        self.checkbox.set_active(self.chkbox_labelid[lbl])
+                    if (lbl != clicked_label and
+                            (self.isplotted[lbl] or labels_status[lbl])):
+                        self.checkbox.set_active(self.chkbox_label_index[lbl])
 
+                self.fig.canvas.draw_idle()
                 self.plot_proj[clicked_label]()
+                return
 
-        # Inclusive plots can be plotted with (on top of) each another.
-        if clicked_label in grp.ALL_INCLUSIVE and ischecked[clicked_label]:
-            for plot in grp.ALL_EXCLUDED:
-                if self.isplotted[plot] or ischecked[plot]:
+        # Inclusive plots can be plotted only with (on top of) each another.
+        #  So, first, need to remove any exclusive plot.
+        if clicked_label in grp.ALL_INCLUSIVE and label_is_checked:
+            if num_tasks == 0:
+                post_nodata_msg()
+                return
+
+            for plot in grp.EXCLUSIVE_PLOTS:
+                if self.isplotted[plot] or labels_status[plot]:
                     self.isplotted[plot] = False
-                    self.checkbox.set_active(self.chkbox_labelid[plot])
+                    self.checkbox.set_active(self.chkbox_label_index[plot])
                     self.do_replot = True
 
             if self.do_replot:
                 self.reset_plots()
                 self.do_replot = False
 
-            for proj, status in ischecked.items():
+            for proj, status in labels_status.items():
                 if (status
                         and proj in grp.ALL_INCLUSIVE
                         and not self.isplotted[proj]):
                     self.plot_proj[proj]()
 
-        elif not ischecked[clicked_label]:
+        elif not label_is_checked:
 
             # Was toggled off, so remove all plots,
-            #   then replot only inclusive checked ones.
+            #   then replot only inclusive label_is_checked ones.
             self.reset_plots()
-            for proj, status in ischecked.items():
+            for proj, status in labels_status.items():
                 if proj in grp.ALL_INCLUSIVE and status:
                     self.plot_proj[proj]()
 
