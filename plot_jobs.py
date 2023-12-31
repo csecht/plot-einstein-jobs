@@ -951,11 +951,8 @@ class PlotTasks(TaskDataFrame):
         :return: None
         """
 
-        # NOTE: CANNOT have same plot points overlaid; that creates
-        #  multiple on_pick_report() calls for the same task info.
-
-        # NOTE: with checkbox.eventson = True (default), so any checkbox
-        #  click triggers this manage_plots() callback.
+        # NOTE: with checkbox.eventson = True (default), every checkbox
+        #  click calls this method.
 
         # labels_status key is Project name, value is current check status.
         labels_status = dict(zip(grp.CHKBOX_LABELS, self.checkbox.get_status()))
@@ -978,7 +975,7 @@ class PlotTasks(TaskDataFrame):
 
             # Re-plot (retain) any "exclusive" data that may have been
             #  plotted when a no-data Project label was selected
-            #  A weak hack, but it works. This entire method needs work.
+            #  A weak hack, but it works. The entire method needs work.
             for _l, _s in labels_status.items():
                 if _l in grp.EXCLUSIVE_PLOTS and _s:
                     self.plot_proj[_l]()
@@ -988,6 +985,9 @@ class PlotTasks(TaskDataFrame):
         # Remove any prior text box from post_nodata_msg().
         if label_is_checked and self.fig.texts:
             self.fig.texts.clear()
+
+        # NOTE: CANNOT have same plot points overlaid; that creates
+        #  multiple on_pick_report() calls for the same task info.
 
         # Exclusive plots can be plotted only by themselves.
         for plot in grp.EXCLUSIVE_PLOTS:
@@ -1008,7 +1008,7 @@ class PlotTasks(TaskDataFrame):
                 return
 
         # Inclusive plots can be plotted only with (on top of) each another.
-        #  So, first, need to remove any exclusive plot.
+        #  So, first, need to remove any current exclusive plot.
         if clicked_label in grp.ALL_INCLUSIVE and label_is_checked:
             if num_tasks == 0:
                 post_nodata_msg()
@@ -1032,8 +1032,8 @@ class PlotTasks(TaskDataFrame):
 
         elif not label_is_checked:
 
-            # Was toggled off, so remove all plots,
-            #   then replot only inclusive label_is_checked ones.
+            # A checkbox was toggled off, so remove all plots,
+            #   then replot the other existing inclusive plots.
             self.reset_plots()
             for proj, status in labels_status.items():
                 if proj in grp.ALL_INCLUSIVE and status:
