@@ -539,21 +539,18 @@ class PlotTasks(TaskDataFrame):
 
         Returns: None
         """
-
         if self.ax1.get_legend():
             if self.legend_btn_on:
-                self.ax1.get_legend().remove()
-                # In case viewing frequency plots where self.ax2 is hidden:
-                if self.ax2.get_legend():
-                    self.ax1.get_legend().remove()
+                self.ax1.get_legend().set_visible(False)
+                self.ax2.get_legend().set_visible(False)
                 self.legend_btn_on = False
             else:
+                self.format_legends()
                 self.ax1.get_legend().set_visible(True)
-                if self.ax2.get_legend():
-                    self.ax2.get_legend().set_visible(True)
                 self.legend_btn_on = True
+                self.format_legends()
 
-            self.fig.canvas.draw_idle()  # Speeds up response.
+        self.fig.canvas.draw()  # Speeds up response.
 
         return event
 
