@@ -84,6 +84,8 @@ except (ImportError, ModuleNotFoundError) as import_err:
           f'Error message:\n{import_err}')
     sys.exit(1)
 
+# manage_args() returns a 3-tuple (bool, bool, path), as set on command line.
+TEST_ARG, UTC_ARG, DATA_PATH = utils.manage_args()
 
 # Suppress pylint warning where df columns are referenced by dot notation.
 # pylint: disable=no-member
@@ -1039,20 +1041,17 @@ class PlotTasks(TaskDataFrame):
         self.fig.canvas.draw_idle()
 
 
-if __name__ == "__main__":
-
-    # Program exits here if system platform or Python version check fails.
+def run_checks():
+    """Program exits here if system platform or Python version check fails."""
     utils.check_platform()
     vcheck.minversion('3.7')
 
-    # manage_args() returns a 3-tuple (bool, bool, path), as set on command line.
-    TEST_ARG, UTC_ARG, DATA_PATH = utils.manage_args()
 
-    # Need to use a tkinter window for the plot canvas so that CheckButton
-    #   actions for plotting are more responsive.
-    canvas_window = tk.Tk()
+def main():
+    """Main program entry point."""
 
     # Developer: Custom handlers for unexpected system and tkinter exceptions.
+    # Uncomment to test the program's exception handling.
     # sys.excepthook = utils.handle_exception
     # canvas_window.report_callback_exception = utils.handle_exception
 
@@ -1079,3 +1078,13 @@ if __name__ == "__main__":
         canvas_window.mainloop()
     except KeyboardInterrupt:
         print("\n*** User quit the program from Terminal/Console ***\n")
+
+if __name__ == '__main__':
+
+    # Comment out if using PyInstaller to create an executable.
+    run_checks()
+
+    # Need to use a tkinter window for the plot canvas so that CheckButton
+    #   actions for plotting are more responsive.
+    canvas_window = tk.Tk()
+    main()
