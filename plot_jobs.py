@@ -173,25 +173,16 @@ class TaskDataFrame:
         """
 
         # Clean up data: force to NaN any non-numeric time values read from file.
+        # NOTE: If no times are NaN, then series dtype is numpy.int64,
+        #   but if any NaN present, then series dtype is numpy.float64.
         for ser in ('utc_tstamp', 'elapsed_t'):
             self.jobs_df[ser] = pd.to_numeric(self.jobs_df[ser], errors='coerce')
 
-        # NOTE: If no times are NaN, then series dtype is numpy.int64,
-        #   but if any NaN present, then series dtype is numpy.float64.
-        ts_nan_sum = self.jobs_df.utc_tstamp.isna().sum()
-        et_nan_sum = self.jobs_df.elapsed_t.isna().sum()
-        nansums = (
-            (ts_nan_sum, 'utc_tstamp'),
-            (et_nan_sum, 'elapsed_t'),
-        )
-
-        for tup in nansums:
-            nan_sum, col_name = tup
-            if nan_sum > 0:
+        for col_name in ('utc_tstamp', 'elapsed_t'):
+            if self.jobs_df[col_name].isna().sum() > 0:
                 nanjobs_df = self.jobs_df[self.jobs_df[col_name].isna()]
-                self.jobs_df[col_name].interpolate(method='linear',
-                                                   inplace=True)
-                print(f'*** Heads up: {nan_sum} {col_name} values could not'
+                self.jobs_df[col_name].interpolate(method='linear', inplace=True)
+                print(f'*** Heads up: some {col_name} values could not'
                       ' be read from the file and have been interpolated. ***\n'
                       f'Tasks with "bad" times:\n'
                       f'row # (starts at 0)\n'
@@ -1013,33 +1004,49 @@ class PlotTasks(TaskDataFrame):
                 post_nodata_msg()
                 return
 
-            for plot in grp.EXCLUSIVE_PLOTS:
-                if self.isplotted[plot] or labels_status[plot]:
-                    self.isplotted[plot] = False
-                    self.checkbox.set_active(self.chkbox_label_index[plot])
-                    self.do_replot = True
-
-            if self.do_replot:
-                self.reset_plots()
-                self.do_replot = False
-
-            for proj, status in labels_status.items():
-                if (status
-                        and proj in grp.ALL_INCLUSIVE
-                        and not self.isplotted[proj]):
-                    self.plot_proj[proj]()
-
+            self.reset_exclusive_plots(labels_status)
+            self.plot_inclusive_plots(labels_status)
         elif not label_is_checked:
 
             # A checkbox was toggled off, so remove all plots,
             #   then replot the other existing inclusive plots.
             self.reset_plots()
-            for proj, status in labels_status.items():
-                if proj in grp.ALL_INCLUSIVE and status:
-                    self.plot_proj[proj]()
+            self.plot_inclusive_plots(labels_status)
 
         self.fig.canvas.draw_idle()
 
+    def reset_exclusive_plots(self, labels_status) -> None:
+        """
+        Reset exclusive plots to an unchecked state when different plot
+        is checked.
+        Called from manage_plots(). Calls reset_plots().
+        Args:
+            labels_status:  A dictionary of Project names and their
+            checked status.
+
+        Returns: None
+
+        """
+        for plot in grp.EXCLUSIVE_PLOTS:
+            if self.isplotted[plot] or labels_status[plot]:
+                self.isplotted[plot] = False
+                self.checkbox.set_active(self.chkbox_label_index[plot])
+        self.reset_plots()
+
+    def plot_inclusive_plots(self, labels_status) -> None:
+        """
+        Plot inclusive plots, which can be plotted with each other.
+        Called from manage_plots().
+        Args:
+            labels_status:  A dictionary of Project names and their
+            checked status.
+
+        Returns: None
+
+        """
+        for proj, status in labels_status.items():
+            if status and proj in grp.ALL_INCLUSIVE and not self.isplotted[proj]:
+                self.plot_proj[proj]()
 
 def run_checks():
     """Program exits here if system platform or Python version check fails."""
