@@ -12,7 +12,6 @@ import logging
 import platform
 import sys
 from datetime import datetime
-from __main__ import __doc__
 
 # Third party imports.
 import matplotlib.pyplot as plt
@@ -101,7 +100,7 @@ def manage_args() -> tuple:
 
     args = parser.parse_args()
 
-    about_text = (f'{__doc__}\n'
+    about_text = (f'{sys.modules["__main__"].__doc__}\n'
                   f'{"Author:".ljust(13)}{plot_utils.__author__}\n'
                   f'{"Version:".ljust(13)}{plot_utils.__version__}\n'
                   f'{"Status:".ljust(13)}{plot_utils.__status__}\n'
