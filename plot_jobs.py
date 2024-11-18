@@ -244,6 +244,7 @@ class TaskDataFrame:
                       ' recognized as a dt object by add_daily_counts().')
 
 
+# noinspection PyTestUnpassedFixture
 class PlotTasks(TaskDataFrame):
     """
     Set up and display Matplotlib Figure and pyplot Plots of task (job)
@@ -691,8 +692,8 @@ class PlotTasks(TaskDataFrame):
 
     def plot_fgrp5(self):
         p_label = 'fgrp5'
-        self.ax1.plot(self.jobs_df[self.time_stamp],
-                      self.jobs_df.elapsed_t.where(self.jobs_df[f'is_{p_label}']),
+        self.ax1.plot(self.jobs_df[self.time_stamp][self.jobs_df[f'is_{p_label}']],
+                      self.jobs_df.elapsed_t[self.jobs_df[f'is_{p_label}']],
                       mark.STYLE['tri_left'],
                       markersize=mark.SIZE,
                       label=p_label,
@@ -713,8 +714,8 @@ class PlotTasks(TaskDataFrame):
 
     def plot_fgrpBG1(self):
         p_label = 'fgrpBG1'
-        self.ax1.plot(self.jobs_df[self.time_stamp],
-                      self.jobs_df.elapsed_t.where(self.jobs_df[f'is_{p_label}']),
+        self.ax1.plot(self.jobs_df[self.time_stamp][self.jobs_df[f'is_{p_label}']],
+                      self.jobs_df.elapsed_t[self.jobs_df[f'is_{p_label}']],
                       mark.STYLE['tri_right'],
                       markersize=mark.SIZE,
                       label=p_label,
@@ -774,8 +775,8 @@ class PlotTasks(TaskDataFrame):
 
     def plot_gw_O2(self):
         p_label = 'gw_O2'
-        self.ax1.plot(self.jobs_df[self.time_stamp],
-                      self.jobs_df.elapsed_t.where(self.jobs_df[f'is_{p_label}']),
+        self.ax1.plot(self.jobs_df[self.time_stamp][self.jobs_df[f'is_{p_label}']],
+                      self.jobs_df.elapsed_t[self.jobs_df[f'is_{p_label}']],
                       mark.STYLE['triangle_down'],
                       markersize=mark.SIZE,
                       label=p_label,
@@ -795,8 +796,8 @@ class PlotTasks(TaskDataFrame):
 
     def plot_gw_O3(self):
         p_label = 'gw_O3'
-        self.ax1.plot(self.jobs_df[self.time_stamp],
-                      self.jobs_df.elapsed_t.where(self.jobs_df[f'is_{p_label}']),
+        self.ax1.plot(self.jobs_df[self.time_stamp][self.jobs_df[f'is_{p_label}']],
+                      self.jobs_df.elapsed_t[self.jobs_df[f'is_{p_label}']],
                       mark.STYLE['thin_diamond'],
                       markersize=mark.SIZE,
                       label=p_label,
@@ -816,8 +817,8 @@ class PlotTasks(TaskDataFrame):
 
     def plot_brp4(self):
         p_label = 'brp4'
-        self.ax1.plot(self.jobs_df[self.time_stamp],
-                      self.jobs_df.elapsed_t.where(self.jobs_df[f'is_{p_label}']),
+        self.ax1.plot(self.jobs_df[self.time_stamp][self.jobs_df[f'is_{p_label}']],
+                      self.jobs_df.elapsed_t[self.jobs_df[f'is_{p_label}']],
                       mark.STYLE['pentagon'],
                       markersize=mark.SIZE,
                       label=p_label,  # 'BRP4 & BRP4G',
@@ -837,8 +838,8 @@ class PlotTasks(TaskDataFrame):
 
     def plot_brp7(self):
         p_label = 'brp7'
-        self.ax1.plot(self.jobs_df[self.time_stamp],
-                      self.jobs_df.elapsed_t.where(self.jobs_df[f'is_{p_label}']),
+        self.ax1.plot(self.jobs_df[self.time_stamp][self.jobs_df[f'is_{p_label}']],
+                      self.jobs_df.elapsed_t[self.jobs_df[f'is_{p_label}']],
                       mark.STYLE['diamond'],
                       markersize=mark.SIZE,
                       label=p_label,
@@ -1085,6 +1086,7 @@ def main():
         canvas_window.mainloop()
     except KeyboardInterrupt:
         print("\n*** User quit the program from Terminal/Console ***\n")
+
 
 if __name__ == '__main__':
 
