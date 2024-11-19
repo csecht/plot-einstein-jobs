@@ -11,6 +11,8 @@ import argparse
 import logging
 import platform
 import sys
+import tkinter as tk
+
 from datetime import datetime
 
 # Third party imports.
@@ -72,6 +74,27 @@ def check_platform() -> None:
             windll.user32.SetProcessDPIAware()
         else:
             windll.shcore.SetProcessDpiAwareness(1)
+
+
+def set_icon(mainloop: tk.Tk) -> None:
+    """
+    Set the program icon image file.  If the icon cannot be displayed,
+    print a message to the console.
+
+    Args:  window: The main tk.Tk() window running the mainloop.
+    """
+    # The custom app icon is expected to be in the program's images folder.
+    try:
+        icon_path = path_check.valid_path_to('images/desktop_icon.png')
+        icon = tk.PhotoImage(file=icon_path)
+        mainloop.iconphoto(True, icon)
+    except tk.TclError as msg:
+        print('Cannot display program icon,'
+              ' so it will be left blank or tk default.')
+        print(f'tk error message: {msg}\n')
+    except FileNotFoundError as fnf:
+        print(f'Cannot find program icon file: {fnf}.\n'
+              'The program will run without a custom icon image.')
 
 
 def manage_args() -> tuple:

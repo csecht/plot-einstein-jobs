@@ -216,7 +216,7 @@ def on_pick_report(event, dataframe: pd) -> None:
     dt_since = dataframe.loc[event.ind[0]][TIME_STAMP]
     _name = dataframe.loc[event.ind[0]].task_name
     project = ''
-    for proj, regex in grp.PROJ_NAME_REGEX.items():
+    for proj, regex in grp.PROJECT_NAME_REGEX.items():
         if re.search(regex, _name):
             project = proj
 

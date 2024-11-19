@@ -40,11 +40,14 @@ Requires Python3.7 or later (incl. tkinter (tk/tcl)) and the packages
 Matplotlib, Pandas, and Numpy.
 Developed in Python 3.8-3.9.
 """
-# Copyright (C) 2022 C.S. Echt, under GNU General Public License
+# Copyright (C) 2022-2024 C.S. Echt, under GNU General Public License
 
 # Standard library imports
 import sys
 import numpy as np
+
+from signal import signal, SIGINT
+
 
 # Local application imports
 from plot_utils import (path_check, vcheck,
@@ -97,7 +100,7 @@ class TaskDataFrame:
     Methods:
          setup_df - Set up main dataframe from an E@H job_log text file.
          manage_bad_times - Interpolate missing time data.
-         add_proj_tags - Add columns of boolean flags for Project ID.
+         add_project_tags - Add columns of boolean flags for Project ID.
          add_hz_values - Add task base (parent) search frequencies.
          add_daily_counts - Add daily counts for each Project.
     """
@@ -106,7 +109,7 @@ class TaskDataFrame:
         self.jobs_df = pd.DataFrame()
 
         self.setup_df()
-        self.add_proj_tags()
+        self.add_project_tags()
         self.add_hz_values()
         self.add_daily_counts()
 
@@ -188,14 +191,14 @@ class TaskDataFrame:
                       f'row # (starts at 0)\n'
                       f'{nanjobs_df}')
 
-    def add_proj_tags(self):
+    def add_project_tags(self):
         """
         Add columns that boolean flag each task's associated Project.
         """
 
         self.jobs_df['is_all'] = True
-        for proj, regex in grp.PROJ_NAME_REGEX.items():
-            self.jobs_df[f'is_{proj}'] = where(
+        for project, regex in grp.PROJECT_NAME_REGEX.items():
+            self.jobs_df[f'is_{project}'] = where(
                 self.jobs_df.task_name.str.contains(regex), True, False)
 
     def add_hz_values(self):
@@ -230,21 +233,18 @@ class TaskDataFrame:
         # Idea to tally using groupby and transform, source:
         #   https://stackoverflow.com/questions/17709270/
         #      create-column-of-value-counts-in-pandas-dataframe
-        for proj in grp.PROJECTS:
+        for project in grp.PROJECTS:
             try:
-                self.jobs_df[f'{proj}_Dcnt'] = (
+                self.jobs_df[f'{project}_Dcnt'] = (
                     self.jobs_df[ts2use]
-                    .groupby(self.jobs_df[ts2use]
-                             .dt.floor('D')
-                             .where(self.jobs_df[f'is_{proj}']))
-                    .transform('count')
+                    .groupby(self.jobs_df[ts2use].dt.floor('D'))
+                    .transform(lambda x: x[self.jobs_df[f'is_{project}']].count())
                 )
             except AttributeError:
-                print(f'Warning: A timestamp in Project {proj} was not'
+                print(f'Warning: A timestamp in Project {project} was not'
                       ' recognized as a dt object by add_daily_counts().')
 
 
-# noinspection PyTestUnpassedFixture
 class PlotTasks(TaskDataFrame):
     """
     Set up and display Matplotlib Figure and pyplot Plots of task (job)
@@ -262,7 +262,7 @@ class PlotTasks(TaskDataFrame):
     # https://towardsdatascience.com/understand-slots-in-python-e3081ef5196d
     __slots__ = (
         'fig', 'ax1', 'ax2',
-        'checkbox', 'do_replot', 'legend_btn_on', 'time_stamp', 'plot_proj',
+        'checkbox', 'do_replot', 'legend_btn_on', 'time_stamp', 'plot_project',
         'chkbox_label_index', 'isplotted', 'text_bbox', 'hz_slider',
     )
 
@@ -276,17 +276,18 @@ class PlotTasks(TaskDataFrame):
 
         # These keys must match plot names in project_groups.CHKBOX_LABELS.
         # Dictionary pairs plot name to plot method.
-        self.plot_proj = {'all': self.plot_all,
-                          'fgrp5': self.plot_fgrp5,
-                          'fgrpBG1': self.plot_fgrpBG1,
-                          'fgrp_hz': self.plot_fgrp_hz,
-                          'gw_O2': self.plot_gw_O2,
-                          'gw_O3': self.plot_gw_O3,
-                          'brp4': self.plot_brp4,
-                          'brp7': self.plot_brp7,
-                          'gwO3Hz_X_t': self.plot_gwO3Hz_X_t,
-                          'fgrpHz_X_t': self.plot_fgrpHz_X_t
-                          }
+        self.plot_project = {
+            'all': self.plot_all,
+            'fgrp5': self.plot_fgrp5,
+            'fgrpBG1': self.plot_fgrpBG1,
+            'fgrp_hz': self.plot_fgrp_hz,
+            'gw_O2': self.plot_gw_O2,
+            'gw_O3': self.plot_gw_O3,
+            'brp4': self.plot_brp4,
+            'brp7': self.plot_brp7,
+            'gwO3Hz_X_t': self.plot_gwO3Hz_X_t,
+            'fgrpHz_X_t': self.plot_fgrpHz_X_t
+        }
 
         self.chkbox_label_index: dict = {}
         self.isplotted: dict = {}
@@ -492,13 +493,13 @@ class PlotTasks(TaskDataFrame):
         Set up the plot selection checkbox.
         Plot 'all' as startup default.
         """
-        for i, proj in enumerate(grp.CHKBOX_LABELS):
-            self.chkbox_label_index[proj] = i
+        for i, project in enumerate(grp.CHKBOX_LABELS):
+            self.chkbox_label_index[project] = i
 
         # Need to populate the isplotted dictionary with Project label names and
         #   their default checkbox boolean states.
-        for proj in grp.CHKBOX_LABELS:
-            self.isplotted[proj] = False
+        for project in grp.CHKBOX_LABELS:
+            self.isplotted[project] = False
 
         # Relative coordinates in Figure, 4-tuple (LEFT, BOTTOM, WIDTH, HEIGHT).
         ax_chkbox = plt.axes((0.86, 0.54, 0.13, 0.36), facecolor=mark.LIGHT_GRAY)
@@ -950,7 +951,7 @@ class PlotTasks(TaskDataFrame):
         label_is_checked: bool = labels_status[clicked_label]
         num_tasks = sum(self.jobs_df[f'is_{grp.CLICKED_PLOT[clicked_label]}'])
 
-        def post_nodata_msg():
+        def display_nodata_msg():
             """
             Post a notice if the selected Project data are not available.
             Toggle off (deactivate) the selected label's check box.
@@ -969,11 +970,11 @@ class PlotTasks(TaskDataFrame):
             #  A weak hack, but it works. The entire method needs work.
             for _l, _s in labels_status.items():
                 if _l in grp.EXCLUSIVE_PLOTS and _s:
-                    self.plot_proj[_l]()
+                    self.plot_project[_l]()
 
             self.fig.canvas.draw_idle()
 
-        # Remove any prior text box from post_nodata_msg().
+        # Remove any prior text box from display_nodata_msg().
         if label_is_checked and self.fig.texts:
             self.fig.texts.clear()
 
@@ -984,7 +985,7 @@ class PlotTasks(TaskDataFrame):
         for plot in grp.EXCLUSIVE_PLOTS:
             if clicked_label == plot and label_is_checked:
                 if num_tasks == 0:
-                    post_nodata_msg()
+                    display_nodata_msg()
                     return
 
                 # Label was toggled on...
@@ -995,14 +996,14 @@ class PlotTasks(TaskDataFrame):
                         self.checkbox.set_active(self.chkbox_label_index[lbl])
 
                 self.fig.canvas.draw_idle()
-                self.plot_proj[clicked_label]()
+                self.plot_project[clicked_label]()
                 return
 
         # Inclusive plots can be plotted only with (on top of) each another.
         #  So, first, need to remove any current exclusive plot.
         if clicked_label in grp.ALL_INCLUSIVE and label_is_checked:
             if num_tasks == 0:
-                post_nodata_msg()
+                display_nodata_msg()
                 return
 
             self.reset_exclusive_plots(labels_status)
@@ -1045,9 +1046,10 @@ class PlotTasks(TaskDataFrame):
         Returns: None
 
         """
-        for proj, status in labels_status.items():
-            if status and proj in grp.ALL_INCLUSIVE and not self.isplotted[proj]:
-                self.plot_proj[proj]()
+        for proj_label, status in labels_status.items():
+            if status and proj_label in grp.ALL_INCLUSIVE and not self.isplotted[proj_label]:
+                self.plot_project[proj_label]()
+
 
 def run_checks():
     """Program exits here if system platform or Python version check fails."""
@@ -1058,42 +1060,35 @@ def run_checks():
 def main():
     """Main program entry point."""
 
-    # Developer: Custom handlers for unexpected system and tkinter exceptions.
-    # Uncomment to test the program's exception handling.
-    # sys.excepthook = utils.handle_exception
-    # canvas_window.report_callback_exception = utils.handle_exception
+    # Comment out if using PyInstaller to create an executable.
+    run_checks()
 
     # Need an image to replace blank tk desktop icon.
-    #   Set correct path to the local 'images' directory and icon file.
-    try:
-        icon_path = path_check.valid_path_to('images/desktop_icon.png')
-        icon = tk.PhotoImage(file=icon_path)
-        canvas_window.iconphoto(True, icon)
-    except tk.TclError as msg:
-        print('Cannot display program icon,'
-              ' so it will be left blank or tk default.')
-        print(f'tk error message: {msg}\n')
+    utils.set_icon(canvas_window)
 
-    try:
-        print(f'Data from {DATA_PATH} are loading. This may take a few seconds...\n')
+    print(f'Data from {DATA_PATH} are loading. This may take a few seconds...\n')
 
-        # This call will set up an inherited pd dataframe in TaskDataFrame,
-        #  then plot 'all' tasks as specified in setup_plot_manager().
-        #  After that, plots are managed by CheckButton states in manage_plots().
-        PlotTasks().setup_plot_manager()
-        print('The plot window is ready.')
+    # This call will set up an inherited pd dataframe in TaskDataFrame,
+    #  then plot 'all' tasks as specified in setup_plot_manager().
+    #  After that, plots are managed by CheckButton states in manage_plots().
+    PlotTasks().setup_plot_manager()
+    print('The plot window is ready.')
 
-        canvas_window.mainloop()
-    except KeyboardInterrupt:
-        print("\n*** User quit the program from Terminal/Console ***\n")
+    # Allow user to quit from the Terminal command line using Ctrl-C
+    #  without the delay of waiting for tk event actions.
+    # Source: https://stackoverflow.com/questions/39840815/
+    #   exiting-a-tkinter-app-with-ctrl-c-and-catching-sigint
+    # Keep polling the mainloop to check for the SIGINT signal, Ctrl-C.
+    # Can comment out next three lines when using PyInstaller.
+    signal(signalnum=SIGINT, handler=lambda x, y: canvas_window.destroy())
+    tk_check = lambda: canvas_window.after(500, tk_check)
+    canvas_window.after(500, tk_check)
 
 
 if __name__ == '__main__':
 
-    # Comment out if using PyInstaller to create an executable.
-    run_checks()
-
     # Need to use a tkinter window for the plot canvas so that CheckButton
-    #   actions for plotting are more responsive.
+    #  actions for plot filtering are more responsive.
     canvas_window = tk.Tk()
     main()
+    canvas_window.mainloop()
