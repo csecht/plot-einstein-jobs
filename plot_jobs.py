@@ -237,8 +237,9 @@ class TaskDataFrame:
             try:
                 self.jobs_df[f'{project}_Dcnt'] = (
                     self.jobs_df[ts2use]
-                    .groupby(self.jobs_df[ts2use].dt.floor('D'))
-                    .transform(lambda x: x[self.jobs_df[f'is_{project}']].count())
+                    .groupby(self.jobs_df[ts2use]
+                             .dt.floor('D')[self.jobs_df[f'is_{project}']])
+                    .transform('count')
                 )
             except AttributeError:
                 print(f'Warning: A timestamp in Project {project} was not'
@@ -693,8 +694,8 @@ class PlotTasks(TaskDataFrame):
 
     def plot_fgrp5(self):
         p_label = 'fgrp5'
-        self.ax1.plot(self.jobs_df[self.time_stamp][self.jobs_df[f'is_{p_label}']],
-                      self.jobs_df.elapsed_t[self.jobs_df[f'is_{p_label}']],
+        self.ax1.plot(self.jobs_df[self.time_stamp],
+                      self.jobs_df.elapsed_t.where(self.jobs_df[f'is_{p_label}']),
                       mark.STYLE['tri_left'],
                       markersize=mark.SIZE,
                       label=p_label,
@@ -715,8 +716,8 @@ class PlotTasks(TaskDataFrame):
 
     def plot_fgrpBG1(self):
         p_label = 'fgrpBG1'
-        self.ax1.plot(self.jobs_df[self.time_stamp][self.jobs_df[f'is_{p_label}']],
-                      self.jobs_df.elapsed_t[self.jobs_df[f'is_{p_label}']],
+        self.ax1.plot(self.jobs_df[self.time_stamp],
+                      self.jobs_df.elapsed_t.where(self.jobs_df[f'is_{p_label}']),
                       mark.STYLE['tri_right'],
                       markersize=mark.SIZE,
                       label=p_label,
@@ -776,8 +777,8 @@ class PlotTasks(TaskDataFrame):
 
     def plot_gw_O2(self):
         p_label = 'gw_O2'
-        self.ax1.plot(self.jobs_df[self.time_stamp][self.jobs_df[f'is_{p_label}']],
-                      self.jobs_df.elapsed_t[self.jobs_df[f'is_{p_label}']],
+        self.ax1.plot(self.jobs_df[self.time_stamp],
+                      self.jobs_df.elapsed_t.where(self.jobs_df[f'is_{p_label}']),
                       mark.STYLE['triangle_down'],
                       markersize=mark.SIZE,
                       label=p_label,
@@ -797,8 +798,8 @@ class PlotTasks(TaskDataFrame):
 
     def plot_gw_O3(self):
         p_label = 'gw_O3'
-        self.ax1.plot(self.jobs_df[self.time_stamp][self.jobs_df[f'is_{p_label}']],
-                      self.jobs_df.elapsed_t[self.jobs_df[f'is_{p_label}']],
+        self.ax1.plot(self.jobs_df[self.time_stamp],
+                      self.jobs_df.elapsed_t.where(self.jobs_df[f'is_{p_label}']),
                       mark.STYLE['thin_diamond'],
                       markersize=mark.SIZE,
                       label=p_label,
@@ -818,8 +819,8 @@ class PlotTasks(TaskDataFrame):
 
     def plot_brp4(self):
         p_label = 'brp4'
-        self.ax1.plot(self.jobs_df[self.time_stamp][self.jobs_df[f'is_{p_label}']],
-                      self.jobs_df.elapsed_t[self.jobs_df[f'is_{p_label}']],
+        self.ax1.plot(self.jobs_df[self.time_stamp],
+                      self.jobs_df.elapsed_t.where(self.jobs_df[f'is_{p_label}']),
                       mark.STYLE['pentagon'],
                       markersize=mark.SIZE,
                       label=p_label,  # 'BRP4 & BRP4G',
@@ -839,8 +840,8 @@ class PlotTasks(TaskDataFrame):
 
     def plot_brp7(self):
         p_label = 'brp7'
-        self.ax1.plot(self.jobs_df[self.time_stamp][self.jobs_df[f'is_{p_label}']],
-                      self.jobs_df.elapsed_t[self.jobs_df[f'is_{p_label}']],
+        self.ax1.plot(self.jobs_df[self.time_stamp],
+                      self.jobs_df.elapsed_t.where(self.jobs_df[f'is_{p_label}']),
                       mark.STYLE['diamond'],
                       markersize=mark.SIZE,
                       label=p_label,

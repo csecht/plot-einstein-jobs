@@ -255,12 +255,8 @@ def number_since(dataframe: pd, proj: str, since_date: str) -> int:
     :return: The count of Project tasks reported after the beginning of
      *since_date*.
     """
-    since_dt = pd.to_datetime(since_date, infer_datetime_format=True)
-    count_since = (dataframe[f'is_{proj}']
-                   .where(dataframe[TIME_STAMP] >= since_dt)
-                   ).sum()
-    return count_since
-
+    since_dt = pd.to_datetime(since_date)
+    return dataframe.loc[dataframe[TIME_STAMP] >= since_dt, f'is_{proj}'].sum()
 
 def view_report(title: str, text: str, minsize: tuple, scroll=False) -> None:
     """
