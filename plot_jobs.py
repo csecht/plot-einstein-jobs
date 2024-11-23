@@ -1076,8 +1076,11 @@ def main():
     #   exiting-a-tkinter-app-with-ctrl-c-and-catching-sigint
     # Keep polling the mainloop to check for the SIGINT signal, Ctrl-C.
     # Can comment out next three lines when using PyInstaller.
-    signal(signalnum=SIGINT, handler=lambda x, y: canvas_window.destroy())
-    tk_check = lambda: canvas_window.after(500, tk_check)
+    signal(signalnum=SIGINT, handler=lambda x, y: utils.quit_gui(canvas_window))
+
+    def tk_check():
+        canvas_window.after(500, tk_check)
+
     canvas_window.after(500, tk_check)
 
 
