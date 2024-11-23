@@ -133,7 +133,6 @@ class TaskDataFrame:
         job_col_index = [0, 8, 10]
         names = ('utc_tstamp', 'task_name', 'elapsed_t')
 
-        # The DATA_PATH text file path is from if __name__ == "__main__".
         self.jobs_df = pd.read_table(filepath_or_buffer=DATA_PATH,
                                      engine='c',
                                      delim_whitespace=True,
@@ -224,8 +223,7 @@ class TaskDataFrame:
         """
 
         # Use UTC or local timestamp column option for daily task counts;
-        #   --utc is an optional command line argument; UTC_ARG is defined
-        #   in if __name__ == "__main__"
+        # UTC_ARG is boolean, defined from the --utc invocation argument (default: False).
         ts2use = 'utc_tstamp' if UTC_ARG else 'local_tstamp'
 
         # For clarity, grp.PROJECTS names used here need to match those used in
@@ -236,10 +234,9 @@ class TaskDataFrame:
         for project in grp.PROJECTS:
             try:
                 self.jobs_df[f'{project}_Dcnt'] = (
-                    self.jobs_df[ts2use]
-                    .groupby(self.jobs_df[ts2use]
-                             .dt.floor('D')[self.jobs_df[f'is_{project}']])
-                    .transform('count')
+                    self.jobs_df[ts2use].groupby(
+                        self.jobs_df[ts2use].dt.floor('D')[self.jobs_df[f'is_{project}']]
+                    ).transform('count')
                 )
             except AttributeError:
                 print(f'Warning: A timestamp in Project {project} was not'
@@ -339,8 +336,7 @@ class PlotTasks(TaskDataFrame):
         actions for drawing plots more responsive.
         """
 
-        # TEST_ARG is boolean, defined in if __name__ == "__main__" from
-        #   the --test invocation argument (default: False).
+        # TEST_ARG is boolean, defined from the --test invocation argument (default: False).
         _title = 'Sample data' if TEST_ARG else 'E@H job_log data'
 
         # canvas_window is the Tk mainloop defined in if __name__ == "__main__".
@@ -704,7 +700,7 @@ class PlotTasks(TaskDataFrame):
                       picker=True,
                       )
         self.ax2.plot(self.jobs_df[self.time_stamp],
-                      self.jobs_df.fgrp5_Dcnt,
+                      self.jobs_df[f'{p_label}_Dcnt'],
                       mark.STYLE['square'],
                       markersize=mark.DCNT_SIZE,
                       label=p_label,
@@ -726,7 +722,7 @@ class PlotTasks(TaskDataFrame):
                       picker=True,
                       )
         self.ax2.plot(self.jobs_df[self.time_stamp],
-                      self.jobs_df.fgrpBG1_Dcnt,
+                      self.jobs_df[f'{p_label}_Dcnt'],
                       mark.STYLE['square'],
                       markersize=mark.DCNT_SIZE,
                       label=p_label,
@@ -787,7 +783,7 @@ class PlotTasks(TaskDataFrame):
                       picker=True,
                       )
         self.ax2.plot(self.jobs_df[self.time_stamp],
-                      self.jobs_df.gw_O2_Dcnt,
+                      self.jobs_df[f'{p_label}_Dcnt'],
                       mark.STYLE['square'],
                       markersize=mark.DCNT_SIZE,
                       label=p_label,
@@ -808,7 +804,7 @@ class PlotTasks(TaskDataFrame):
                       picker=True,
                       )
         self.ax2.plot(self.jobs_df[self.time_stamp],
-                      self.jobs_df.gw_O3_Dcnt,
+                      self.jobs_df[f'{p_label}_Dcnt'],
                       mark.STYLE['square'],
                       markersize=mark.DCNT_SIZE,
                       label=p_label,
@@ -829,7 +825,7 @@ class PlotTasks(TaskDataFrame):
                       picker=True,
                       )
         self.ax2.plot(self.jobs_df[self.time_stamp],
-                      self.jobs_df.brp4_Dcnt,
+                      self.jobs_df[f'{p_label}_Dcnt'],
                       mark.STYLE['square'],
                       markersize=mark.DCNT_SIZE,
                       label=p_label,  # 'BRP4 & BRP4G',
@@ -850,7 +846,7 @@ class PlotTasks(TaskDataFrame):
                       picker=True,
                       )
         self.ax2.plot(self.jobs_df[self.time_stamp],
-                      self.jobs_df.brp7_Dcnt,
+                      self.jobs_df[f'{p_label}_Dcnt'],
                       mark.STYLE['square'],
                       markersize=mark.DCNT_SIZE,
                       label=p_label,
@@ -863,15 +859,14 @@ class PlotTasks(TaskDataFrame):
         num_f = self.jobs_df.fgrp_freq.nunique()
         min_f = self.jobs_df.fgrp_freq.min()
         max_f = self.jobs_df.fgrp_freq.max()
-        min_t = self.jobs_df.elapsed_sec.where(
-            self.jobs_df.is_fgrp).min().astype(np.int64)
-        max_t = self.jobs_df.elapsed_sec.where(
-            self.jobs_df.is_fgrp).max().astype(np.int64)
-
+        min_t = self.jobs_df.elapsed_sec[self.jobs_df.is_fgrp].min().astype(np.int64)
+        max_t = self.jobs_df.elapsed_sec[self.jobs_df.is_fgrp].max().astype(np.int64)
         # Add a 2% margin to time axis upper limit.
         self.setup_freq_axes((0, max_t * 1.02))
 
-        self.setup_slider(max_f)
+        # TODO: Need to fix the slider to work with the Hz range.
+        #  Throws 'canvas is None type' error when slider is used.
+        # self.setup_slider(max_f)
 
         # Position text below lower left corner of plot area.
         self.ax1.text(0.0, -0.15,
@@ -900,15 +895,15 @@ class PlotTasks(TaskDataFrame):
         num_f = self.jobs_df.gwO3AS_freq.nunique()
         min_f = self.jobs_df.gwO3AS_freq.min()
         max_f = self.jobs_df.gwO3AS_freq.max()
-        min_t = self.jobs_df.elapsed_sec.where(
-            self.jobs_df.is_gw_O3).min().astype(np.int64)
-        max_t = self.jobs_df.elapsed_sec.where(
-            self.jobs_df.is_gw_O3).max().astype(np.int64)
+        min_t = self.jobs_df.elapsed_sec[self.jobs_df.is_gw_O3].min().astype(np.int64)
+        max_t = self.jobs_df.elapsed_sec[self.jobs_df.is_gw_O3].max().astype(np.int64)
 
         # Add a 2% margin to time axis upper limit.
         self.setup_freq_axes((0, max_t * 1.02))
 
-        self.setup_slider(max_f)
+        # TODO: Need to fix the slider to work with the Hz range.
+        #  Throws 'canvas is None type' error when slider is used.
+        # self.setup_slider(max_f)
 
         # Position text below lower left corner of axes.
         self.ax1.text(0.0, -0.15,
