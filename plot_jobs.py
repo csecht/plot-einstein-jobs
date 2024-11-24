@@ -249,11 +249,11 @@ class PlotTasks(TaskDataFrame):
     data.
     The plotted Pandas dataframe is inherited from TaskDataFrame.
     Called only from if __name__ == "__main__".
-    Methods: setup_window, setup_buttons, setup_slider, setup_plot_manager,
-     format_legends, toggle_legends, setup_count_axes, setup_freq_axes,
-      reset_plots, plot_all, plot_fgrp5, plot_fgrpBG1, plot_fgrp_hz,
-       plot_gw_O2, plot_gw_O3, plot_brp4, plot_brp7, plot_fgrpHz_X_t,
-        plot_gwO3Hz_X_t, manage_plots.
+    Methods: setup_window, setup_buttons, setup_plot_manager,
+    format_legends, toggle_legends, setup_count_axes, setup_freq_axes,
+    display_freq_plot_tip, reset_plots, plot_all, plot_fgrp5,
+    plot_fgrpBG1, plot_fgrp_hz, plot_gw_O2, plot_gw_O3, plot_brp4,
+    plot_brp7, plot_fgrpHz_X_t, plot_gwO3Hz_X_t, manage_plots.
     """
 
     # https://stackoverflow.com/questions/472000/usage-of-slots
@@ -308,7 +308,7 @@ class PlotTasks(TaskDataFrame):
             nrows=2,
             sharex='all',
             gridspec_kw={'height_ratios': [3, 1.2],
-                         'left': 0.15,
+                         'left': 0.10,
                          'right': 0.85,
                          'bottom': 0.16,
                          'top': 0.92,
@@ -422,68 +422,6 @@ class PlotTasks(TaskDataFrame):
         abtn.on_clicked(reports.about_report)
         ax_aboutbtn._button = abtn  # Prevent garbage collection.
 
-    def setup_slider(self, max_f: float) -> None:
-        """
-        Create a RangeSlider for real-time y-axis Hz range adjustments
-        of *_freq plots. Also create usage text box.
-
-        :param max_f: The plotted Project's maximum frequency value.
-        """
-
-        # Need to replace any prior slider bar with a new one to prevent
-        #   stacking of bars.
-        self.hz_slider.remove()
-
-        # Add a 2% margin to the slider upper limit when frequency data are available.
-        # When there are no plot data, max_f will be NaN, so use some NaN magic
-        #   to test that and avoid a ValueError for RangeSlider max range by
-        #   assigning it a limit of 1.
-        # https://towardsdatascience.com/
-        #   5-methods-to-check-for-nan-values-in-in-python-3f21ddd17eed
-        max_limit = 1 if max_f != max_f else max_f * 1.02
-
-        # RangeSlider relative Figure coord: (LEFT, BOTTOM, WIDTH, HEIGHT).
-        self.hz_slider = plt.axes((0.05, 0.38, 0.01, 0.52))  # vert
-
-        # Invert min/max values on vertical slider so max is on top.
-        plt.gca().invert_yaxis()
-
-        hz_slider = RangeSlider(ax=self.hz_slider,
-                                label="Hz range",
-                                valmin=0,
-                                valmax=max_limit,
-                                valstep=2,
-                                orientation='vertical',
-                                color=mark.CBLIND_COLOR['blue'],
-                                handle_style={'size': 8, }
-                                )
-
-        # Position text box above Navigation toolbar.
-        self.ax1.text(-0.19, -0.7,
-                      ("Range slider and Navigation bar tools may conflict.\n"
-                       "If so, then toggle the plot's checkbox to reset."),
-                      style='italic',
-                      fontsize=6,
-                      verticalalignment='top',
-                      transform=self.ax1.transAxes,
-                      bbox=self.text_bbox,
-                      )
-        self.hz_slider._slider = hz_slider  # Prevent garbage collection.
-
-        def _update(val):
-            """
-            Live update of the plot's y-axis frequency range.
-
-            :param val: Value implicitly passed to a callback by the
-             RangeSlider as a tuple, (min, max).
-            """
-
-            self.ax1.set_ylim(val)
-
-            self.fig.canvas.draw_idle()
-
-        hz_slider.on_changed(_update)
-
     def setup_plot_manager(self) -> None:
         """
         Set up dictionaries to use as plotting conditional variables.
@@ -572,9 +510,6 @@ class PlotTasks(TaskDataFrame):
 
         self.ax2.set_ylabel('Tasks/day', **lbl_params)
 
-        # Need to set the Tasks/day axis label in a static position.
-        self.ax2.yaxis.set_label_coords(-0.1, 0.55)
-
         # Need to rotate and right-align the date labels to avoid crowding.
         for label in self.ax1.get_yticklabels(which='major'):
             label.set(rotation=30, fontsize='x-small')
@@ -636,6 +571,27 @@ class PlotTasks(TaskDataFrame):
 
         self.ax1.xaxis.set_major_formatter(ticker.FormatStrFormatter('%.0f'))
         self.ax1.yaxis.set_major_formatter(ticker.FormatStrFormatter('%.2f'))
+
+    def display_freq_plot_tip(self) -> None:
+        """
+        Display text in the plot window for the Hz vs. time plots.
+        """
+
+        # Need to clear any previous text boxes.
+        for txt in self.fig.texts:
+            txt.remove()
+
+        # Position text box above Navigation toolbar.
+        self.ax1.text(-0.1, -0.7,
+                      "Tip: use the Zoom and Arrow tools to adjust the Hz range.\n",
+                      style='italic',
+                      fontsize=6,
+                      verticalalignment='top',
+                      transform=self.ax1.transAxes,
+                      bbox=self.text_bbox,
+                      )
+
+        self.fig.canvas.draw()
 
     def reset_plots(self):
         """
@@ -864,9 +820,7 @@ class PlotTasks(TaskDataFrame):
         # Add a 2% margin to time axis upper limit.
         self.setup_freq_axes((0, max_t * 1.02))
 
-        # TODO: Need to fix the slider to work with the Hz range.
-        #  Throws 'canvas is None type' error when slider is used.
-        # self.setup_slider(max_f)
+        self.display_freq_plot_tip()
 
         # Position text below lower left corner of plot area.
         self.ax1.text(0.0, -0.15,
@@ -901,9 +855,7 @@ class PlotTasks(TaskDataFrame):
         # Add a 2% margin to time axis upper limit.
         self.setup_freq_axes((0, max_t * 1.02))
 
-        # TODO: Need to fix the slider to work with the Hz range.
-        #  Throws 'canvas is None type' error when slider is used.
-        # self.setup_slider(max_f)
+        self.display_freq_plot_tip()
 
         # Position text below lower left corner of axes.
         self.ax1.text(0.0, -0.15,
