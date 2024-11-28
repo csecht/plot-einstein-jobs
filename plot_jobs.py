@@ -135,7 +135,7 @@ class TaskDataFrame:
 
         self.jobs_df = pd.read_table(filepath_or_buffer=DATA_PATH,
                                      engine='c',
-                                     delim_whitespace=True,
+                                     sep=' ',
                                      header=None,
                                      usecols=job_col_index,
                                      names=names,
@@ -183,7 +183,7 @@ class TaskDataFrame:
         for col_name in ('utc_tstamp', 'elapsed_t'):
             if self.jobs_df[col_name].isna().sum() > 0:
                 nanjobs_df = self.jobs_df[self.jobs_df[col_name].isna()]
-                self.jobs_df[col_name].interpolate(method='linear', inplace=True)
+                self.jobs_df[col_name] = self.jobs_df[col_name].interpolate()
                 print(f'*** Heads up: some {col_name} values could not'
                       ' be read from the file and have been interpolated. ***\n'
                       f'Tasks with "bad" times:\n'
