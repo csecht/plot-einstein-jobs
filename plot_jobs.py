@@ -1002,13 +1002,17 @@ class PlotTasks(TaskDataFrame):
 def run_checks():
     """Program exits here if system platform or Python version check fails."""
     utils.check_platform()
+    utils.manage_args()
     vcheck.minversion('3.7')
+    vcheck.maxversion('3.12')
 
 
 def main():
     """Main program entry point."""
 
     # Comment out if using PyInstaller to create an executable.
+    #  PyInstaller for Windows will still need to run check_platform()
+    #   for DPI Awareness scaling issues.
     run_checks()
 
     # Need an image to replace blank tk desktop icon.
@@ -1027,13 +1031,14 @@ def main():
     # Source: https://stackoverflow.com/questions/39840815/
     #   exiting-a-tkinter-app-with-ctrl-c-and-catching-sigint
     # Keep polling the mainloop to check for the SIGINT signal, Ctrl-C.
-    # Can comment out next three lines when using PyInstaller.
+    # Can comment out the following statements when using PyInstaller.
     signal(signalnum=SIGINT, handler=lambda x, y: utils.quit_gui(canvas_window))
 
-    def tk_check():
-        canvas_window.after(500, tk_check)
+    def tk_check(msec):
+        canvas_window.after(msec, tk_check, msec)
 
-    canvas_window.after(500, tk_check)
+    poll_ms = 500
+    canvas_window.after(poll_ms, tk_check, poll_ms)
 
 
 if __name__ == '__main__':
