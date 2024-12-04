@@ -1,13 +1,12 @@
-matplotlib
-pandas
-pillow
-numpy
-packaging
+matplotlib==3.6.1
+pandas==2.2.3
 
-
-#matplotlib==3.6.3
-#pandas==1.5.1
-#pillow==9.4.0
-#numpy==1.24.2
-
-# ^^ Development versions as of Feb 2023, Python 3.8:
+# In python 3.12 with pip 24.3.1, you should use the following to install all dependencies
+#  that are required for the plot toolbar to work properly:
+#   pip install matplotlib==3.6.1 --force-reinstall
+#   pip install pandas==2.2.3 --force-reinstall
+# Installing matplobtlib with an updated pip version will install all of its dependencies.
+# More recent versions of matplotlib may work, but ver 3.9+ is flaky for Toobbar Zoom function.
+# Development was with pandas 1.5.1, but it may work with any version of pandas >= 1.0.0.
+#  Try to install the latest version of pandas with the following command:
+#   pip install pandas
