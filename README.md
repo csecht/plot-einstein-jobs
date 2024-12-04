@@ -50,11 +50,11 @@ The "Log counts" button shows, in a pop-up window and in the Terminal, summary c
 The "About" button prints to Terminal a description of the program, version number, repository URL, and copyright and license information.
 
 ### Requirements:
-Python 3.7 or later, plus Matplotlib, Pandas, and Numpy.
-This program was developed in Python 3.8-3.9.
+Python 3.7 or later, plus Matplotlib v3.6.1, Pandas. All other dependencies are included with the Matplotlib installation. See the requirements.txt file for details
+This program was developed in Python 3.8-3.12.
 
 For quick installation of the required Python PIP packages:
-from the downloaded GitHub repository folder, run this command
+from the downloaded GitHub repository folder, run this command in a fresh virtual environment to ensure no conflicts with other Python packages or versions:
 
     pip install -r requirements.txt
 Alternative commands (system dependent):
