@@ -85,18 +85,13 @@ Zoom-in detail of FGRPG1 tasks times and counts.
 
 Frequency (Hz) vs. datetime for all FGRP tasks
 
-![plot hz_range](images/slider_gwO3.png)
-
-GWO3 tasks' Hz vs. task completion time, with Hz range selection slider.
-The Hz range slider can be used as an alternative way to zoom in on frequency ranges. The slider and Navigation bar tools don't always work well together, so it is best to generally use one or the other.
-
 ![popup-task-info](images/task_info.png)
 
 Pop-up window of task information for tasks nearest a clicked plot coordinate. The cursor arrow to click on plot points appears when no navigation bar tools (pan or zoom) are active (highlighted).
 
 ![project_summary_counts](images/project_counts.png)
 
-The "Jop log counts" button gives a pop-up window of reported task totals for each Project.
+The "Job log counts" button gives a pop-up window of reported task totals for each Project.
 
 ### How Projects are identified
 
@@ -109,6 +104,10 @@ E@H Project:&emsp;&emsp;&emsp;matching characters in name (0000 is any four digi
 - O3AS1a:&emsp;&emsp;&emsp;'_O3AS'
 - BRP4:&emsp;&emsp;&emsp;&emsp;name begins with 'p'
 - BRP7:&emsp;&emsp;&emsp;&emsp;name begins with 'M'
+
+### Known Issues:
+- As of December 2024, full function of the Toolbar navigation is restricted to Matplotlib version 3.6.1 to 3.6.3. In later versions, Zoom function is intermittent. The program needs to be updated to work with the latest Matplotlib version. The problem likely is with the use of a Tk Canvas to draw plots instead of using matplotlib directly.
+- Navigation bar icons images are not showing up in MacOS. Buttons are functional, but may have reduced responsiveness. Text descriptions of button functions are below the stub icons.
 
 ### Keyboard shortcuts for navigation bar buttons and actions
 
