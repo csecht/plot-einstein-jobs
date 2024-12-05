@@ -43,11 +43,10 @@ Developed in Python 3.8-3.9.
 # Copyright (C) 2022-2024 C.S. Echt, under GNU General Public License
 
 # Standard library imports
-import sys
 import numpy as np
+import sys
 
 from signal import signal, SIGINT
-
 
 # Local application imports
 from plot_utils import (path_check, vcheck,
@@ -259,7 +258,7 @@ class PlotTasks(TaskDataFrame):
     # https://stackoverflow.com/questions/472000/usage-of-slots
     # https://towardsdatascience.com/understand-slots-in-python-e3081ef5196d
     __slots__ = (
-        'fig', 'ax1', 'ax2',
+        'fig', 'ax0', 'ax1',
         'checkbox', 'do_replot', 'legend_btn_on', 'time_stamp', 'plot_project',
         'chkbox_label_index', 'isplotted', 'text_bbox', 'hz_slider',
     )
@@ -304,7 +303,7 @@ class PlotTasks(TaskDataFrame):
         plt.style.use(('bmh', 'fast'))
 
         # Make the Figure and Axes objects; establish geometry of axes.
-        self.fig, (self.ax1, self.ax2) = plt.subplots(
+        self.fig, (self.ax0, self.ax1) = plt.subplots(
             nrows=2,
             sharex='all',
             gridspec_kw={'height_ratios': [3, 1.2],
@@ -326,14 +325,51 @@ class PlotTasks(TaskDataFrame):
         #  and hidden for all other plots.
         self.hz_slider = plt.axes()
 
+    def setup_widgets(self) -> None:
+        """
+        Set up the plot window, buttons, checkboxes, and axes.
+        Called from main() at startup.
+        Returns: None
+        """
+        self.setup_plot_manager()
         self.setup_window()
         self.setup_buttons()
         self.setup_count_axes()
+
+    def setup_plot_manager(self) -> None:
+        """
+        Set up dictionaries to use as plotting conditional variables.
+        Set up the plot selection checkbox.
+        Plot 'all' as startup default.
+        Called from setup_widgets().
+        """
+        for i, project in enumerate(grp.CHKBOX_LABELS):
+            self.chkbox_label_index[project] = i
+
+        # Need to populate the isplotted dictionary with Project label names and
+        #   their default checkbox boolean states.
+        for project in grp.CHKBOX_LABELS:
+            self.isplotted[project] = False
+
+        # Relative coordinates in Figure, 4-tuple (LEFT, BOTTOM, WIDTH, HEIGHT).
+        ax_chkbox = plt.axes((0.86, 0.54, 0.13, 0.36), facecolor=mark.LIGHT_GRAY)
+        ax_chkbox.set_xlabel('Project plots',
+                             fontsize='medium',
+                             fontweight='bold')
+        ax_chkbox.xaxis.set_label_position('top')
+
+        # Need check boxes to control which data series to plot.
+        # At startup, activate checkbox label 'all' so that all tasks
+        #  are plotted by default via manage_plots().
+        self.checkbox = CheckButtons(ax=ax_chkbox, labels=grp.CHKBOX_LABELS)
+        self.checkbox.on_clicked(self.manage_plots)
+        self.checkbox.set_active(self.chkbox_label_index['all'])
 
     def setup_window(self) -> None:
         """
         A tkinter window for the figure canvas: makes the CheckButton
         actions for drawing plots more responsive.
+        Called from setup_widgets().
         """
 
         # TEST_ARG is boolean, defined from the --test invocation argument (default: False).
@@ -388,6 +424,7 @@ class PlotTasks(TaskDataFrame):
         """
         Setup buttons to toggle legends and to display log counts.
         Buttons are aligned with the plot checkbox, ax_chkbox.
+        Called from setup_widgets().
         """
 
         # Relative coordinates in Figure are (LEFT, BOTTOM, WIDTH, HEIGHT).
@@ -422,34 +459,6 @@ class PlotTasks(TaskDataFrame):
         abtn.on_clicked(reports.about_report)
         ax_aboutbtn._button = abtn  # Prevent garbage collection.
 
-    def setup_plot_manager(self) -> None:
-        """
-        Set up dictionaries to use as plotting conditional variables.
-        Set up the plot selection checkbox.
-        Plot 'all' as startup default.
-        """
-        for i, project in enumerate(grp.CHKBOX_LABELS):
-            self.chkbox_label_index[project] = i
-
-        # Need to populate the isplotted dictionary with Project label names and
-        #   their default checkbox boolean states.
-        for project in grp.CHKBOX_LABELS:
-            self.isplotted[project] = False
-
-        # Relative coordinates in Figure, 4-tuple (LEFT, BOTTOM, WIDTH, HEIGHT).
-        ax_chkbox = plt.axes((0.86, 0.54, 0.13, 0.36), facecolor=mark.LIGHT_GRAY)
-        ax_chkbox.set_xlabel('Project plots',
-                             fontsize='medium',
-                             fontweight='bold')
-        ax_chkbox.xaxis.set_label_position('top')
-
-        # Need check boxes to control which data series to plot.
-        # At startup, activate checkbox label 'all' so that all tasks
-        #  are plotted by default via manage_plots().
-        self.checkbox = CheckButtons(ax=ax_chkbox, labels=grp.CHKBOX_LABELS)
-        self.checkbox.on_clicked(self.manage_plots)
-        self.checkbox.set_active(self.chkbox_label_index['all'])
-
     def format_legends(self):
         legend_params = dict(ncol=1,
                              fontsize='x-small',
@@ -457,8 +466,8 @@ class PlotTasks(TaskDataFrame):
                              markerscale=mark.SCALE,
                              edgecolor='black',
                              framealpha=0.4)
+        self.ax0.legend(**legend_params)
         self.ax1.legend(**legend_params)
-        self.ax2.legend(**legend_params)
 
     def toggle_legends(self, event) -> None:
         """
@@ -469,14 +478,14 @@ class PlotTasks(TaskDataFrame):
 
         Returns: None
         """
-        if self.ax1.get_legend():
+        if self.ax0.get_legend():
             if self.legend_btn_on:
+                self.ax0.get_legend().set_visible(False)
                 self.ax1.get_legend().set_visible(False)
-                self.ax2.get_legend().set_visible(False)
                 self.legend_btn_on = False
             else:
                 self.format_legends()
-                self.ax1.get_legend().set_visible(True)
+                self.ax0.get_legend().set_visible(True)
                 self.legend_btn_on = True
                 self.format_legends()
 
@@ -488,61 +497,62 @@ class PlotTasks(TaskDataFrame):
         """
         Used to set initial axes and rebuild axes components when plots
         and axes are cleared by reset_plots().
+        Called from setup_widgets() and reset_plots().
         """
 
         # Need to reset plot axes in case setup_freq_axes() was called.
         self.hz_slider.set_visible(False)
-        self.ax2.set_visible(True)
-        self.ax1.tick_params('x', labelbottom=False)
+        self.ax1.set_visible(True)
+        self.ax0.tick_params('x', labelbottom=False)
 
         # Default axis margins are 0.05 (5%) of data values.
-        self.ax1.margins(0.02, 0.02)
-        self.ax2.margins(0.02, 0.05)
+        self.ax0.margins(0.02, 0.02)
+        self.ax1.margins(0.02, 0.05)
 
         lbl_params = dict(fontsize='medium', fontweight='bold')
 
-        self.ax1.set_ylabel('Task completion time', **lbl_params)
+        self.ax0.set_ylabel('Task completion time', **lbl_params)
 
         if UTC_ARG:
-            self.ax2.set_xlabel('Task reporting datetime (UTC)', **lbl_params)
+            self.ax1.set_xlabel('Task reporting datetime (UTC)', **lbl_params)
         else:
-            self.ax2.set_xlabel('Task reporting datetime', **lbl_params)
+            self.ax1.set_xlabel('Task reporting datetime', **lbl_params)
 
-        self.ax2.set_ylabel('Tasks/day', **lbl_params)
+        self.ax1.set_ylabel('Tasks/day', **lbl_params)
 
         # Need to rotate and right-align the date labels to avoid crowding.
-        for label in self.ax1.get_yticklabels(which='major'):
+        for label in self.ax0.get_yticklabels(which='major'):
             label.set(rotation=30, fontsize='x-small')
 
-        for label in self.ax2.get_xticklabels(which='major'):
+        for label in self.ax1.get_xticklabels(which='major'):
             label.set(rotation=15, fontsize='small', horizontalalignment='right')
 
-        for label in self.ax2.get_yticklabels(which='major'):
+        for label in self.ax1.get_yticklabels(which='major'):
             label.set(fontsize='small')
 
-        self.ax1.yaxis.set(major_formatter=mdates.DateFormatter('%H:%M:%S'),
+        self.ax0.yaxis.set(major_formatter=mdates.DateFormatter('%H:%M:%S'),
                            major_locator=ticker.AutoLocator(),
                            minor_locator=ticker.AutoMinorLocator())
 
-        self.ax2.yaxis.set_major_locator(ticker.MaxNLocator(nbins=6, integer=True))
+        self.ax1.yaxis.set_major_locator(ticker.MaxNLocator(nbins=6, integer=True))
 
+        self.ax0.grid(True)
         self.ax1.grid(True)
-        self.ax2.grid(True)
 
         # Used by reports.on_pick_reports() with plot() parameter picker=True.
-        self.ax1.xaxis.set_pickradius(mark.PICK_RADIUS)
-        self.ax1.yaxis.set_pickradius(mark.PICK_RADIUS)
+        self.ax0.xaxis.set_pickradius(mark.PICK_RADIUS)
+        self.ax0.yaxis.set_pickradius(mark.PICK_RADIUS)
 
         # NOTE: autoscale methods have no visual effect when reset_plots() plots
         #  the full range datetimes from a job log, BUT enabling autoscale()
         #  allows set_pickradius() to work properly.
+        self.ax0.autoscale()
         self.ax1.autoscale()
-        self.ax2.autoscale()
 
     def setup_freq_axes(self, t_limits: tuple):
         """
         Remove bottom axis and show tick labels (b/c when sharex=True,
-        tick labels only show on bottom (self.ax2) plot).
+        tick labels only show on bottom (self.ax1) plot).
         Called from plot_fgrpHz_X_t() and plot_gwO3Hz_X_t().
 
         :param t_limits: Constrain x-axis of task times from zero to
@@ -550,14 +560,14 @@ class PlotTasks(TaskDataFrame):
         :return: None
         """
 
-        self.ax2.set_visible(False)
-        self.ax1.tick_params('x', labelbottom=True)
+        self.ax1.set_visible(False)
+        self.ax0.tick_params('x', labelbottom=True)
 
         # When data are not available for a plot, the t_limit tuple
         #  will be (0, nan) and so set_xlim() will raise
         #    ValueError: Axis limits cannot be NaN or Inf
         try:
-            self.ax1.set_xlim(t_limits)
+            self.ax0.set_xlim(t_limits)
         except ValueError:
             pass
 
@@ -566,11 +576,11 @@ class PlotTasks(TaskDataFrame):
         #  freq vs time plot, but only when the Zoom tool has been used.
         lbl_params = dict(fontsize='medium', fontweight='bold')
 
-        self.ax1.set_xlabel('Task completion time, sec', **lbl_params)
-        self.ax1.set_ylabel('Task base frequency, Hz', **lbl_params)
+        self.ax0.set_xlabel('Task completion time, sec', **lbl_params)
+        self.ax0.set_ylabel('Task base frequency, Hz', **lbl_params)
 
-        self.ax1.xaxis.set_major_formatter(ticker.FormatStrFormatter('%.0f'))
-        self.ax1.yaxis.set_major_formatter(ticker.FormatStrFormatter('%.2f'))
+        self.ax0.xaxis.set_major_formatter(ticker.FormatStrFormatter('%.0f'))
+        self.ax0.yaxis.set_major_formatter(ticker.FormatStrFormatter('%.2f'))
 
     def display_freq_plot_tip(self) -> None:
         """
@@ -582,12 +592,12 @@ class PlotTasks(TaskDataFrame):
             txt.remove()
 
         # Position text box above Navigation toolbar.
-        self.ax1.text(-0.1, -0.7,
+        self.ax0.text(-0.1, -0.7,
                       "Tip: use the Zoom and Arrow tools to adjust the Hz range.\n",
                       style='italic',
                       fontsize=6,
                       verticalalignment='top',
-                      transform=self.ax1.transAxes,
+                      transform=self.ax0.transAxes,
                       bbox=self.text_bbox,
                       )
 
@@ -604,18 +614,18 @@ class PlotTasks(TaskDataFrame):
         and ax.autoscale() have no effect on individual plots.
         Called from manage_plots().
         """
+        self.ax0.clear()
         self.ax1.clear()
-        self.ax2.clear()
 
         self.setup_count_axes()
 
         plot_params = dict(visible=False, label='_leave blank')
 
-        self.ax1.plot(self.jobs_df[self.time_stamp],
+        self.ax0.plot(self.jobs_df[self.time_stamp],
                       self.jobs_df.null_time,
                       **plot_params,
                       )
-        self.ax2.plot(self.jobs_df[self.time_stamp],
+        self.ax1.plot(self.jobs_df[self.time_stamp],
                       self.jobs_df.null_Dcnt,
                       **plot_params,
                       )
@@ -625,7 +635,7 @@ class PlotTasks(TaskDataFrame):
 
     def plot_all(self):
         p_label = 'all'
-        self.ax1.plot(self.jobs_df[self.time_stamp],
+        self.ax0.plot(self.jobs_df[self.time_stamp],
                       self.jobs_df.elapsed_t,
                       mark.STYLE['point'],
                       markersize=mark.SIZE,
@@ -634,7 +644,7 @@ class PlotTasks(TaskDataFrame):
                       alpha=0.2,
                       picker=True,
                       )
-        self.ax2.plot(self.jobs_df[self.time_stamp],
+        self.ax1.plot(self.jobs_df[self.time_stamp],
                       self.jobs_df.all_Dcnt,
                       mark.STYLE['square'],
                       markersize=mark.DCNT_SIZE,
@@ -646,7 +656,7 @@ class PlotTasks(TaskDataFrame):
 
     def plot_fgrp5(self):
         p_label = 'fgrp5'
-        self.ax1.plot(self.jobs_df[self.time_stamp],
+        self.ax0.plot(self.jobs_df[self.time_stamp],
                       self.jobs_df.elapsed_t.where(self.jobs_df[f'is_{p_label}']),
                       mark.STYLE['tri_left'],
                       markersize=mark.SIZE,
@@ -655,7 +665,7 @@ class PlotTasks(TaskDataFrame):
                       alpha=0.3,
                       picker=True,
                       )
-        self.ax2.plot(self.jobs_df[self.time_stamp],
+        self.ax1.plot(self.jobs_df[self.time_stamp],
                       self.jobs_df[f'{p_label}_Dcnt'],
                       mark.STYLE['square'],
                       markersize=mark.DCNT_SIZE,
@@ -668,7 +678,7 @@ class PlotTasks(TaskDataFrame):
 
     def plot_fgrpBG1(self):
         p_label = 'fgrpBG1'
-        self.ax1.plot(self.jobs_df[self.time_stamp],
+        self.ax0.plot(self.jobs_df[self.time_stamp],
                       self.jobs_df.elapsed_t.where(self.jobs_df[f'is_{p_label}']),
                       mark.STYLE['tri_right'],
                       markersize=mark.SIZE,
@@ -677,7 +687,7 @@ class PlotTasks(TaskDataFrame):
                       alpha=0.5,
                       picker=True,
                       )
-        self.ax2.plot(self.jobs_df[self.time_stamp],
+        self.ax1.plot(self.jobs_df[self.time_stamp],
                       self.jobs_df[f'{p_label}_Dcnt'],
                       mark.STYLE['square'],
                       markersize=mark.DCNT_SIZE,
@@ -696,7 +706,7 @@ class PlotTasks(TaskDataFrame):
         self.reset_plots()
         p_label = 'fgrp_hz'
 
-        self.ax1.plot(self.jobs_df[self.time_stamp],
+        self.ax0.plot(self.jobs_df[self.time_stamp],
                       self.jobs_df.fgrp_freq,
                       mark.STYLE['tri_right'],
                       markersize=mark.SIZE,
@@ -705,14 +715,14 @@ class PlotTasks(TaskDataFrame):
                       alpha=0.3,
                       picker=True,
                       )
-        self.ax2.plot(self.jobs_df[self.time_stamp],
+        self.ax1.plot(self.jobs_df[self.time_stamp],
                       self.jobs_df.fgrp5_Dcnt,
                       mark.STYLE['square'],
                       markersize=mark.DCNT_SIZE,
                       label='fgrp5',
                       color=mark.CBLIND_COLOR['black'],
                       )
-        self.ax2.plot(self.jobs_df[self.time_stamp],
+        self.ax1.plot(self.jobs_df[self.time_stamp],
                       self.jobs_df.fgrpBG1_Dcnt,
                       mark.STYLE['square'],
                       markersize=mark.DCNT_SIZE,
@@ -720,16 +730,16 @@ class PlotTasks(TaskDataFrame):
                       color=mark.CBLIND_COLOR['vermilion'],
                       )
 
-        self.ax1.set_ylabel('Task base frequency, Hz',
+        self.ax0.set_ylabel('Task base frequency, Hz',
                             fontsize='medium', fontweight='bold')
-        self.ax1.yaxis.set_major_formatter(ticker.FormatStrFormatter('%.2f'))
+        self.ax0.yaxis.set_major_formatter(ticker.FormatStrFormatter('%.2f'))
 
         self.format_legends()
         self.isplotted[p_label] = True
 
     def plot_gw_O2(self):
         p_label = 'gw_O2'
-        self.ax1.plot(self.jobs_df[self.time_stamp],
+        self.ax0.plot(self.jobs_df[self.time_stamp],
                       self.jobs_df.elapsed_t.where(self.jobs_df[f'is_{p_label}']),
                       mark.STYLE['triangle_down'],
                       markersize=mark.SIZE,
@@ -738,7 +748,7 @@ class PlotTasks(TaskDataFrame):
                       alpha=0.4,
                       picker=True,
                       )
-        self.ax2.plot(self.jobs_df[self.time_stamp],
+        self.ax1.plot(self.jobs_df[self.time_stamp],
                       self.jobs_df[f'{p_label}_Dcnt'],
                       mark.STYLE['square'],
                       markersize=mark.DCNT_SIZE,
@@ -750,7 +760,7 @@ class PlotTasks(TaskDataFrame):
 
     def plot_gw_O3(self):
         p_label = 'gw_O3'
-        self.ax1.plot(self.jobs_df[self.time_stamp],
+        self.ax0.plot(self.jobs_df[self.time_stamp],
                       self.jobs_df.elapsed_t.where(self.jobs_df[f'is_{p_label}']),
                       mark.STYLE['thin_diamond'],
                       markersize=mark.SIZE,
@@ -759,7 +769,7 @@ class PlotTasks(TaskDataFrame):
                       alpha=0.3,
                       picker=True,
                       )
-        self.ax2.plot(self.jobs_df[self.time_stamp],
+        self.ax1.plot(self.jobs_df[self.time_stamp],
                       self.jobs_df[f'{p_label}_Dcnt'],
                       mark.STYLE['square'],
                       markersize=mark.DCNT_SIZE,
@@ -771,7 +781,7 @@ class PlotTasks(TaskDataFrame):
 
     def plot_brp4(self):
         p_label = 'brp4'
-        self.ax1.plot(self.jobs_df[self.time_stamp],
+        self.ax0.plot(self.jobs_df[self.time_stamp],
                       self.jobs_df.elapsed_t.where(self.jobs_df[f'is_{p_label}']),
                       mark.STYLE['pentagon'],
                       markersize=mark.SIZE,
@@ -780,7 +790,7 @@ class PlotTasks(TaskDataFrame):
                       alpha=0.3,
                       picker=True,
                       )
-        self.ax2.plot(self.jobs_df[self.time_stamp],
+        self.ax1.plot(self.jobs_df[self.time_stamp],
                       self.jobs_df[f'{p_label}_Dcnt'],
                       mark.STYLE['square'],
                       markersize=mark.DCNT_SIZE,
@@ -792,7 +802,7 @@ class PlotTasks(TaskDataFrame):
 
     def plot_brp7(self):
         p_label = 'brp7'
-        self.ax1.plot(self.jobs_df[self.time_stamp],
+        self.ax0.plot(self.jobs_df[self.time_stamp],
                       self.jobs_df.elapsed_t.where(self.jobs_df[f'is_{p_label}']),
                       mark.STYLE['diamond'],
                       markersize=mark.SIZE,
@@ -801,7 +811,7 @@ class PlotTasks(TaskDataFrame):
                       alpha=0.3,
                       picker=True,
                       )
-        self.ax2.plot(self.jobs_df[self.time_stamp],
+        self.ax1.plot(self.jobs_df[self.time_stamp],
                       self.jobs_df[f'{p_label}_Dcnt'],
                       mark.STYLE['square'],
                       markersize=mark.DCNT_SIZE,
@@ -823,18 +833,18 @@ class PlotTasks(TaskDataFrame):
         self.display_freq_plot_tip()
 
         # Position text below lower left corner of plot area.
-        self.ax1.text(0.0, -0.15,
+        self.ax0.text(0.0, -0.15,
                       f'Frequencies, N: {num_f}\n'
                       f'Hz, min--max: {min_f}--{max_f}\n'
                       f'Time, min--max: {min_t}--{max_t}',
                       style='italic',
                       fontsize=6,
                       verticalalignment='top',
-                      transform=self.ax1.transAxes,
+                      transform=self.ax0.transAxes,
                       bbox=self.text_bbox,
                       )
 
-        self.ax1.plot(self.jobs_df.elapsed_sec.where(self.jobs_df.is_fgrp),
+        self.ax0.plot(self.jobs_df.elapsed_sec.where(self.jobs_df.is_fgrp),
                       self.jobs_df.fgrp_freq,
                       mark.STYLE['tri_right'],
                       markersize=mark.SIZE,
@@ -858,18 +868,18 @@ class PlotTasks(TaskDataFrame):
         self.display_freq_plot_tip()
 
         # Position text below lower left corner of axes.
-        self.ax1.text(0.0, -0.15,
+        self.ax0.text(0.0, -0.15,
                       f'Frequencies, N: {num_f}\n'
                       f'Hz, min--max: {min_f}--{max_f}\n'
                       f'Time, min--max: {min_t}--{max_t}',
                       style='italic',
                       fontsize=6,
                       verticalalignment='top',
-                      transform=self.ax1.transAxes,
+                      transform=self.ax0.transAxes,
                       bbox=self.text_bbox,
                       )
 
-        self.ax1.plot(self.jobs_df.elapsed_sec.where(self.jobs_df.is_gw_O3),
+        self.ax0.plot(self.jobs_df.elapsed_sec.where(self.jobs_df.is_gw_O3),
                       self.jobs_df.gwO3AS_freq,
                       mark.STYLE['triangle_up'],
                       markersize=mark.SIZE,
@@ -908,7 +918,7 @@ class PlotTasks(TaskDataFrame):
                           f'There are no {clicked_label} data to plot.',
                           horizontalalignment='center',
                           verticalalignment='center',
-                          transform=self.ax1.transAxes,
+                          transform=self.ax0.transAxes,
                           visible=True,
                           zorder=1)
             self.checkbox.set_active(self.chkbox_label_index[clicked_label])
@@ -1023,7 +1033,8 @@ def main():
     # This call will set up an inherited pd dataframe in TaskDataFrame,
     #  then plot 'all' tasks as specified in setup_plot_manager().
     #  After that, plots are managed by CheckButton states in manage_plots().
-    PlotTasks().setup_plot_manager()
+    PlotTasks().setup_widgets()
+
     print('The plot window is ready.')
 
     # Allow user to quit from the Terminal command line using Ctrl-C
