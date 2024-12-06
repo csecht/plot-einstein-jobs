@@ -7,12 +7,13 @@ number_since - Number of tasks for a Project since a given date.
 on_pick_report -  Display task details for tasks near clicked coordinates.
 view_report - Create the toplevel window to display report text.
 """
-# Copyright (C) 2022 C.S. Echt under GNU General Public License'
+# Copyright (C) 2022-2024 C.S. Echt under GNU General Public License'
 
 # Standard library imports
-import re
 import sys
+
 from pathlib import Path
+from re import search
 
 # Third party imports.
 #   tkinter may not be installed in all Python distributions,
@@ -22,33 +23,27 @@ try:
     from tkinter.scrolledtext import ScrolledText
 
 except (ImportError, ModuleNotFoundError) as import_err:
-    print('*** One or more required Python packages were not found'
-          ' or need an update:\n'
-          'Pandas, tkinter (tk/tcl).\n\n'
-          'To install: from the current folder, run this command'
-          ' for the Python package installer (PIP):\n'
-          '   python3 -m pip install -r requirements.txt\n\n'
-          'Alternative command formats (system dependent):\n'
-          '   py -m pip install -r requirements.txt (Windows)\n'
-          '   pip install -r requirements.txt\n\n'
-          'A package may already be installed, but needs an update;\n'
-          '   this may be the case when the error message (below) is a bit cryptic\n'
-          '   Example update command:\n'
-          '   python3 -m pip install -U pandas\n\n'
-          'On Linux, if tkinter is the problem, then try:\n'
-          '   sudo apt-get install python3-tk\n'
-          '   See also: https://tkdocs.com/tutorial/install.html \n\n'
-          f'Error message:\n{import_err}')
-    sys.exit(1)
+    sys.exit('*** One or more required Python packages were not found'
+             ' or need an update:\n'
+             'Pandas, tkinter (tk/tcl).\n\n'
+             'To install: from the current folder, run this command'
+             ' for the Python package installer (PIP):\n'
+             '   python3 -m pip install -r requirements.txt\n\n'
+             'Alternative command formats (system dependent):\n'
+             '   py -m pip install -r requirements.txt (Windows)\n'
+             '   pip install -r requirements.txt\n\n'
+             'A package may already be installed, but needs an update;\n'
+             '   this may be the case when the error message (below) is a bit cryptic\n'
+             '   Example update command:\n'
+             '   python3 -m pip install -U pandas\n\n'
+             'On Linux, if tkinter is the problem, then try:\n'
+             '   sudo apt-get install python3-tk\n'
+             '   See also: https://tkdocs.com/tutorial/install.html \n\n'
+             f'Error message:\n{import_err}'
+             )
 
 # Local application imports
-from __main__ import __doc__
-from plot_utils import (__author__,
-                        __copyright__,
-                        __license__,
-                        __status__,
-                        __version__,
-                        URL)
+import plot_utils
 from plot_utils import (path_check,
                         utils,
                         markers as mark,
@@ -75,13 +70,14 @@ def about_report(event) -> None:
     :return: None
     """
 
-    about_text = (f'{__doc__}\n'
-                  f'{"Author:".ljust(13)}{__author__}\n'
-                  f'{"Version:".ljust(13)}{__version__}\n'
-                  f'{"Status:".ljust(13)}{__status__}\n'
-                  f'{"URL:".ljust(13)}{URL}\n'
-                  f'{__copyright__}'
-                  f'{__license__}\n')
+    about_text = (f'{sys.modules["__main__"].__doc__}\n'
+                  f'{"Author:".ljust(13)}{plot_utils.__author__}\n'
+                  f'{"Version:".ljust(13)}{plot_utils.__version__}\n'
+                  f'{"Status:".ljust(13)}{plot_utils.__status__}\n'
+                  f'{"URL:".ljust(13)}{plot_utils.URL}\n'
+                  f'{plot_utils.__copyright__}'
+                  f'{plot_utils.__license__}\n'
+                  )
 
     view_report(title=f'About {Path(__file__).name}',
                 text=about_text,
@@ -111,11 +107,13 @@ def joblog_report(dataframe: pd) -> None:
 
         proj_dcnt = f'{_p}_Dcnt'
 
-        proj_days.append(len((dataframe[proj_dcnt]
-                              .groupby(dataframe[TIME_STAMP]
-                                       .dt.date
-                                       .where(dataframe[proj_dcnt].notnull()))
-                              .unique())))
+        proj_days.append(
+            len(dataframe[proj_dcnt]
+                .groupby(dataframe[TIME_STAMP].dt.date.where(dataframe[proj_dcnt].notnull())
+                        )
+                .unique()
+               )
+        )
 
         if proj_totals[-1] != 0:
             proj_daily_means.append(
@@ -126,12 +124,9 @@ def joblog_report(dataframe: pd) -> None:
     # Note: utils.manage_args()[0] returns the --test command line option as boolean.
     data_file = path_check.set_datapath(use_test_file=utils.manage_args()[0])
 
-    _results = tuple(zip(
-        grp.PROJECTS, proj_totals, proj_daily_means, proj_days))
+    _results = tuple(zip(grp.PROJECTS, proj_totals, proj_daily_means, proj_days))
 
-    num_days = (len(pd.to_datetime(dataframe[TIME_STAMP])
-                    .dt.date
-                    .unique()))
+    num_days = len(pd.to_datetime(dataframe[TIME_STAMP]).dt.date.unique())
 
     # Example report layout: note that 'all' and Projects total may differ.
     # /var/lib/boinc/job_log_einstein.phys.uwm.edu.txt
@@ -156,8 +151,7 @@ def joblog_report(dataframe: pd) -> None:
     for proj_tup in _results:
         proj, p_total, p_dmean, p_days = proj_tup
         _report = _report + (f'{proj.ljust(7)} {str(p_total).rjust(11)}'
-                             f' {str(p_dmean).rjust(10)} {str(p_days).rjust(9)}\n'
-                             )
+                             f' {str(p_dmean).rjust(10)} {str(p_days).rjust(9)}\n')
         p_tally.append(p_total)
 
     # Report sum of known Projects; comparison to 'all' total tasks will show
@@ -217,7 +211,7 @@ def on_pick_report(event, dataframe: pd) -> None:
     _name = dataframe.loc[event.ind[0]].task_name
     project = ''
     for proj, regex in grp.PROJECT_NAME_REGEX.items():
-        if re.search(regex, _name):
+        if search(regex, _name):
             project = proj
 
     num_since = number_since(dataframe, project, dt_since)
