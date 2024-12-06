@@ -260,7 +260,7 @@ class PlotTasks(TaskDataFrame):
     __slots__ = (
         'fig', 'ax0', 'ax1',
         'checkbox', 'do_replot', 'legend_btn_on', 'time_stamp', 'plot_project',
-        'chkbox_label_index', 'isplotted', 'text_bbox', 'hz_slider',
+        'chkbox_label_index', 'isplotted', 'text_bbox',
     )
 
     def __init__(self):
@@ -315,16 +315,6 @@ class PlotTasks(TaskDataFrame):
                          },
         )
 
-        # Need to have mpl_connect statement before any autoscale statements AND
-        #  need to have ax.autoscale() set for set_pickradius() to work.
-        self.fig.canvas.mpl_connect(
-            'pick_event', lambda _: reports.on_pick_report(_, self.jobs_df))
-
-        # Slider used in *_Hz plots to set Hz ranges; attribute here
-        #  so that it can be removed/redrawn with each *_Hz plot call
-        #  and hidden for all other plots.
-        self.hz_slider = plt.axes()
-
     def setup_widgets(self) -> None:
         """
         Set up the plot window, buttons, checkboxes, and axes.
@@ -375,10 +365,9 @@ class PlotTasks(TaskDataFrame):
         # TEST_ARG is boolean, defined from the --test invocation argument (default: False).
         _title = 'Sample data' if TEST_ARG else 'E@H job_log data'
 
-        # canvas_window is the Tk mainloop defined in if __name__ == "__main__".
+        # canvas_window is the Tk mainloop defined in main().
         canvas_window.title(_title)
         canvas_window.minsize(1000, 550)
-
 
         # Allow full resizing of plot, but only horizontally for toolbar.
         canvas_window.rowconfigure(0, weight=1)
@@ -390,6 +379,8 @@ class PlotTasks(TaskDataFrame):
 
         canvas = backend.FigureCanvasTkAgg(self.fig, master=canvas_window)
 
+        # Now display all widgets. Use pack(), not grid(), for consistent Toolbar behavior.
+        canvas.get_tk_widget().pack(side='top', fill='both', expand=1)
         toolbar = backend.NavigationToolbar2Tk(canvas, canvas_window)
 
         # Need to remove the useless subplots navigation button.
@@ -397,19 +388,8 @@ class PlotTasks(TaskDataFrame):
         #   how-to-remove-toolbar-button-from-navigationtoolbar2tk-figurecanvastkagg
         # The button id '4' happens to work for all OS platforms. May change in future!
         toolbar.children['!button4'].pack_forget()
+        toolbar.update()
 
-        # Now display all widgets.
-        # NOTE: toolbar must be gridded BEFORE canvas to prevent
-        #   FigureCanvasTkAgg from preempting window geometry with its pack().
-        toolbar.grid(row=1, column=0,
-                     padx=5, pady=(0, 5),  # Put a border around toolbar.
-                     sticky=tk.NSEW,
-                     )
-        canvas.get_tk_widget().grid(row=0, column=0,
-                                    ipady=10, ipadx=10,
-                                    padx=5, pady=5,  # Put a border around plot.
-                                    sticky=tk.NSEW,
-                                    )
         # Because macOS tool icon images won't/don't render properly,
         #   need to provide text descriptions of toolbar button functions.
         if sys.platform == 'darwin':
@@ -419,6 +399,13 @@ class PlotTasks(TaskDataFrame):
             tool_lbl.grid(row=2, column=0,
                           padx=5, pady=(0, 5),
                           sticky=tk.W)
+
+        # Need to have mpl_connect statement before any autoscale statements
+        #  (in setup_count_axes).
+        self.fig.canvas.mpl_connect(
+            'pick_event',
+            lambda _: reports.on_pick_report(event=_, dataframe=self.jobs_df))
+
 
     def setup_buttons(self) -> None:
         """
@@ -501,7 +488,6 @@ class PlotTasks(TaskDataFrame):
         """
 
         # Need to reset plot axes in case setup_freq_axes() was called.
-        self.hz_slider.set_visible(False)
         self.ax1.set_visible(True)
         self.ax0.tick_params('x', labelbottom=False)
 
