@@ -1,5 +1,5 @@
-matplotlib==3.6.1
-pandas==2.2.3
+matplotlib
+pandas
 
 # In python 3.12 with pip 24.3.1, you should use the following to install all dependencies
 #  that are required for the plot toolbar to work properly:

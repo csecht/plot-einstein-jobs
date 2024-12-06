@@ -50,7 +50,7 @@ The "Log counts" button shows, in a pop-up window and in the Terminal, summary c
 The "About" button prints to Terminal a description of the program, version number, repository URL, and copyright and license information.
 
 ### Requirements:
-Python 3.7 or later, plus Matplotlib v3.6.1, Pandas. All other dependencies are included with the Matplotlib installation. See the requirements.txt file for details
+Python 3.7 or later, plus Matplotlib and Pandas. All other dependencies are included with the Matplotlib installation. See the requirements.txt file for details
 This program was developed in Python 3.8-3.12.
 
 For quick installation of the required Python PIP packages:
@@ -61,9 +61,6 @@ Alternative commands (system dependent):
 
     python3 -m pip install -r requirements.txt (recommended for all systems)
     py -m pip install -r requirements.txt (Windows)
-
-### Known Issues:
-Navigation bar icons images are not showing up in MacOS. They are functional, but may have reduced responsiveness' text descriptions of button functions are below the stub icons.
 
 ### Screenshots:
 ![plot all sample data](images/test_start.png)
