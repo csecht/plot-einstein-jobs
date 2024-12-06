@@ -45,10 +45,9 @@ def set_datapath(use_test_file=False) -> Path:
             validate_datafile(TESTFILE)
             return TESTFILE
 
-        notest = (f'The sample data file, {TESTFILE} was not found.'
+        sys.exit(f'The test data file, {TESTFILE} was not found.'
                   ' Was it moved or renamed?\n'
                   f'It can be downloaded from {URL}')
-        sys.exit(notest)
 
     elif Path.is_file(CFGFILE):
         cfg_text = Path(CFGFILE).read_text()
@@ -61,8 +60,7 @@ def set_datapath(use_test_file=False) -> Path:
                 if Path.is_file(Path(custom_path)):
                     return Path(custom_path)
 
-                errmsg = f"The custom path, {custom_path}, is not working.\n"
-                sys.exit(errmsg)
+                sys.exit(f"The custom path, {custom_path}, is not working.\n")
 
     # Supported system platforms have already been verified in plot_utils __init__.py.
     elif not Path.is_file(default_datapath[MY_OS]):
