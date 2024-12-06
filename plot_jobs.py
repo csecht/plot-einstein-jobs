@@ -43,10 +43,8 @@ Developed in Python 3.8-3.9.
 # Copyright (C) 2022-2024 C.S. Echt, under GNU General Public License
 
 # Standard library imports
-import numpy as np
-import sys
-
 from signal import signal, SIGINT
+from sys import platform, exit as sys_exit
 
 # Local application imports
 from plot_utils import (path_check, vcheck,
@@ -63,34 +61,31 @@ try:
     import tkinter as tk
 
     from matplotlib import ticker
-    from matplotlib.widgets import CheckButtons, Button, RangeSlider
-    from numpy import where
+    from matplotlib.widgets import CheckButtons, Button
+    from numpy import where, int64, float64, zeros
 
 except (ImportError, ModuleNotFoundError) as import_err:
-    print('*** One or more required Python packages were not found'
-          ' or need an update:\n'
-          'Matplotlib, Numpy, Pandas, Pillow, tkinter (tk/tcl).\n\n'
-          'To install: from the current folder, run this command'
-          ' for the Python package installer (PIP):\n'
-          '   python3 -m pip install -r requirements.txt\n\n'
-          'Alternative command formats (system dependent):\n'
-          '   py -m pip install -r requirements.txt (Windows)\n'
-          '   pip install -r requirements.txt\n\n'
-          'A package may already be installed, but needs an update;\n'
-          '   this may be the case when the error message (below) is a bit cryptic\n'
-          '   Example update command:\n'
-          '   python3 -m pip install -U matplotlib\n\n'
-          'On Linux, if tkinter is the problem, then you may need:\n'
-          '   sudo apt-get install python3-tk\n'
-          '   See also: https://tkdocs.com/tutorial/install.html \n\n'
-          f'Error message:\n{import_err}')
-    sys.exit(1)
+    sys_exit('*** One or more required Python packages were not found'
+             ' or need an update:\n'
+             'Matplotlib, Numpy, Pandas, Pillow, tkinter (tk/tcl).\n\n'
+             'To install: from the current folder, run this command'
+             ' for the Python package installer (PIP):\n'
+             '   python3 -m pip install -r requirements.txt\n\n'
+             'Alternative command formats (system dependent):\n'
+             '   py -m pip install -r requirements.txt (Windows)\n'
+             '   pip install -r requirements.txt\n\n'
+             'A package may already be installed, but needs an update;\n'
+             '   this may be the case when the error message (below) is a bit cryptic\n'
+             '   Example update command:\n'
+             '   python3 -m pip install -U matplotlib\n\n'
+             'On Linux, if tkinter is the problem, then you may need:\n'
+             '   sudo apt-get install python3-tk\n'
+             '   See also: https://tkdocs.com/tutorial/install.html \n\n'
+             f'Error message:\n{import_err}')
 
-# manage_args() returns a 3-tuple (bool, bool, path), as set on command line.
+# manage_args() returns a 3-tuple (bool, bool, path), as set by command line or by default.
 TEST_ARG, UTC_ARG, DATA_PATH = utils.manage_args()
 
-# Suppress pylint warning where df columns are referenced by dot notation.
-# pylint: disable=no-member
 
 class TaskDataFrame:
     """
@@ -162,8 +157,8 @@ class TaskDataFrame:
 
         # Use zero-value data columns to visually clear plots in
         #   reset_plots(). Needed when use mpl_connect event picker.
-        self.jobs_df['null_time'] = np.zeros(self.jobs_df.shape[0])
-        self.jobs_df['null_Dcnt'] = np.zeros(self.jobs_df.shape[0])
+        self.jobs_df['null_time'] = zeros(self.jobs_df.shape[0])
+        self.jobs_df['null_Dcnt'] = zeros(self.jobs_df.shape[0])
 
     def manage_bad_times(self) -> None:
         """
@@ -211,10 +206,10 @@ class TaskDataFrame:
         regex_gwo3_freq = r'h1_(\d+\.\d+)_.+__O3'  # Capture the base/parent freq.
         self.jobs_df['fgrp_freq'] = (self.jobs_df.task_name
                                      .str.extract(regex_fgrp_freq)
-                                     .astype(np.float64))
+                                     .astype(float64))
         self.jobs_df['gwO3AS_freq'] = (self.jobs_df.task_name
                                        .str.extract(regex_gwo3_freq)
-                                       .astype(np.float64))
+                                       .astype(float64))
 
     def add_daily_counts(self):
         """
@@ -392,7 +387,7 @@ class PlotTasks(TaskDataFrame):
 
         # Because macOS tool icon images won't/don't render properly,
         #   need to provide text descriptions of toolbar button functions.
-        if sys.platform == 'darwin':
+        if platform == 'darwin':
             tool_lbl = tk.Label(canvas_window,
                                 text='Home Fwd Back | Pan  Zoom | Save',
                                 font=('TkTooltipFont', 8))
@@ -405,7 +400,6 @@ class PlotTasks(TaskDataFrame):
         self.fig.canvas.mpl_connect(
             'pick_event',
             lambda _: reports.on_pick_report(event=_, dataframe=self.jobs_df))
-
 
     def setup_buttons(self) -> None:
         """
@@ -811,8 +805,8 @@ class PlotTasks(TaskDataFrame):
         num_f = self.jobs_df.fgrp_freq.nunique()
         min_f = self.jobs_df.fgrp_freq.min()
         max_f = self.jobs_df.fgrp_freq.max()
-        min_t = self.jobs_df.elapsed_sec[self.jobs_df.is_fgrp].min().astype(np.int64)
-        max_t = self.jobs_df.elapsed_sec[self.jobs_df.is_fgrp].max().astype(np.int64)
+        min_t = self.jobs_df.elapsed_sec[self.jobs_df.is_fgrp].min().astype(int64)
+        max_t = self.jobs_df.elapsed_sec[self.jobs_df.is_fgrp].max().astype(int64)
         # Add a 2% margin to time axis upper limit.
         self.setup_freq_axes((0, max_t * 1.02))
 
@@ -845,8 +839,8 @@ class PlotTasks(TaskDataFrame):
         num_f = self.jobs_df.gwO3AS_freq.nunique()
         min_f = self.jobs_df.gwO3AS_freq.min()
         max_f = self.jobs_df.gwO3AS_freq.max()
-        min_t = self.jobs_df.elapsed_sec[self.jobs_df.is_gw_O3].min().astype(np.int64)
-        max_t = self.jobs_df.elapsed_sec[self.jobs_df.is_gw_O3].max().astype(np.int64)
+        min_t = self.jobs_df.elapsed_sec[self.jobs_df.is_gw_O3].min().astype(int64)
+        max_t = self.jobs_df.elapsed_sec[self.jobs_df.is_gw_O3].max().astype(int64)
 
         # Add a 2% margin to time axis upper limit.
         self.setup_freq_axes((0, max_t * 1.02))
@@ -1039,7 +1033,6 @@ def main():
 
 
 if __name__ == '__main__':
-
     # Need to use a tkinter window for the plot canvas so that CheckButton
     #  actions for plot filtering are more responsive.
     canvas_window = tk.Tk()
