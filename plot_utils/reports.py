@@ -47,7 +47,7 @@ import plot_utils
 from plot_utils import (path_check,
                         utils,
                         markers as mark,
-                        project_groups as grp)
+                        project_groups)
 
 # This exception handler is to avoid an AttributeError when reports.py
 #   is, on an off-chance, run as "__main__", and ensures that Python
@@ -101,7 +101,7 @@ def joblog_report(dataframe: pd) -> None:
     proj_days = []
     p_tally = []
 
-    for _p in grp.PROJECTS:
+    for _p in project_groups.PROJECTS:
         is_proj = f'is_{_p}'
         proj_totals.append(dataframe[is_proj].sum())
 
@@ -124,7 +124,7 @@ def joblog_report(dataframe: pd) -> None:
     # Note: utils.manage_args()[0] returns the --test command line option as boolean.
     data_file = path_check.set_datapath(use_test_file=utils.manage_args()[0])
 
-    _results = tuple(zip(grp.PROJECTS, proj_totals, proj_daily_means, proj_days))
+    _results = tuple(zip(project_groups.PROJECTS, proj_totals, proj_daily_means, proj_days))
 
     num_days = len(pd.to_datetime(dataframe[TIME_STAMP]).dt.date.unique())
 
@@ -155,7 +155,7 @@ def joblog_report(dataframe: pd) -> None:
         p_tally.append(p_total)
 
     # Report sum of known Projects; comparison to 'all' total tasks will show
-    #   whether any Projects are missing from grp.PROJ_TO_REPORT.
+    #   whether any Projects are missing from project_groups.PROJ_TO_REPORT.
     _report = _report + f'\nListed Projects total: {sum(p_tally) - p_tally[0]}\n'
     _report = _report + ('    If less than "all", then have\n'
                          '    some unrecognized task names.\n')
@@ -210,7 +210,7 @@ def on_pick_report(event, dataframe: pd) -> None:
     dt_since = dataframe.loc[event.ind[0]][TIME_STAMP]
     _name = dataframe.loc[event.ind[0]].task_name
     project = ''
-    for proj, regex in grp.PROJECT_NAME_REGEX.items():
+    for proj, regex in project_groups.PROJECT_NAME_REGEX.items():
         if search(regex, _name):
             project = proj
 
