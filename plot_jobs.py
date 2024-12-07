@@ -240,9 +240,11 @@ class TaskDataFrame:
 class PlotTasks(TaskDataFrame):
     """
     Set up and display Matplotlib Figure and pyplot Plots of task (job)
-    data.
-    The plotted Pandas dataframe is inherited from TaskDataFrame.
-    Called only from if __name__ == "__main__".
+    data. The plotted Pandas dataframe is inherited from TaskDataFrame.
+    Note that the only use of inheritance is to simply set up the
+    dataframe and pass self.jobs_df to this PlotTasks class. This is
+    done to avoid the need for global variables.
+    Called from main().
     Methods: setup_window, setup_buttons, setup_plot_manager,
     format_legends, toggle_legends, setup_count_axes, setup_freq_axes,
     display_freq_plot_tip, reset_plots, plot_all, plot_fgrp5,
