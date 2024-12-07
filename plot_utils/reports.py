@@ -46,8 +46,7 @@ except (ImportError, ModuleNotFoundError) as import_err:
 import plot_utils
 from plot_utils import (path_check,
                         utils,
-                        markers as mark,
-                        project_groups)
+                        constants as const,)
 
 # This exception handler is to avoid an AttributeError when reports.py
 #   is, on an off-chance, run as "__main__", and ensures that Python
@@ -101,7 +100,7 @@ def joblog_report(dataframe: pd) -> None:
     proj_days = []
     p_tally = []
 
-    for _p in project_groups.PROJECTS:
+    for _p in const.PROJECTS:
         is_proj = f'is_{_p}'
         proj_totals.append(dataframe[is_proj].sum())
 
@@ -124,7 +123,7 @@ def joblog_report(dataframe: pd) -> None:
     # Note: utils.manage_args()[0] returns the --test command line option as boolean.
     data_file = path_check.set_datapath(use_test_file=utils.manage_args()[0])
 
-    _results = tuple(zip(project_groups.PROJECTS, proj_totals, proj_daily_means, proj_days))
+    _results = tuple(zip(const.PROJECTS, proj_totals, proj_daily_means, proj_days))
 
     num_days = len(pd.to_datetime(dataframe[TIME_STAMP]).dt.date.unique())
 
@@ -194,7 +193,7 @@ def on_pick_report(event, dataframe: pd) -> None:
         print('event.ind is undefined')
         return event
 
-    # Need to limit tasks from total included in set_pickradius(mark.PICK_RADIUS)
+    # Need to limit tasks from total included in set_pickradius(const.PICK_RADIUS)
     #   from PlotTasks.setup_count_axes().
     report_limit = 6
     for dataidx in event.ind:
@@ -279,9 +278,9 @@ def view_report(title: str, text: str, minsize: tuple, scroll=False) -> None:
 
     report_txt.config(width=max_line,
                       font='TkFixedFont',
-                      bg=mark.DARK_GRAY,
-                      fg=mark.LIGHT_GRAY,
-                      insertbackground=mark.LIGHT_GRAY,
+                      bg=const.DARK_GRAY,
+                      fg=const.LIGHT_GRAY,
+                      insertbackground=const.LIGHT_GRAY,
                       relief='groove', bd=4,
                       padx=15, pady=10, )
 

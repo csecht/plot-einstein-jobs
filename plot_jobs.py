@@ -47,10 +47,11 @@ from signal import signal, SIGINT
 from sys import platform, exit as sys_exit
 
 # Local application imports
-from plot_utils import (path_check, vcheck,
-                        reports, utils,
-                        markers as mark,
-                        project_groups as grp)
+from plot_utils import (path_check,
+                        vcheck,
+                        reports,
+                        utils,
+                        constants as const)
 
 # Third party imports (tk may not be included with some Python installations).
 try:
@@ -190,7 +191,7 @@ class TaskDataFrame:
         """
 
         self.jobs_df['is_all'] = True
-        for project, regex in grp.PROJECT_NAME_REGEX.items():
+        for project, regex in const.PROJECT_NAME_REGEX.items():
             self.jobs_df[f'is_{project}'] = where(
                 self.jobs_df.task_name.str.contains(regex), True, False)
 
@@ -220,12 +221,12 @@ class TaskDataFrame:
         # UTC_ARG is boolean, defined from the --utc invocation argument (default: False).
         ts2use = 'utc_tstamp' if UTC_ARG else 'local_tstamp'
 
-        # For clarity, grp.PROJECTS names used here need to match those used in
-        #   isplotted (dict), ischecked (dict), and grp.CHKBOX_LABELS (tuple).
+        # For clarity, const.PROJECTS names used here need to match those used in
+        #   isplotted (dict), ischecked (dict), and const.CHKBOX_LABELS (tuple).
         # Idea to tally using groupby and transform, source:
         #   https://stackoverflow.com/questions/17709270/
         #      create-column-of-value-counts-in-pandas-dataframe
-        for project in grp.PROJECTS:
+        for project in const.PROJECTS:
             try:
                 self.jobs_df[f'{project}_Dcnt'] = (
                     self.jobs_df[ts2use].groupby(
@@ -330,16 +331,16 @@ class PlotTasks(TaskDataFrame):
         Plot 'all' as startup default.
         Called from setup_widgets().
         """
-        for i, project in enumerate(grp.CHKBOX_LABELS):
+        for i, project in enumerate(const.CHKBOX_LABELS):
             self.chkbox_label_index[project] = i
 
         # Need to populate the isplotted dictionary with Project label names and
         #   their default checkbox boolean states.
-        for project in grp.CHKBOX_LABELS:
+        for project in const.CHKBOX_LABELS:
             self.isplotted[project] = False
 
         # Relative coordinates in Figure, 4-tuple (LEFT, BOTTOM, WIDTH, HEIGHT).
-        ax_chkbox = plt.axes((0.86, 0.54, 0.13, 0.36), facecolor=mark.LIGHT_GRAY)
+        ax_chkbox = plt.axes((0.86, 0.54, 0.13, 0.36), facecolor=const.LIGHT_GRAY)
         ax_chkbox.set_xlabel('Project plots',
                              fontsize='medium',
                              fontweight='bold')
@@ -348,7 +349,7 @@ class PlotTasks(TaskDataFrame):
         # Need check boxes to control which data series to plot.
         # At startup, activate checkbox label 'all' so that all tasks
         #  are plotted by default via manage_plots().
-        self.checkbox = CheckButtons(ax=ax_chkbox, labels=grp.CHKBOX_LABELS)
+        self.checkbox = CheckButtons(ax=ax_chkbox, labels=const.CHKBOX_LABELS)
         self.checkbox.on_clicked(self.manage_plots)
         self.checkbox.set_active(self.chkbox_label_index['all'])
 
@@ -369,7 +370,7 @@ class PlotTasks(TaskDataFrame):
         # Allow full resizing of plot, but only horizontally for toolbar.
         canvas_window.rowconfigure(0, weight=1)
         canvas_window.columnconfigure(0, weight=1)
-        canvas_window.configure(bg=mark.CBLIND_COLOR['blue'])
+        canvas_window.configure(bg=const.CBLIND_COLOR['blue'])
         canvas_window.protocol('WM_DELETE_WINDOW', lambda: utils.quit_gui(canvas_window))
         canvas_window.bind_all('<Escape>', lambda _: utils.quit_gui(canvas_window))
         canvas_window.bind('<Control-q>', lambda _: utils.quit_gui(canvas_window))
@@ -419,7 +420,7 @@ class PlotTasks(TaskDataFrame):
         ax_legendbtn = plt.axes((0.885, 0.44, 0.09, 0.06))
         lbtn = Button(ax_legendbtn,
                       'Legends',
-                      hovercolor=mark.CBLIND_COLOR['sky blue'],
+                      hovercolor=const.CBLIND_COLOR['sky blue'],
                       )
         lbtn.on_clicked(self.toggle_legends)
         ax_legendbtn._button = lbtn  # Prevent garbage collection.
@@ -428,7 +429,7 @@ class PlotTasks(TaskDataFrame):
         ax_statsbtn = plt.axes((0.9, 0.09, 0.07, 0.08))
         sbtn = Button(ax_statsbtn,
                       'Job log\ncounts',
-                      hovercolor=mark.CBLIND_COLOR['orange'],
+                      hovercolor=const.CBLIND_COLOR['orange'],
                       )
         sbtn.on_clicked(lambda _: reports.joblog_report(self.jobs_df))
         ax_statsbtn._button = sbtn  # Prevent garbage collection.
@@ -437,7 +438,7 @@ class PlotTasks(TaskDataFrame):
         ax_aboutbtn = plt.axes((0.9, 0.01, 0.07, 0.06))
         abtn = Button(ax_aboutbtn,
                       'About',
-                      hovercolor=mark.CBLIND_COLOR['orange'],
+                      hovercolor=const.CBLIND_COLOR['orange'],
                       )
         abtn.on_clicked(reports.about_report)
         ax_aboutbtn._button = abtn  # Prevent garbage collection.
@@ -446,7 +447,7 @@ class PlotTasks(TaskDataFrame):
         legend_params = dict(ncol=1,
                              fontsize='x-small',
                              loc='upper right',
-                             markerscale=mark.SCALE,
+                             markerscale=const.SCALE,
                              edgecolor='black',
                              framealpha=0.4)
         self.ax0.legend(**legend_params)
@@ -522,8 +523,8 @@ class PlotTasks(TaskDataFrame):
         self.ax1.grid(True)
 
         # Used by reports.on_pick_reports() with plot() parameter picker=True.
-        self.ax0.xaxis.set_pickradius(mark.PICK_RADIUS)
-        self.ax0.yaxis.set_pickradius(mark.PICK_RADIUS)
+        self.ax0.xaxis.set_pickradius(const.PICK_RADIUS)
+        self.ax0.yaxis.set_pickradius(const.PICK_RADIUS)
 
         # NOTE: autoscale methods have no visual effect when reset_plots() plots
         #  the full range datetimes from a job log, BUT enabling autoscale()
@@ -619,19 +620,19 @@ class PlotTasks(TaskDataFrame):
         p_label = 'all'
         self.ax0.plot(self.jobs_df[self.time_stamp],
                       self.jobs_df.elapsed_t,
-                      mark.STYLE['point'],
-                      markersize=mark.SIZE,
+                      const.STYLE['point'],
+                      markersize=const.SIZE,
                       label=p_label,
-                      color=mark.CBLIND_COLOR['blue'],
+                      color=const.CBLIND_COLOR['blue'],
                       alpha=0.2,
                       picker=True,
                       )
         self.ax1.plot(self.jobs_df[self.time_stamp],
                       self.jobs_df.all_Dcnt,
-                      mark.STYLE['square'],
-                      markersize=mark.DCNT_SIZE,
+                      const.STYLE['square'],
+                      markersize=const.DCNT_SIZE,
                       label=p_label,
-                      color=mark.CBLIND_COLOR['blue'],
+                      color=const.CBLIND_COLOR['blue'],
                       )
         self.format_legends()
         self.isplotted[p_label] = True
@@ -640,19 +641,19 @@ class PlotTasks(TaskDataFrame):
         p_label = 'fgrp5'
         self.ax0.plot(self.jobs_df[self.time_stamp],
                       self.jobs_df.elapsed_t.where(self.jobs_df[f'is_{p_label}']),
-                      mark.STYLE['tri_left'],
-                      markersize=mark.SIZE,
+                      const.STYLE['tri_left'],
+                      markersize=const.SIZE,
                       label=p_label,
-                      color=mark.CBLIND_COLOR['bluish green'],
+                      color=const.CBLIND_COLOR['bluish green'],
                       alpha=0.3,
                       picker=True,
                       )
         self.ax1.plot(self.jobs_df[self.time_stamp],
                       self.jobs_df[f'{p_label}_Dcnt'],
-                      mark.STYLE['square'],
-                      markersize=mark.DCNT_SIZE,
+                      const.STYLE['square'],
+                      markersize=const.DCNT_SIZE,
                       label=p_label,
-                      color=mark.CBLIND_COLOR['bluish green'],
+                      color=const.CBLIND_COLOR['bluish green'],
                       alpha=0.4,
                       )
         self.format_legends()
@@ -662,19 +663,19 @@ class PlotTasks(TaskDataFrame):
         p_label = 'fgrpBG1'
         self.ax0.plot(self.jobs_df[self.time_stamp],
                       self.jobs_df.elapsed_t.where(self.jobs_df[f'is_{p_label}']),
-                      mark.STYLE['tri_right'],
-                      markersize=mark.SIZE,
+                      const.STYLE['tri_right'],
+                      markersize=const.SIZE,
                       label=p_label,
-                      color=mark.CBLIND_COLOR['vermilion'],
+                      color=const.CBLIND_COLOR['vermilion'],
                       alpha=0.5,
                       picker=True,
                       )
         self.ax1.plot(self.jobs_df[self.time_stamp],
                       self.jobs_df[f'{p_label}_Dcnt'],
-                      mark.STYLE['square'],
-                      markersize=mark.DCNT_SIZE,
+                      const.STYLE['square'],
+                      markersize=const.DCNT_SIZE,
                       label=p_label,
-                      color=mark.CBLIND_COLOR['vermilion'],
+                      color=const.CBLIND_COLOR['vermilion'],
                       )
 
         self.format_legends()
@@ -690,26 +691,26 @@ class PlotTasks(TaskDataFrame):
 
         self.ax0.plot(self.jobs_df[self.time_stamp],
                       self.jobs_df.fgrp_freq,
-                      mark.STYLE['tri_right'],
-                      markersize=mark.SIZE,
+                      const.STYLE['tri_right'],
+                      markersize=const.SIZE,
                       label=p_label,
-                      color=mark.CBLIND_COLOR['vermilion'],
+                      color=const.CBLIND_COLOR['vermilion'],
                       alpha=0.3,
                       picker=True,
                       )
         self.ax1.plot(self.jobs_df[self.time_stamp],
                       self.jobs_df.fgrp5_Dcnt,
-                      mark.STYLE['square'],
-                      markersize=mark.DCNT_SIZE,
+                      const.STYLE['square'],
+                      markersize=const.DCNT_SIZE,
                       label='fgrp5',
-                      color=mark.CBLIND_COLOR['black'],
+                      color=const.CBLIND_COLOR['black'],
                       )
         self.ax1.plot(self.jobs_df[self.time_stamp],
                       self.jobs_df.fgrpBG1_Dcnt,
-                      mark.STYLE['square'],
-                      markersize=mark.DCNT_SIZE,
+                      const.STYLE['square'],
+                      markersize=const.DCNT_SIZE,
                       label=p_label,  # fgrpBG1 counts
-                      color=mark.CBLIND_COLOR['vermilion'],
+                      color=const.CBLIND_COLOR['vermilion'],
                       )
 
         self.ax0.set_ylabel('Task base frequency, Hz',
@@ -723,19 +724,19 @@ class PlotTasks(TaskDataFrame):
         p_label = 'gw_O2'
         self.ax0.plot(self.jobs_df[self.time_stamp],
                       self.jobs_df.elapsed_t.where(self.jobs_df[f'is_{p_label}']),
-                      mark.STYLE['triangle_down'],
-                      markersize=mark.SIZE,
+                      const.STYLE['triangle_down'],
+                      markersize=const.SIZE,
                       label=p_label,
-                      color=mark.CBLIND_COLOR['orange'],
+                      color=const.CBLIND_COLOR['orange'],
                       alpha=0.4,
                       picker=True,
                       )
         self.ax1.plot(self.jobs_df[self.time_stamp],
                       self.jobs_df[f'{p_label}_Dcnt'],
-                      mark.STYLE['square'],
-                      markersize=mark.DCNT_SIZE,
+                      const.STYLE['square'],
+                      markersize=const.DCNT_SIZE,
                       label=p_label,
-                      color=mark.CBLIND_COLOR['orange'],
+                      color=const.CBLIND_COLOR['orange'],
                       )
         self.format_legends()
         self.isplotted[p_label] = True
@@ -744,19 +745,19 @@ class PlotTasks(TaskDataFrame):
         p_label = 'gw_O3'
         self.ax0.plot(self.jobs_df[self.time_stamp],
                       self.jobs_df.elapsed_t.where(self.jobs_df[f'is_{p_label}']),
-                      mark.STYLE['thin_diamond'],
-                      markersize=mark.SIZE,
+                      const.STYLE['thin_diamond'],
+                      markersize=const.SIZE,
                       label=p_label,
-                      color=mark.CBLIND_COLOR['sky blue'],
+                      color=const.CBLIND_COLOR['sky blue'],
                       alpha=0.3,
                       picker=True,
                       )
         self.ax1.plot(self.jobs_df[self.time_stamp],
                       self.jobs_df[f'{p_label}_Dcnt'],
-                      mark.STYLE['square'],
-                      markersize=mark.DCNT_SIZE,
+                      const.STYLE['square'],
+                      markersize=const.DCNT_SIZE,
                       label=p_label,
-                      color=mark.CBLIND_COLOR['sky blue'],
+                      color=const.CBLIND_COLOR['sky blue'],
                       )
         self.format_legends()
         self.isplotted[p_label] = True
@@ -765,19 +766,19 @@ class PlotTasks(TaskDataFrame):
         p_label = 'brp4'
         self.ax0.plot(self.jobs_df[self.time_stamp],
                       self.jobs_df.elapsed_t.where(self.jobs_df[f'is_{p_label}']),
-                      mark.STYLE['pentagon'],
-                      markersize=mark.SIZE,
+                      const.STYLE['pentagon'],
+                      markersize=const.SIZE,
                       label=p_label,  # 'BRP4 & BRP4G',
-                      color=mark.CBLIND_COLOR['reddish purple'],
+                      color=const.CBLIND_COLOR['reddish purple'],
                       alpha=0.3,
                       picker=True,
                       )
         self.ax1.plot(self.jobs_df[self.time_stamp],
                       self.jobs_df[f'{p_label}_Dcnt'],
-                      mark.STYLE['square'],
-                      markersize=mark.DCNT_SIZE,
+                      const.STYLE['square'],
+                      markersize=const.DCNT_SIZE,
                       label=p_label,  # 'BRP4 & BRP4G',
-                      color=mark.CBLIND_COLOR['reddish purple'],
+                      color=const.CBLIND_COLOR['reddish purple'],
                       )
         self.format_legends()
         self.isplotted[p_label] = True
@@ -786,19 +787,19 @@ class PlotTasks(TaskDataFrame):
         p_label = 'brp7'
         self.ax0.plot(self.jobs_df[self.time_stamp],
                       self.jobs_df.elapsed_t.where(self.jobs_df[f'is_{p_label}']),
-                      mark.STYLE['diamond'],
-                      markersize=mark.SIZE,
+                      const.STYLE['diamond'],
+                      markersize=const.SIZE,
                       label=p_label,
-                      color=mark.CBLIND_COLOR['black'],
+                      color=const.CBLIND_COLOR['black'],
                       alpha=0.3,
                       picker=True,
                       )
         self.ax1.plot(self.jobs_df[self.time_stamp],
                       self.jobs_df[f'{p_label}_Dcnt'],
-                      mark.STYLE['square'],
-                      markersize=mark.DCNT_SIZE,
+                      const.STYLE['square'],
+                      markersize=const.DCNT_SIZE,
                       label=p_label,
-                      color=mark.CBLIND_COLOR['black'],
+                      color=const.CBLIND_COLOR['black'],
                       )
         self.format_legends()
         self.isplotted[p_label] = True
@@ -828,9 +829,9 @@ class PlotTasks(TaskDataFrame):
 
         self.ax0.plot(self.jobs_df.elapsed_sec.where(self.jobs_df.is_fgrp),
                       self.jobs_df.fgrp_freq,
-                      mark.STYLE['tri_right'],
-                      markersize=mark.SIZE,
-                      color=mark.CBLIND_COLOR['vermilion'],
+                      const.STYLE['tri_right'],
+                      markersize=const.SIZE,
+                      color=const.CBLIND_COLOR['vermilion'],
                       alpha=0.3,
                       picker=True,
                       )
@@ -863,9 +864,9 @@ class PlotTasks(TaskDataFrame):
 
         self.ax0.plot(self.jobs_df.elapsed_sec.where(self.jobs_df.is_gw_O3),
                       self.jobs_df.gwO3AS_freq,
-                      mark.STYLE['triangle_up'],
-                      markersize=mark.SIZE,
-                      color=mark.CBLIND_COLOR['sky blue'],
+                      const.STYLE['triangle_up'],
+                      markersize=const.SIZE,
+                      color=const.CBLIND_COLOR['sky blue'],
                       alpha=0.3,
                       picker=True,
                       )
@@ -887,9 +888,9 @@ class PlotTasks(TaskDataFrame):
         #  click calls this method.
 
         # labels_status key is Project name, value is current check status.
-        labels_status = dict(zip(grp.CHKBOX_LABELS, self.checkbox.get_status()))
+        labels_status = dict(zip(const.CHKBOX_LABELS, self.checkbox.get_status()))
         label_is_checked: bool = labels_status[clicked_label]
-        num_tasks = sum(self.jobs_df[f'is_{grp.CLICKED_PLOT[clicked_label]}'])
+        num_tasks = sum(self.jobs_df[f'is_{const.CLICKED_PLOT[clicked_label]}'])
 
         def display_nodata_msg():
             """
@@ -909,7 +910,7 @@ class PlotTasks(TaskDataFrame):
             #  plotted when a no-data Project label was selected
             #  A weak hack, but it works. The entire method needs work.
             for _l, _s in labels_status.items():
-                if _l in grp.EXCLUSIVE_PLOTS and _s:
+                if _l in const.EXCLUSIVE_PLOTS and _s:
                     self.plot_project[_l]()
 
             self.fig.canvas.draw_idle()
@@ -922,7 +923,7 @@ class PlotTasks(TaskDataFrame):
         #  multiple on_pick_report() calls for the same task info.
 
         # Exclusive plots can be plotted only by themselves.
-        for plot in grp.EXCLUSIVE_PLOTS:
+        for plot in const.EXCLUSIVE_PLOTS:
             if clicked_label == plot and label_is_checked:
                 if num_tasks == 0:
                     display_nodata_msg()
@@ -930,7 +931,7 @@ class PlotTasks(TaskDataFrame):
 
                 # Label was toggled on...
                 # Need to uncheck other label_is_checked project labels.
-                for lbl in grp.CHKBOX_LABELS:
+                for lbl in const.CHKBOX_LABELS:
                     if (lbl != clicked_label and
                             (self.isplotted[lbl] or labels_status[lbl])):
                         self.checkbox.set_active(self.chkbox_label_index[lbl])
@@ -941,7 +942,7 @@ class PlotTasks(TaskDataFrame):
 
         # Inclusive plots can be plotted only with (on top of) each another.
         #  So, first, need to remove any current exclusive plot.
-        if clicked_label in grp.ALL_INCLUSIVE and label_is_checked:
+        if clicked_label in const.ALL_INCLUSIVE and label_is_checked:
             if num_tasks == 0:
                 display_nodata_msg()
                 return
@@ -969,7 +970,7 @@ class PlotTasks(TaskDataFrame):
         Returns: None
 
         """
-        for plot in grp.EXCLUSIVE_PLOTS:
+        for plot in const.EXCLUSIVE_PLOTS:
             if self.isplotted[plot] or labels_status[plot]:
                 self.isplotted[plot] = False
                 self.checkbox.set_active(self.chkbox_label_index[plot])
@@ -987,7 +988,7 @@ class PlotTasks(TaskDataFrame):
 
         """
         for proj_label, status in labels_status.items():
-            if status and proj_label in grp.ALL_INCLUSIVE and not self.isplotted[proj_label]:
+            if status and proj_label in const.ALL_INCLUSIVE and not self.isplotted[proj_label]:
                 self.plot_project[proj_label]()
 
 
