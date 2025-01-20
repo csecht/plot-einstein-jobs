@@ -149,14 +149,14 @@ def joblog_report(dataframe: pd) -> None:
 
     for proj_tup in _results:
         proj, p_total, p_dmean, p_days = proj_tup
-        _report = _report + (f'{proj.ljust(7)} {str(p_total).rjust(11)}'
+        _report +=  (f'{proj.ljust(7)} {str(p_total).rjust(11)}'
                              f' {str(p_dmean).rjust(10)} {str(p_days).rjust(9)}\n')
         p_tally.append(p_total)
 
     # Report sum of known Projects; comparison to 'all' total tasks will show
-    #   whether any Projects are missing from project_groups.PROJ_TO_REPORT.
-    _report = _report + f'\nListed Projects total: {sum(p_tally) - p_tally[0]}\n'
-    _report = _report + ('    If less than "all", then have\n'
+    #   whether any Projects are missing from const.PROJECTS.
+    _report += f'\nListed Projects total: {sum(p_tally) - p_tally[0]}\n'
+    _report += ('    If less than "all", then have\n'
                          '    some unrecognized task names.\n')
 
     view_report(title='Summary of tasks counts in...',
@@ -209,7 +209,7 @@ def on_pick_report(event, dataframe: pd) -> None:
     dt_since = dataframe.loc[event.ind[0]][TIME_STAMP]
     _name = dataframe.loc[event.ind[0]].task_name
     project = ''
-    for proj, regex in project_groups.PROJECT_NAME_REGEX.items():
+    for proj, regex in const.PROJECT_NAME_REGEX.items():
         if search(regex, _name):
             project = proj
 
