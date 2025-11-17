@@ -8,7 +8,7 @@ Constants:
 CFGFILE - the configuration file for setting a custom data file path.
 TESTFILE - Path to the sample data file to test the program's functions.
 """
-# Copyright (C) 2021-2022 C. Echt under GNU General Public License'
+# Copyright (C) 2021-2025 C. Echt under GNU General Public License'
 
 # Standard library imports
 import sys
@@ -17,11 +17,10 @@ from re import match
 
 # Local application imports
 from plot_utils import URL
-from plot_utils.utils import MY_OS
 
 CFGFILE = Path('plot_cfg.txt').resolve()
 TESTFILE = Path('plot_utils/testdata.txt')
-
+MY_OS = sys.platform[:3]
 
 def set_datapath(use_test_file=False) -> Path:
     """
@@ -34,6 +33,9 @@ def set_datapath(use_test_file=False) -> Path:
     :return: pathlib Path object.
     """
 
+    # NOTE: Sometime between boinc version 7.16.6 and 8.2.4 the boinc client
+    #  stopped writing reporting results to job_log_einstein.phys.uwm.edu.txt.
+    #  Therefore, this app is not functioning for recent boinc versions.
     default_datapath = {
         'win': Path('/ProgramData/BOINC/job_log_einstein.phys.uwm.edu.txt'),
         'lin': Path('/var/lib/boinc/job_log_einstein.phys.uwm.edu.txt'),

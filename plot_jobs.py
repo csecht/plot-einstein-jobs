@@ -40,15 +40,14 @@ Requires Python3.7 or later (incl. tkinter (tk/tcl)) and the packages
 Matplotlib, Pandas, and Numpy.
 Developed in Python 3.8-3.9.
 """
-# Copyright (C) 2022-2024 C.S. Echt, under GNU General Public License
+# Copyright (C) 2022-2025 C.S. Echt, under GNU General Public License
 
 # Standard library imports
 from signal import signal, SIGINT
 from sys import platform, exit as sys_exit
 
 # Local application imports
-from plot_utils import (path_check,
-                        vcheck,
+from plot_utils import (vcheck,
                         reports,
                         utils,
                         constants as const)
@@ -205,11 +204,16 @@ class TaskDataFrame:
         regex_fgrp_freq = r'LATeah.*?_(\d+)'
         # regex_gw_hifreq = r'h1.*_(\d+\.\d{2})Hz_'  # Capture highest freq, not base freq.
         regex_gwo3_freq = r'h1_(\d+\.\d+)_.+__O3'  # Capture the base/parent freq.
+        regex_gwo4_freq = r'h1_(\d+\.\d+)_.+__O4'  # Capture the base/parent freq.
+
         self.jobs_df['fgrp_freq'] = (self.jobs_df.task_name
                                      .str.extract(regex_fgrp_freq)
                                      .astype(float64))
-        self.jobs_df['gwO3AS_freq'] = (self.jobs_df.task_name
+        self.jobs_df['gwO3_freq'] = (self.jobs_df.task_name
                                        .str.extract(regex_gwo3_freq)
+                                       .astype(float64))
+        self.jobs_df['gwO4_freq'] = (self.jobs_df.task_name
+                                       .str.extract(regex_gwo4_freq)
                                        .astype(float64))
 
     def add_daily_counts(self):
@@ -222,7 +226,7 @@ class TaskDataFrame:
         ts2use = 'utc_tstamp' if UTC_ARG else 'local_tstamp'
 
         # For clarity, const.PROJECTS names used here need to match those used in
-        #   isplotted (dict), ischecked (dict), and const.CHKBOX_LABELS (tuple).
+        #   isplotted (dict), label_is_checked (dict), and const.CHKBOX_LABELS (tuple).
         # Idea to tally using groupby and transform, source:
         #   https://stackoverflow.com/questions/17709270/
         #      create-column-of-value-counts-in-pandas-dataframe
@@ -249,8 +253,8 @@ class PlotTasks(TaskDataFrame):
     Methods: setup_window, setup_buttons, setup_plot_manager,
     format_legends, toggle_legends, setup_count_axes, setup_freq_axes,
     display_freq_plot_tip, reset_plots, plot_all, plot_fgrp5,
-    plot_fgrpBG1, plot_fgrp_hz, plot_gw_O2, plot_gw_O3, plot_brp4,
-    plot_brp7, plot_fgrpHz_X_t, plot_gwO3Hz_X_t, manage_plots.
+    plot_fgrpBG1, plot_fgrp_hz, plot_gw_O2, plot_gw_O3, plot_gw_O3,
+    plot_brp4, plot_brp7, plot_fgrpHz_X_t, plot_gwO3Hz_X_t, manage_plots.
     """
 
     # https://stackoverflow.com/questions/472000/usage-of-slots
@@ -269,7 +273,7 @@ class PlotTasks(TaskDataFrame):
         self.legend_btn_on = True
         self.time_stamp = 'utc_tstamp' if UTC_ARG else 'local_tstamp'
 
-        # These keys must match plot names in project_groups.CHKBOX_LABELS.
+        # These keys must match plot names in const.CHKBOX_LABELS.
         # Dictionary pairs plot name to plot method.
         self.plot_project = {
             'all': self.plot_all,
@@ -278,9 +282,11 @@ class PlotTasks(TaskDataFrame):
             'fgrp_hz': self.plot_fgrp_hz,
             'gw_O2': self.plot_gw_O2,
             'gw_O3': self.plot_gw_O3,
+            'gw_O4': self.plot_gw_O4,
             'brp4': self.plot_brp4,
             'brp7': self.plot_brp7,
             'gwO3Hz_X_t': self.plot_gwO3Hz_X_t,
+            'gwO4Hz_X_t': self.plot_gwO4Hz_X_t,
             'fgrpHz_X_t': self.plot_fgrpHz_X_t
         }
 
@@ -536,7 +542,8 @@ class PlotTasks(TaskDataFrame):
         """
         Remove bottom axis and show tick labels (b/c when sharex=True,
         tick labels only show on bottom (self.ax1) plot).
-        Called from plot_fgrpHz_X_t() and plot_gwO3Hz_X_t().
+        Called from plot_fgrpHz_X_t(),  plot_gwO3Hz_X_t(), and
+        plot_gwO4Hz_X_t().
 
         :param t_limits: Constrain x-axis of task times from zero to
             maximum value, plus a small buffer.
@@ -762,6 +769,27 @@ class PlotTasks(TaskDataFrame):
         self.format_legends()
         self.isplotted[p_label] = True
 
+    def plot_gw_O4(self):
+        p_label = 'gw_O4'
+        self.ax0.plot(self.jobs_df[self.time_stamp],
+                      self.jobs_df.elapsed_t.where(self.jobs_df[f'is_{p_label}']),
+                      const.STYLE['triangle_up'],
+                      markersize=const.SIZE,
+                      label=p_label,
+                      color=const.CBLIND_COLOR['vermilion'],
+                      alpha=0.3,
+                      picker=True,
+                      )
+        self.ax1.plot(self.jobs_df[self.time_stamp],
+                      self.jobs_df[f'{p_label}_Dcnt'],
+                      const.STYLE['square'],
+                      markersize=const.DCNT_SIZE,
+                      label=p_label,
+                      color=const.CBLIND_COLOR['vermilion'],
+                      )
+        self.format_legends()
+        self.isplotted[p_label] = True
+
     def plot_brp4(self):
         p_label = 'brp4'
         self.ax0.plot(self.jobs_df[self.time_stamp],
@@ -839,9 +867,9 @@ class PlotTasks(TaskDataFrame):
         self.isplotted['fgrpHz_X_t'] = True
 
     def plot_gwO3Hz_X_t(self):
-        num_f = self.jobs_df.gwO3AS_freq.nunique()
-        min_f = self.jobs_df.gwO3AS_freq.min()
-        max_f = self.jobs_df.gwO3AS_freq.max()
+        num_f = self.jobs_df.gwO3_freq.nunique()
+        min_f = self.jobs_df.gwO3_freq.min()
+        max_f = self.jobs_df.gwO3_freq.max()
         min_t = self.jobs_df.elapsed_sec[self.jobs_df.is_gw_O3].min().astype(int64)
         max_t = self.jobs_df.elapsed_sec[self.jobs_df.is_gw_O3].max().astype(int64)
 
@@ -863,7 +891,7 @@ class PlotTasks(TaskDataFrame):
                       )
 
         self.ax0.plot(self.jobs_df.elapsed_sec.where(self.jobs_df.is_gw_O3),
-                      self.jobs_df.gwO3AS_freq,
+                      self.jobs_df.gwO3_freq,
                       const.STYLE['triangle_up'],
                       markersize=const.SIZE,
                       color=const.CBLIND_COLOR['sky blue'],
@@ -872,6 +900,41 @@ class PlotTasks(TaskDataFrame):
                       )
 
         self.isplotted['gw_O3_freq'] = True
+
+    def plot_gwO4Hz_X_t(self):
+        num_f = self.jobs_df.gwO4_freq.nunique()
+        min_f = self.jobs_df.gwO4_freq.min()
+        max_f = self.jobs_df.gwO4_freq.max()
+        min_t = self.jobs_df.elapsed_sec[self.jobs_df.is_gw_O4].min().astype(int64)
+        max_t = self.jobs_df.elapsed_sec[self.jobs_df.is_gw_O4].max().astype(int64)
+
+        # Add a 2% margin to time axis upper limit.
+        self.setup_freq_axes((0, max_t * 1.02))
+
+        self.display_freq_plot_tip()
+
+        # Position text below lower left corner of axes.
+        self.ax0.text(0.0, -0.15,
+                      f'Frequencies, N: {num_f}\n'
+                      f'Hz, min--max: {min_f}--{max_f}\n'
+                      f'Time, min--max: {min_t}--{max_t}',
+                      style='italic',
+                      fontsize=6,
+                      verticalalignment='top',
+                      transform=self.ax0.transAxes,
+                      bbox=self.text_bbox,
+                      )
+
+        self.ax0.plot(self.jobs_df.elapsed_sec.where(self.jobs_df.is_gw_O4),
+                      self.jobs_df.gwO4_freq,
+                      const.STYLE['triangle_up'],
+                      markersize=const.SIZE,
+                      color=const.CBLIND_COLOR['vermilion'],
+                      alpha=0.3,
+                      picker=True,
+                      )
+
+        self.isplotted['gw_O4_freq'] = True
 
     def manage_plots(self, clicked_label: str) -> None:
         """
