@@ -4,6 +4,8 @@
 ![plotlogo](images/plot_eah_logo_blue.png)
 </div>
 
+## NOTE: Sometime between boinc version 7.16.6 and 8.2.4 the boinc client stopped writing reporting results to job_log_einstein.phys.uwm.edu.txt. Therefore, this app will not functioning for recent boinc versions.
+
 ## plot_jobs.py
 
 The Python script, plot_jobs.py, draws plots from data in the Einstein@Home
